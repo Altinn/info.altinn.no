@@ -1,0 +1,73 @@
+/* Temporary, scoped styles for TableBlock responsive table
+ * Scope under .legacy-page to comply with legacy CSS rules.
+ */
+
+.legacy-page {
+  .a-responsiveTable-container {
+    overflow-x: auto;
+  }
+
+  .a-responsiveTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 36px;
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: subpixel-antialiased;
+  }
+
+  .a-responsiveTable thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(1px, 1px, 1px, 1px);
+    border: 0;
+  }
+
+  @media (min-width: 1200px) {
+    .a-responsiveTable thead {
+      position: relative;
+      width: auto;
+      height: auto;
+      overflow: auto;
+      clip: auto;
+    }
+  }
+
+  .a-responsiveTable thead th {
+    color: #000;
+    text-align: left;
+    background-color: #efefef;
+    border-bottom: 1px solid #bcc7cc;
+  }
+
+  @media (min-width: 1200px) {
+    .a-responsiveTable thead th {
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: subpixel-antialiased;
+    }
+  }
+
+  .a-responsiveTable th,
+  .a-responsiveTable td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #bcc7cc;
+    text-align: left;
+  }
+
+  .a-responsiveTable tbody td[data-title]::before {
+    content: attr(data-title);
+    display: block;
+    font-weight: 600;
+    color: #6f6f6f;
+    margin-bottom: 2px;
+  }
+
+  .a-responsiveTable tbody th[scope="row"] {
+    font-weight: 600;
+    background: #f7f7f7;
+  }
+}

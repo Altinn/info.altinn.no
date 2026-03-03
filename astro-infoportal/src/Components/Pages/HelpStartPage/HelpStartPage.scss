@@ -1,0 +1,42 @@
+.help-start-page {
+  &__header {
+    margin-bottom: 2rem;
+  }
+
+  &__header-title {
+    margin-top: 1.5rem;
+
+    @media (min-width: 768px) {
+      margin-top: 3.5rem;
+    }
+  }
+
+  &__drilldown-section {
+    margin-top: 3rem;
+
+    h2 {
+      margin-bottom: 1.5rem;
+    }
+  }
+
+  &__question-section {
+    margin-top: 3rem;
+
+    h2 {
+      margin-bottom: 1.5rem;
+    }
+  }
+
+  &__search-section {
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+
+    h2 {
+      margin-bottom: 1.5rem;
+    }
+  }
+
+  &__help-content-area-heading {
+    margin-bottom: 0.5rem;
+  }
+}

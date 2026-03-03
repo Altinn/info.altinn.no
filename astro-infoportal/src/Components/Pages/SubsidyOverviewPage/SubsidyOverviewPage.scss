@@ -1,0 +1,344 @@
+// SubsidyOverviewPage styles
+// Uses legacy Altinn design system classes
+
+.a-filterGuide {
+  .a-card-filter {
+    margin-bottom: 0;
+  }
+
+  .a-collapseHeader {
+    margin-bottom: 0;
+  }
+
+  .a-collapse-title {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    position: relative;
+    padding: 14px 12px; // slightly tighter header
+  }
+
+  .a-collapse-title--absolute {
+    .a-dropdownArrow {
+      margin-right: 10px;
+      transition: transform 0.3s ease;
+    }
+  }
+
+  .a-collapse-title.collapsed .a-dropdownArrow {
+    transform: rotate(-90deg);
+  }
+
+  .a-dropdownArrow {
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 8px solid #00a0f0;
+    display: inline-block;
+  }
+
+  .a-switch {
+    display: inline-block;
+    margin: 4px 6px;
+  }
+
+  .a-switch-label {
+    display: inline-block;
+    padding: 4px 12px; // slightly smaller chip paddings
+    font-size: 13px;   // reduce label text size
+    background-color: inherit;
+    border: 1px dashed #008FD6; // thinner border
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .a-switch input:checked + .a-switch-label {
+    background-color: #D4E8F7;
+    color: #000;
+    border: 1px solid #008FD6; // thinner when selected too
+  }
+
+  .a-switch-label:hover {
+    background-color: rgba(212, 232, 247, 0.3);
+  }
+
+  .a-switch input:checked + .a-switch-label:hover {
+    background-color: #D4E8F7;
+  }
+
+  // Remove link borders only inside filter cards
+  .a-card-filter {
+    // Make filter section heading a bit smaller
+    .a-collapseHeader.a-h3 {
+      font-size: 18px !important;
+    }
+
+    .a-collapseHeader a,
+    .a-collapse-title {
+      border: none !important;
+      border-bottom: none !important;
+      border-width: 0 !important;
+      background-image: none;
+      box-shadow: none;
+      text-decoration: none;
+    }
+
+    .a-collapseHeader a:hover,
+    .a-collapse-title:hover {
+      border: none !important;
+      border-bottom: none !important;
+      background-image: none;
+      box-shadow: none;
+      text-decoration: none;
+    }
+  }
+
+  // Tighten filter header clickable area and chip sizes (scoped to filters only)
+  .a-card.a-card-filter {
+    .a-collapseHeader a.subsidy-filter-title {
+      padding: 8px 12px !important; // reduce vertical padding on filter titles
+    }
+
+    .a-switch-label {
+      padding: 4px 12px !important; // smaller chip paddings
+      font-size: 13px;              // slightly smaller label text
+      border: 1px dashed #008FD6 !important; // thinner border
+    }
+
+    .a-switch input:checked + .a-switch-label {
+      border: 1px solid #008FD6 !important; // thinner selected state border
+    }
+  }
+
+  // Increase vertical spacing between result items via explicit class
+  article.subsidy-result {
+    margin: 0 0 56px 0 !important;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 0.25em 0.6em;
+    font-size: 75%;
+    font-weight: 700;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 10px;
+  }
+
+  .badge-primary {
+    color: #fff;
+    background-color: #00a0f0;
+  }
+
+  .badge-pill {
+    padding-right: 0.6em;
+    padding-left: 0.6em;
+    border-radius: 10rem;
+  }
+
+  .a-btn {
+    display: inline-block;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    user-select: none;
+    border: 1px solid transparent;
+    padding: 12px 24px;
+    font-size: 16px;
+    line-height: 1.5;
+    border-radius: 4px;
+    transition: all 0.15s ease-in-out;
+    cursor: pointer;
+    background-color: #0062BA;
+    color: #fff;
+  }
+
+  .a-btn:hover {
+    background-color: #004a8f;
+  }
+
+  .a-btn--full {
+    width: 100%;
+  }
+
+  .a-btn-action {
+    background-color: transparent;
+    color: #0062BA;
+    border: 2px solid #0062BA;
+  }
+
+  .a-btn-action:hover {
+    background-color: #0062BA;
+    color: #fff;
+  }
+
+  .a-fullWidthBtn {
+    width: 100%;
+    margin-top: 20px;
+  }
+
+  .a-btn-icon-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ai-plus {
+    margin-right: 8px;
+  }
+
+  .a-loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 0;
+  }
+
+  .loader-ellipsis {
+    display: inline-block;
+    position: relative;
+    width: 80px;
+    height: 80px;
+  }
+
+  .loader-ellipsis div {
+    position: absolute;
+    top: 33px;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: #0062BA;
+    animation-timing-function: cubic-bezier(0, 1, 1, 0);
+  }
+
+  .loader-ellipsis div:nth-child(1) {
+    left: 8px;
+    animation: loader-ellipsis1 0.6s infinite;
+  }
+
+  .loader-ellipsis div:nth-child(2) {
+    left: 8px;
+    animation: loader-ellipsis2 0.6s infinite;
+  }
+
+  .loader-ellipsis div:nth-child(3) {
+    left: 32px;
+    animation: loader-ellipsis2 0.6s infinite;
+  }
+
+  .loader-ellipsis div:nth-child(4) {
+    left: 56px;
+    animation: loader-ellipsis3 0.6s infinite;
+  }
+
+  @keyframes loader-ellipsis1 {
+    0% {
+      transform: scale(0);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  @keyframes loader-ellipsis2 {
+    0% {
+      transform: translate(0, 0);
+    }
+    100% {
+      transform: translate(24px, 0);
+    }
+  }
+
+  @keyframes loader-ellipsis3 {
+    0% {
+      transform: scale(1);
+    }
+    100% {
+      transform: scale(0);
+    }
+  }
+
+  .a-h4 {
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  h2.a-h4.a-borderBottom {
+    padding-bottom: 8px;
+  }
+
+  .no-decoration {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .no-decoration:hover {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .text-sm-center {
+    text-align: center;
+  }
+
+  .pt-1 {
+    padding-top: 0.25rem;
+  }
+
+  .pt-5 {
+    padding-top: 3rem;
+  }
+
+  .mt-3 {
+    margin-top: 1rem;
+  }
+
+  .mt-4 {
+    margin-top: 1.5rem;
+  }
+
+  .mb-2 {
+    margin-bottom: 0.5rem;
+  }
+
+  .d-block {
+    display: block;
+  }
+
+  // Ensure spacing applies even with legacy rules
+  .legacy-page .a-filterGuide article.subsidy-result,
+  article.subsidy-result {
+    margin: 0 0 56px 0 !important; // increased spacing between results
+    display: block;
+  }
+
+  .subsidy-link {
+    font-size: 24px;
+    color: #0062BA;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .subsidy-link:hover {
+    text-decoration: underline;
+    border: none !important;
+  }
+}

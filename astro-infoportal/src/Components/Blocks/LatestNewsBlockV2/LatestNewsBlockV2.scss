@@ -1,0 +1,14 @@
+/* LatestNewsBlockV2 Styles */
+
+/* CSS-only 2-line truncation (replaces jQuery .truncate plugin) */
+.latest-news-intro-truncate {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  /* Fallback for browsers that don't support -webkit-line-clamp */
+  max-height: 3em; /* Approximate 2 lines */
+  line-height: 1.5em;
+}

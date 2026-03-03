@@ -1,0 +1,38 @@
+.link-button {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+  max-width: 400px !important;
+  position: relative !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+
+  svg:first-child {
+    flex-shrink: 0;
+  }
+
+  span {
+    flex: 1;
+    margin-left: 12px !important;
+  }
+
+  svg:last-child {
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  svg:first-child + span {
+    margin-left: 12px !important;
+  }
+
+  > span:first-child {
+    padding-left: calc(24px + 12px) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .link-button {
+    max-width: 100% !important;
+  }
+}

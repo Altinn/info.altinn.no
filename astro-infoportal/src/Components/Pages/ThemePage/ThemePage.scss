@@ -1,0 +1,81 @@
+// ThemePage styles
+// Uses legacy Altinn design system classes from legacy-pages.scss
+
+#content {
+  outline: none;
+}
+
+.theme-container-group {
+  margin-bottom: 40px;
+}
+
+// Headings should use default sizes; links styled per spec
+.legacy-page .a-link-title {
+  color: #000000;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.legacy-page .a-linkArticle h2 a,
+.legacy-page .theme-container-group h2 a {
+  color: #000000;
+  text-decoration: none;
+  cursor: pointer;
+  border-bottom: 2px solid #008FD6; // normal state
+}
+
+.legacy-page .a-link-title:hover {
+  text-decoration: none;
+}
+
+// Hover state for h2 links
+.legacy-page .a-linkArticle h2 a:hover,
+.legacy-page .theme-container-group h2 a:hover {
+  border-bottom-color: #0062BA;
+}
+
+// Body text under article headings
+.legacy-page .a-linkArticle p {
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+// Ensure list item text uses 0.9rem in both article and container groups
+.legacy-page .a-linkArticle .a-list .a-list-rowLink,
+.legacy-page .theme-container-group .a-list .a-list-rowLink {
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+// Apply 0.9rem to h2 headings in both article and container groups
+.legacy-page .a-linkArticle h2,
+.legacy-page .theme-container-group h2 {
+  font-size: 1.3rem;
+  line-height: 1.4;
+}
+
+/* Center the search form horizontally (like SectionPage) */
+.themepage-search {
+  display: flex;
+  justify-content: center;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.themepage-search-inner {
+  width: 100%;
+  max-width: 600px; /* matches SearchForm.scss */
+  margin: 0 auto;
+}
+
+/* Temporary debug label for block names in bottom content area */
+.themepage-bottom-item {
+  margin-bottom: 16px;
+}
+
+.themepage-debug-name {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #6c757d;
+  margin-bottom: 4px;
+}

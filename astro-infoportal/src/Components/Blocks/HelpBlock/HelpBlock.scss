@@ -1,0 +1,30 @@
+.a-helpIconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &--blue {
+    background-color: #0062ba;
+    color: #fff;
+
+    &:hover {
+      background-color: #004d94;
+    }
+
+    &:focus {
+      outline: 2px solid #0062ba;
+      outline-offset: 2px;
+    }
+  }
+
+  .tmp {
+    font-size: 14px;
+    line-height: 1;
+  }
+}

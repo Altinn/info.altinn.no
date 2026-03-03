@@ -1,0 +1,90 @@
+// Banner component inspired by @altinn/altinn-components Banner
+
+.banner-block {
+  background-color: var(--ds-color-base-default);
+  color: var(--ds-color-base-contrast-default);
+  margin-top: 0;
+  padding: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  column-gap: 0.25rem;
+  min-height: 50px;
+
+  // Color themes
+  &[data-color="accent"] {
+    background-color: #232C3C;
+    color: white;
+  }
+
+  &[data-color="success"] {
+    background-color: rgb(6, 135, 24);
+    color: white;
+  }
+
+  &[data-color="warning"] {
+    background-color: rgb(234, 155, 27);
+    color: black;
+  }
+
+  &[data-color="danger"] {
+    background-color: rgb(192, 27, 27);
+    color: white;
+  }
+
+  &[data-color="info"] {
+    background-color: rgb(10, 113, 192);
+    color: white;
+  }
+
+  &__content {
+    margin: 0;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.5rem;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    // Remove extra spacing from RichTextArea paragraphs
+    p:first-child {
+      margin-top: 0;
+    }
+
+    p:last-child {
+      margin-bottom: 0;
+    }
+
+    // Badge white background
+    .altinn-badge {
+      background-color: #FFFFFF !important;
+    }
+  }
+
+  // Mobile-specific styles
+  @media (max-width: 768px) {
+    &__content {
+      padding: 0.75rem;
+      font-size: 1rem;
+    }
+  }
+
+  // Fix: Override link colors to use contrast color
+  // Typography component uses var(--ds-color-base-default) which inherits
+  // the banner's theme color, making links invisible on colored backgrounds
+  a {
+    color: var(--ds-color-base-contrast-default) !important;
+    text-decoration: underline;
+    opacity: 1;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
+  &__close {
+    flex-shrink: 0;
+  }
+}

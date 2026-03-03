@@ -1,0 +1,28 @@
+body {
+  margin: 0;
+}
+
+/* Sidebar selected item styling */
+.selected {
+  font-weight: bold;
+}
+
+/* Constrain content width when no sidebar is present */
+.layout-content-constrained {
+  box-sizing: border-box;
+  margin: 0 auto;
+  max-width: 730px;
+  padding: 0 16px;
+  width: 100%;
+
+  &.layout-content-constrained--sidebar {
+    max-width: none;
+    padding-right: max(16px, calc(100% - 746px));
+  }
+}
+
+.site-layout__skip-link {
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.25;
+}

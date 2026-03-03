@@ -1,0 +1,61 @@
+.rich-text {
+  margin: 0;
+  padding: 0;
+
+  p {
+    margin-bottom: 1.5rem;
+  }
+
+  h2,
+  h3 {
+    position: relative;
+
+    .heading-anchor {
+      position: absolute;
+      left: -1.25em;
+      top: 0.15em;
+      display: inline-flex;
+      align-items: center;
+      opacity: 0;
+      color: #000;
+      text-decoration: none;
+      transition: opacity 120ms ease-in-out;
+
+      .heading-anchor__icon {
+        font-size: 0.95em;
+        line-height: 1;
+      }
+    }
+
+    /* Keep anchor color black regardless of state */
+    .heading-anchor,
+    .heading-anchor:link,
+    .heading-anchor:visited,
+    .heading-anchor:hover,
+    .heading-anchor:focus {
+      color: #000;
+    }
+
+    /* Only reveal on heading hover or anchor focus/hover */
+    &:hover .heading-anchor,
+    .heading-anchor:hover,
+    .heading-anchor:focus,
+    .heading-anchor:focus-visible {
+      opacity: 1;
+    }
+
+    .heading-anchor [data-heading-icon] {
+      display: inline-flex;
+      width: 1em;
+      height: 1em;
+      line-height: 1;
+    }
+  }
+}
+
+// .content-area .rich-text > *:first-child {
+// 	margin-top: 0 !important;
+// }
+// .content-area .rich-text > *:last-child {
+// 	margin-bottom: 0 !important;
+// }

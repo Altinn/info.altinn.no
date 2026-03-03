@@ -1,0 +1,28 @@
+.display-option--full {
+  width: 100%;
+  max-width: 100%;
+}
+
+.display-option--wide {
+  width: 66.666%;
+  max-width: 900px;
+}
+
+.display-option--half {
+  width: calc(50% - 0.75rem);
+  max-width: 600px;
+}
+
+.display-option--narrow {
+  width: 33.333%;
+  max-width: 400px;
+}
+
+@media (max-width: 900px) {
+  .display-option--wide,
+  .display-option--half,
+  .display-option--narrow {
+    width: 100%;
+    max-width: 100%;
+  }
+}

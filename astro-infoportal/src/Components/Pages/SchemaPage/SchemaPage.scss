@@ -1,0 +1,23 @@
+.schema-page {
+  &__button {
+    display: inline-flex;
+    margin-bottom: var(--ds-spacing-12);
+  }
+
+  .providers-inline {
+    margin-bottom: 0;
+  }
+}
+
+.metadata-text {
+  color: #272f7a;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.provider {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}

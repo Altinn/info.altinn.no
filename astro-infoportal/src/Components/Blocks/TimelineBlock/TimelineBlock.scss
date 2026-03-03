@@ -1,0 +1,25 @@
+.timeline-block {
+  // 8px spacing for content items within fragments
+  > [data-spacing] {
+    --dsc-spacing: 0.5rem;
+  }
+
+  // 16px gap between fragments - add margin-bottom to TimelineSection
+  // (last element in each fragment, creates space before next header)
+  [class*="_section_"]:not(:last-child) {
+    margin-bottom: 1rem;
+  }
+
+  .timeline-header-custom {
+    [class*="_avatar_"][data-shape="circle"] {
+      background-color: #E4CCFF !important;
+    }
+  }
+
+  // Mobile: Full width content, keep icon visible
+  @media (max-width: 767px) {
+    div[class*="_content_"] {
+      width: 100%;
+    }
+  }
+}

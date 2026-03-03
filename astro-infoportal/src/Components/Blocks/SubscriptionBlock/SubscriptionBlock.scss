@@ -1,0 +1,213 @@
+.a-card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  // box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  &.a-cardImage {
+    display: flex;
+    flex-direction: column;
+
+    > img {
+      width: 100%;
+      height: auto;
+      max-height: 250px;
+      object-fit: cover;
+    }
+
+    .a-cardImage-text {
+      padding: 2rem;
+
+      h2 {
+        margin: 0 0 1rem;
+        font-size: 1.5rem;
+        font-weight: 600;
+      }
+
+      > p {
+        margin-bottom: 1.5rem;
+        font-size: 1rem;
+        line-height: 1.6;
+      }
+
+      form {
+        .row {
+          display: flex;
+          margin: 0 -15px;
+
+          > div {
+            padding: 0 15px;
+          }
+
+          .col-8 {
+            flex: 0 0 66.666667%;
+            max-width: 66.666667%;
+          }
+
+          .col-4 {
+            flex: 0 0 33.333333%;
+            max-width: 33.333333%;
+          }
+        }
+
+        .a-form-group {
+          margin-bottom: 1rem;
+
+          .a-form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+
+            &.sr-only {
+              position: absolute;
+              width: 1px;
+              height: 1px;
+              padding: 0;
+              margin: -1px;
+              overflow: hidden;
+              clip: rect(0, 0, 0, 0);
+              white-space: nowrap;
+              border: 0;
+            }
+          }
+
+          .a-form-group-items {
+            position: relative;
+            display: flex;
+            align-items: center;
+
+            &.input-group {
+              .input-group-prepend {
+                margin-right: -1px;
+                display: flex;
+                align-items: center;
+                padding: 0.5rem 0.75rem;
+                background-color: #f5f5f5;
+                border: 1px solid #ccc;
+                border-right: 0;
+                border-radius: 0.25rem 0 0 0.25rem;
+
+                &.d-none {
+                  display: none;
+
+                  &.d-md-block {
+                    @media (min-width: 768px) {
+                      display: flex;
+                    }
+                  }
+                }
+
+                .ai {
+                  font-size: 1.25rem;
+                  color: #666;
+                }
+              }
+            }
+
+            .form-control {
+              width: 100%;
+              padding: 0.5rem 0.75rem;
+              font-size: 1rem;
+              line-height: 1.5;
+              color: #495057;
+              background-color: #fff;
+              border: 1px solid #ccc;
+              border-radius: 0.25rem;
+              transition: border-color 0.15s ease-in-out;
+
+              &.a-hasIcon {
+                border-radius: 0 0.25rem 0.25rem 0;
+              }
+
+              &:focus {
+                border-color: #0062ba;
+                outline: 0;
+                box-shadow: 0 0 0 0.2rem rgba(0, 98, 186, 0.25);
+              }
+
+              &::placeholder {
+                color: #999;
+              }
+            }
+          }
+
+          .a-message {
+            margin-top: 0.25rem;
+            font-size: 0.875rem;
+
+            &.a-message-error {
+              color: #d32f2f;
+            }
+          }
+        }
+
+        .a-btn {
+          display: inline-block;
+          padding: 0.5rem 1.5rem;
+          font-size: 1rem;
+          font-weight: 600;
+          text-align: center;
+          white-space: nowrap;
+          vertical-align: middle;
+          cursor: pointer;
+          border: 1px solid transparent;
+          border-radius: 0.25rem;
+          background-color: #0062ba;
+          color: #fff;
+          transition: all 0.15s ease-in-out;
+
+          &:hover:not(.disabled) {
+            background-color: #004d94;
+          }
+
+          &.disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+          }
+
+          &:focus {
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 98, 186, 0.25);
+          }
+        }
+
+        .a-fontSizeXS {
+          font-size: 0.75rem;
+          margin-top: 0.5rem;
+
+          a {
+            color: #0062ba;
+            text-decoration: underline;
+            cursor: pointer;
+
+            &:hover {
+              color: #004d94;
+            }
+          }
+        }
+      }
+    }
+
+    @media (min-width: 768px) {
+      flex-direction: row;
+
+      > img {
+        width: 40%;
+        max-height: none;
+      }
+
+      .a-cardImage-text {
+        flex: 1;
+      }
+    }
+  }
+}
+
+.mt-4 {
+  margin-top: 1.5rem;
+}
+
+.pb-3 {
+  padding-bottom: 1rem;
+}

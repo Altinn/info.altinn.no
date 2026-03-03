@@ -1,0 +1,23 @@
+.btn-modal__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-modal__icon {
+  vertical-align: middle;
+}
+
+.btn-modal__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.btn-modal__providers {
+  display: flex;
+  flex-direction: column;
+  margin-top: 0;
+  gap: 0.25rem;
+}

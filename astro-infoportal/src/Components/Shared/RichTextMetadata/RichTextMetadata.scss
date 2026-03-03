@@ -1,0 +1,35 @@
+.rich-text-metadata {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0; // Reset dl default margin
+}
+
+.rich-text-metadata__item {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: 0.25em;
+  align-items: start;
+  font-size: 0.875rem;
+  color: #272F7A;
+}
+
+.rich-text-metadata__icon {
+  // Align icon visually with the first line of text
+  margin-top: 0.2em;
+  flex-shrink: 0;
+}
+
+.rich-text-metadata__label {
+  white-space: nowrap;
+}
+
+.rich-text-metadata__content {
+  margin: 0; // Reset dd default margin
+
+  // Content flows naturally, multi-line stays in this column
+  p {
+    display: inline;
+    margin: 0;
+  }
+}

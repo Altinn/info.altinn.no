@@ -1,0 +1,71 @@
+// SearchForm styles
+// Uses legacy Altinn design system classes from legacy-pages.scss
+
+/* Center the search form when placed outside grid, and match legacy look */
+.legacy-page {
+  .a-form-group.a-form-group-large {
+    /* Center horizontally and constrain width */
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Ensure expected borders/colors from legacy */
+  .form-group .form-control {
+    border: 2px solid #008FD6;
+    background-color: #FFFFFF;
+  }
+
+  /* Remove focus outlines/rings and border changes on focus */
+  .form-group .form-control:focus {
+    outline: none;
+    box-shadow: none;
+    border-color: #008FD6; /* keep consistent, no change */
+  }
+
+  /* Keep seamless join between input and button */
+  .a-form-group .input-group .form-control.a-hasButton {
+    border-right: none;
+  }
+
+  .input-group-append .btn.btn-secondary {
+    position: relative;
+    border: 2px solid #008FD6;
+    border-left: none;
+    // background-color: #008FD6;
+    color: #FFFFFF;
+  }
+
+  .input-group-append .btn.btn-secondary:hover,
+  .input-group-append .btn.btn-secondary:focus {
+    border-color: #0079b5;
+    box-shadow: none;
+    outline: none;
+  }
+
+  /* Ensure append container behaves like legacy */
+  .a-form-group .input-group-append,
+  .form-group .input-group-append {
+    display: flex;
+    align-items: stretch;
+    margin-left: 0;
+  }
+
+  /* Match large form-group button sizing */
+  .a-form-group.a-form-group-large .input-group-append .btn,
+  .form-group.a-form-group-large .input-group-append .btn {
+    min-height: 52px;
+    padding: 10px 14px;
+    font-size: 18px;
+    line-height: 1.4;
+  }
+
+  /* Reduce input size to match reference */
+  .a-form-group.a-form-group-large .form-control,
+  .form-group.a-form-group-large .form-control {
+    min-height: 52px;
+    padding: 8px 16px;
+    font-size: 18px;
+    line-height: 1.4;
+  }
+}

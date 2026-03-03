@@ -1,0 +1,80 @@
+// SectionPage styles
+// Uses legacy Altinn design system classes from legacy-pages.scss
+
+#content {
+  outline: none;
+}
+
+.a-jumbotron-light {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Prevent layout shift when hovering the featured link */
+.a-jumbotron a.a-linkFeatured.a-link-large {
+  border-bottom: 2px solid transparent; /* reserve space so hover doesn't push content */
+}
+.a-jumbotron a.a-linkFeatured.a-link-large:hover,
+.a-jumbotron a.a-linkFeatured.a-link-large:focus {
+  border-bottom-color: #022F51; /* keep the legacy hover look without shifting */
+}
+
+/* Center the search form horizontally without Bootstrap */
+.sectionpage-search {
+  display: flex;
+  justify-content: center;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.sectionpage-search-inner {
+  width: 100%;
+  max-width: 600px; /* matches SearchForm.scss */
+  margin: 0 auto;
+}
+
+/* Constrain legacy iconText variants in bottom area to container width */
+.sectionpage-bottomarea {
+  /* Prevent negative margin/full-bleed variants from overflowing */
+  .a-iconText-minusBothMargins {
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .a-article-right-off {
+    float: none;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .a-iconText {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Prefer neutral link styling only for featured links inside iconText-based LinkBlocks */
+  .a-iconText a.a-linkFeatured,
+  .a-iconText a.a-link-large {
+    font-family: inherit;
+    font-weight: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+    display: inline;
+    align-items: normal;
+    border: 0;
+    text-decoration: underline;
+  }
+
+  .a-iconText a.a-linkFeatured:hover,
+  .a-iconText a.a-linkFeatured:focus,
+  .a-iconText a.a-link-large:hover,
+  .a-iconText a.a-link-large:focus {
+    text-decoration: underline;
+    border: 0;
+    color: inherit;
+  }
+}

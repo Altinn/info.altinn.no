@@ -1,0 +1,67 @@
+.schema-overview {
+  &__recommended {
+    row-gap: 0;
+  }
+
+  &__grid {
+    margin-bottom: 2rem;
+  }
+
+  &__link {
+    display: block;
+    padding: 1rem 0;
+    color: inherit;
+    text-decoration: none;
+
+    &:hover h2 {
+      text-decoration: underline;
+    }
+  }
+
+  &__providers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding-left: 0.5em;
+    padding-bottom: 1em;
+  }
+
+  &__provider-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  &__provider-letter {
+    margin-bottom: var(--ds-size-1) !important;
+  }
+
+  &__tab {
+    gap: 0.5rem;
+    padding: var(--ds-size-3) var(--ds-size-4);
+    width: 100%;
+    font-size: var(--ds-font-size-3);
+    @media (min-width: 768px) {
+      width: auto;
+      font-size: var(--ds-font-size-body);
+      padding: var(--ds-size-4) var(--ds-size-5);
+    }
+  }
+
+  &__category-label {
+    font-size: 1rem !important;
+    font-weight: 500;
+    line-height: 1.25;
+  }
+
+  .ds-tabs [role="tabpanel"],
+  .ds-tabs u-tabpanel {
+    padding: var(--ds-size-4) 0 var(--ds-size-4) 0;
+  }
+
+  &__provider-item {
+    font-size: 1rem !important;
+    font-weight: 500;
+    line-height: 1.25;
+  }
+}

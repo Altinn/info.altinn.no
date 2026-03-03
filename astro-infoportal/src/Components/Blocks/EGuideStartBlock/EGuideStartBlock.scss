@@ -1,0 +1,39 @@
+// EGuideStartBlock styles
+// Uses legacy Altinn design system classes
+
+// Card styles are defined in legacy-pages.scss
+// Match AdvisorStartBlock layout (image left, text right, centered)
+
+.eguide-start-block {
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.eguide-start-block .a-cardImage {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.eguide-start-block .a-cardImage img {
+  width: 180px;
+  height: 180px;
+  object-fit: cover;
+  flex: 0 0 auto;
+  display: block;
+}
+
+.eguide-start-block .a-cardImage-text {
+  flex: 1 1 auto;
+}
+
+@media (max-width: 767px) {
+  .eguide-start-block .a-cardImage {
+    flex-direction: column;
+  }
+  .eguide-start-block .a-cardImage img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+}

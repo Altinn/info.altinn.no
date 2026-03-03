@@ -1,0 +1,102 @@
+// DoYouNeedHelpBlock styles
+// Uses legacy Altinn design system classes
+// Card/link/icon styles are defined in src/styles/legacy-pages.scss
+
+.do-you-need-help-block {
+  max-width: 600px; // slightly tighter
+  margin: 0 auto;   // center horizontally
+}
+
+.a-cardImage {
+  h2 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    font-size: 24px;
+  }
+}
+
+// Ensure image sizing inside legacy card
+// Layout: image left, text right
+.do-you-need-help-block > .a-cardImage {
+  display: flex;
+  align-items: center; // vertical alignment to match reference
+  gap: 24px;
+}
+
+// Scoped image sizing for this block
+.do-you-need-help-block > .a-cardImage .a-card-media img {
+  width: 180px;
+  height: 180px;
+  object-fit: cover;
+  flex: 0 0 auto;
+  display: block;
+}
+
+.do-you-need-help-block > .a-cardImage .a-cardImage-text {
+  flex: 1 1 auto;
+}
+
+@media (max-width: 767px) {
+  .do-you-need-help-block > .a-cardImage {
+    flex-direction: column;
+  }
+  .do-you-need-help-block > .a-cardImage .a-card-media img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+}
+
+// Contact links arranged inline with controlled spacing
+.do-you-need-help-block .a-cardImage-text .contact-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px; // row gap, column gap
+  margin-top: 8px;
+  align-items: center;
+}
+
+.do-you-need-help-block .a-cardImage-text .contact-links .a-linkIcon {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.do-you-need-help-block__linkbutton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  min-height: auto;
+  min-width: 0;
+  margin: 0;
+  margin-left: 8px;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+    box-shadow: none;
+    border-radius: 2px;
+  }
+}
+
+// Scope legacy icon text overrides so they don't leak into modal
+.do-you-need-help-block .a-iconText .a-iconText-text {
+  h1,
+  .a-iconText-text-small,
+  .a-iconText-text-large {
+    margin: 0;
+    font-size: inherit;
+    line-height: inherit;
+  }
+}

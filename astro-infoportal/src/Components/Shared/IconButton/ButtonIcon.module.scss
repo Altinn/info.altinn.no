@@ -1,0 +1,37 @@
+.wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1em;
+}
+
+.icon[data-size="xs"] {
+  font-size: 0.875rem;
+}
+
+.icon[data-size="sm"] {
+  font-size: 1rem;
+}
+
+.icon[data-size="md"] {
+  font-size: 1.125rem;
+}
+
+.icon[data-size="lg"] {
+  font-size: 1.5rem;
+}
+
+.icon svg,
+.icon img {
+  display: block;
+  width: 1.5em;
+  height: 1.5em;
+}
+
+.avatar {
+  font-size: 1.5em;
+}
+
+.avatarGroup {
+  font-size: 1.125em;
+}

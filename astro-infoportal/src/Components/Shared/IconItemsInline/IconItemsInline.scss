@@ -1,0 +1,23 @@
+.icon-items-inline {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.25rem;
+}
+
+.icon-items-inline a {
+  color: inherit;
+  text-decoration: none;
+  font: inherit;
+}
+
+.icon-items-inline a:visited {
+  color: inherit;
+}
+
+.icon-items-inline a:hover,
+.icon-items-inline a:focus-visible {
+  text-decoration: underline;
+  outline: none;
+}

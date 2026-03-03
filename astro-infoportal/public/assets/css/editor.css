@@ -1,0 +1,19 @@
+﻿@font-face {
+    font-family: DIN-light;
+    src: url(../font/dinweb-light.woff2) format('woff2'), url(../font/dinweb-light.woff) format('woff')
+}
+
+@font-face {
+    font-family: DIN-reg;
+    src: url(../font/dinweb.woff2) format('woff2'), url(../font/dinweb.woff) format('woff')
+}
+
+@font-face {
+    font-family: DIN-medium;
+    src: url(../font/dinweb-medium.woff2) format('woff2'), url(../font/dinweb-medium.woff) format('woff')
+}
+
+@font-face {
+    font-family: DIN-bold;
+    src: url(../font/dinweb-bold.woff2) format('woff2'), url(../font/dinweb-bold.woff) format('woff')
+}

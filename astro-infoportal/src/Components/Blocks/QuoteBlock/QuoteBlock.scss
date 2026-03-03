@@ -1,0 +1,42 @@
+.a-blockquote {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  border-left: 4px solid #0062ba;
+  background-color: #f4f8fb;
+  font-style: italic;
+
+  p {
+    margin: 0 0 1rem;
+    font-size: 1.125rem;
+    line-height: 1.6;
+  }
+
+  .a-citation {
+    display: block;
+    margin-top: 1rem;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: #333;
+
+    &::before {
+      content: "— ";
+    }
+  }
+
+  &.a-blockquote-right {
+    float: right;
+    max-width: 40%;
+    margin-left: 2rem;
+
+    @media (max-width: 767px) {
+      float: none;
+      max-width: 100%;
+      margin-left: 0;
+    }
+  }
+
+  &.a-article-right-off {
+    // Additional styling if needed
+  }
+}

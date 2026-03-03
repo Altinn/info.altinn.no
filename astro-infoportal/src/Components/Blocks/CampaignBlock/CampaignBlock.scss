@@ -1,0 +1,90 @@
+// Temporary Campaign Block Styling - To be replaced with final design
+.campaign-block {
+  margin: 2rem 0;
+  padding: 0 1rem;
+
+  &__card {
+    background: linear-gradient(135deg, #0062ba 0%, #004d94 100%);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  &__content {
+    padding: 2rem;
+    color: #fff;
+  }
+
+  &__description {
+    margin-bottom: 1.5rem;
+    font-size: 1.125rem;
+    line-height: 1.6;
+
+    // Override rich text colors for dark background
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      color: #fff;
+    }
+
+    a {
+      color: #fff;
+      text-decoration: underline;
+    }
+  }
+
+  &__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background-color: #fff;
+    color: #0062ba;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: #f5f5f5;
+      color: #004d94;
+      gap: 0.75rem;
+    }
+
+    .ai {
+      font-size: 1.25rem;
+      transition: transform 0.2s ease;
+    }
+
+    &:hover .ai {
+      transform: translateX(4px);
+    }
+  }
+
+  @media (max-width: 767px) {
+    &__content {
+      padding: 1.5rem;
+    }
+
+    &__description {
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    &__cta {
+      padding: 0.625rem 1.25rem;
+      font-size: 0.9375rem;
+    }
+  }
+}

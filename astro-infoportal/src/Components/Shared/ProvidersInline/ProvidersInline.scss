@@ -1,0 +1,41 @@
+.providers-inline {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 0.25rem;
+  padding: 0;
+
+  &--small {
+    gap: 0.5rem;
+    margin-top: -0.5rem;
+  }
+  &__and-more {
+    font-size: 0.875rem;
+    color: #545c7a;
+    padding: 0.1875rem 0;
+    line-height: 1.125rem;
+  }
+
+  &__strong {
+    color: black;
+    font-weight: 500;
+    font-size: 0.875rem;
+  }
+}
+
+.providers-inline a {
+  color: inherit;
+  text-decoration: none;
+  font: inherit;
+}
+
+.providers-inline a:visited {
+  color: inherit;
+}
+
+.providers-inline a:hover,
+.providers-inline a:focus-visible {
+  text-decoration: underline;
+  outline: none;
+}

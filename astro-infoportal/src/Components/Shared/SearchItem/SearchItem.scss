@@ -1,0 +1,29 @@
+.search-item {
+  &__item {
+    padding-bottom: 0.5rem;
+    padding-top: 0.5rem;
+    height: 100%;
+
+    a {
+      color: black !important;
+      display: flex;
+      flex-direction: column;
+      gap: 0rem;
+      text-decoration: none;
+      &:hover .search-item__link {
+        text-decoration: underline !important;
+      }
+      &:focus {
+        outline: 3px solid black;
+        outline-offset: 8px;
+        border-radius: 2px;
+      }
+      .search-item__link {
+        font-weight: 500;
+        font-size: 1.2rem !important;
+        line-height: 1.3;
+        color: black !important;
+      }
+    }
+  }
+}
