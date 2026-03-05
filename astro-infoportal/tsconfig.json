@@ -5,6 +5,16 @@
     "baseUrl": "./src",
     "paths": {
       "/*": ["*"],
+      "@components/*": ["components/*"],
+      "@layouts/*": ["layouts/*"],
+      "@pages/*": ["pages/*"],
+      "@styles/*": ["styles/*"],
+      "@utils/*": ["utils/*"],
+      "@api/*": ["api/*"],
+      "@constants/*": ["constants/*"],
+      "@services/*": ["services/*"],
+      "@models/*": ["models/*"],
+      "@transformers/*": ["transformers/*"]
     },
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "target": "ESNext",
