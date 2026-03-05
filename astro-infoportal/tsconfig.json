@@ -1,22 +1,53 @@
 {
   "extends": "astro/tsconfigs/strict",
-  "include": [".astro/types.d.ts", "src", "src/declaration.d.ts", "**/*"],
+  "include": [
+    ".astro/types.d.ts",
+    "src",
+    "src/declaration.d.ts",
+    "**/*"
+  ],
   "compilerOptions": {
     "baseUrl": "./src",
     "paths": {
-      "/*": ["*"],
-      "@components/*": ["components/*"],
-      "@layouts/*": ["layouts/*"],
-      "@pages/*": ["pages/*"],
-      "@styles/*": ["styles/*"],
-      "@utils/*": ["utils/*"],
-      "@api/*": ["api/*"],
-      "@constants/*": ["constants/*"],
-      "@services/*": ["services/*"],
-      "@models/*": ["models/*"],
-      "@transformers/*": ["transformers/*"]
+      "/*": [
+        "*"
+      ],
+      "@components/*": [
+        "components/*"
+      ],
+      "@layouts/*": [
+        "layouts/*"
+      ],
+      "@pages/*": [
+        "pages/*"
+      ],
+      "@styles/*": [
+        "styles/*"
+      ],
+      "@utils/*": [
+        "utils/*"
+      ],
+      "@api/*": [
+        "api/*"
+      ],
+      "@constants/*": [
+        "constants/*"
+      ],
+      "@services/*": [
+        "services/*"
+      ],
+      "@models/*": [
+        "models/*"
+      ],
+      "@transformers/*": [
+        "transformers/*"
+      ]
     },
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
     "target": "ESNext",
     "useDefineForClassFields": true,
     "allowJs": false,
@@ -29,6 +60,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
-    "forceConsistentCasingInFileNames": false
+    "forceConsistentCasingInFileNames": false,
+    "jsxImportSource": "react"
   }
 }
