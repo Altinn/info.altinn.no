@@ -416,3 +416,6 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+## Optimizely frotend which will be removed after migration to Astro
+Frontend
