@@ -1,21 +1,21 @@
 {
   "files": {
-    "runtime.js": "/assets/generated/runtime.js",
     "vendor.css": "/assets/generated/vendor.css",
     "vendor.js": "/assets/generated/vendor.js",
     "client.css": "/assets/generated/client.css",
     "client.js": "/assets/generated/client.js",
-    "runtime.js.map": "/assets/generated/runtime.js.map",
+    "runtime.js": "/assets/generated/runtime.js",
     "vendor.js.map": "/assets/generated/vendor.js.map",
     "vendor.css.map": "/assets/generated/vendor.css.map",
     "client.css.map": "/assets/generated/client.css.map",
-    "client.js.map": "/assets/generated/client.js.map"
+    "client.js.map": "/assets/generated/client.js.map",
+    "runtime.js.map": "/assets/generated/runtime.js.map"
   },
   "entrypoints": [
-    "/assets/generated/runtime.js",
     "/assets/generated/vendor.css",
     "/assets/generated/vendor.js",
     "/assets/generated/client.css",
-    "/assets/generated/client.js"
+    "/assets/generated/client.js",
+    "/assets/generated/runtime.js"
   ]
 }
