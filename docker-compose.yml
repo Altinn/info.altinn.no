@@ -1,0 +1,19 @@
+services:
+  umbraco:
+    build:
+      context: .
+      dockerfile: umbraco-infoportal/Dockerfile
+    container_name: umbraco-infoportal
+    restart: unless-stopped
+#    environment:
+    ports:
+      - "8080:8080"
+    volumes:
+      - umbraco_logs:/app/umbraco/Logs
+      - umbraco_data:/app/umbraco/Data
+      - umbraco_media:/app/wwwroot/media
+      
+volumes:
+  umbraco_logs:
+  umbraco_data:
+  umbraco_media:
