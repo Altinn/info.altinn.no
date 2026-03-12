@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: umbraco
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: umbraco
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: umbraco
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+        linkerd.io/inject: enabled
+    spec:
+      serviceAccountName: umbraco
+      containers:
+        - name: umbraco
+          image: umbraco:1
+          resources:
+            requests:
+              cpu: "1"
+              memory: 2Gi
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - name: umbraco-data
+              mountPath: /app/umbraco/Data
+            - name: umbraco-media
+              mountPath: /app/umbraco/wwwroot/media
+            - name: umbraco-logs
+              mountPath: /app/umbraco/Logs
+      volumes:
+        - name: umbraco-data
+          persistentVolumeClaim:
+            claimName: umbraco-data
+        - name: umbraco-media
+          persistentVolumeClaim:
+            claimName: umbraco-media
+        - name: umbraco-logs
+          emptyDir: {}
