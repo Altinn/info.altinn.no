@@ -6,7 +6,7 @@ import { JSONTransformer } from '@transformers/JSONTransformer';
 
 const path = Astro.url.pathname;
 
-let umbracoPageData;
+let umbracoPageData = "";
 try {
   umbracoPageData = await fetchUmbracoContent(path);
 } catch (e) {
