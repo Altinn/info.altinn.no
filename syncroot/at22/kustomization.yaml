@@ -5,7 +5,8 @@ resources:
 
 images:
 - name: umbraco
-  newName: my-registry/umbraco
+  newName: ghcr.io/altinn/umbraco
+  newTag: sha256-53e9d3343a72592de31395a2e11d28b1db563459bda299f9c81bef05947379bf
 
 patches:
   - target:
