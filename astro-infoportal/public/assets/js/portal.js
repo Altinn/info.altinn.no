@@ -1085,9 +1085,16 @@ AltinnQuickhelp = {
       .find('.a-stickyHelp-content-target').attr('data-url')
     );
     $('body').on('click', '.a-stickyHelp-open', function() {
-      if (!$('.a-js-stickyHelpFrame').attr('src')) {
-        $('.a-js-stickyHelpFrame')
-          .attr('src', $('.a-js-stickyHelpFrame').attr('data-src'));
+      var $frame = $('.a-js-stickyHelpFrame');
+      if (!$frame.attr('src')) {
+        var dataSrc = $frame.attr('data-src');
+        if (typeof dataSrc === 'string') {
+          var trimmedSrc = dataSrc.trim();
+          // Allow only http, https or protocol-relative URLs
+          if (/^(https?:)?\/\//i.test(trimmedSrc)) {
+            $frame.attr('src', trimmedSrc);
+          }
+        }
       }
     });
     if ($('.quickhelpPage').find('.a-text').length !== 0) {
