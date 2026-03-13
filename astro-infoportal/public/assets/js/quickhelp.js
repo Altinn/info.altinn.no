@@ -550,6 +550,27 @@ AltinnQuickhelp = {
     }
     previous.find('a').removeAttr('tabindex');
   },
+  // Basic URL validation to avoid using dangerous schemes when setting iframe src
+  _isSafeQuickhelpUrl: function(url) {
+    if (!url || typeof url !== 'string') {
+      return false;
+    }
+    // Trim whitespace
+    var trimmed = $.trim(url);
+    // Disallow javascript: and other potentially dangerous schemes
+    var lower = trimmed.toLowerCase();
+    if (lower.indexOf('javascript:') === 0 || lower.indexOf('data:') === 0) {
+      return false;
+    }
+    // Allow relative URLs and same-origin absolute URLs; block others conservatively
+    try {
+      var parsed = new URL(trimmed, window.location.href);
+      return parsed.origin === window.location.origin;
+    } catch (e) {
+      // If URL parsing fails, treat as unsafe
+      return false;
+    }
+  },
   init: function() {
     var that = this; that.listeners('#a-stickyHelp');
     $('body').on('click', '[data-toggle="quickhelp"]', function() {
@@ -574,8 +595,11 @@ AltinnQuickhelp = {
     );
     $('body').on('click', '.a-stickyHelp-open', function() {
       if (!$('.a-js-stickyHelpFrame').attr('src')) {
-        $('.a-js-stickyHelpFrame')
-          .attr('src', $('.a-js-stickyHelpFrame').attr('data-src'));
+        var $frame = $('.a-js-stickyHelpFrame');
+        var dataSrc = $frame.attr('data-src');
+        if (AltinnQuickhelp._isSafeQuickhelpUrl(dataSrc)) {
+          $frame.attr('src', dataSrc);
+        }
       }
     });
     if ($('.quickhelpPage').find('.a-text').length !== 0) {
