@@ -1,5 +1,5 @@
 {
-	"main": "@astrojs/cloudflare/entrypoints/server",
+	"main": "dist/_worker.js/index.js",
 	"name": "astro-infoportal",
 	"compatibility_date": "2026-02-24",
 	"compatibility_flags": [
