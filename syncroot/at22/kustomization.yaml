@@ -6,7 +6,6 @@ resources:
 images:
 - name: umbraco
   newName: my-registry/umbraco
-  newTag: v0.0.1
 
 patches:
   - target:
