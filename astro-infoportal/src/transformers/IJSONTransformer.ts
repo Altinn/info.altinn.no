@@ -1,5 +1,3 @@
 export interface IJSONTransformer {
-    Transform(cmsPageData:any):any;
+  Transform(cmsPageData: any): any;
 }
-
-

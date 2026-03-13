@@ -1,22 +1,22 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
 
 export class ThemePageTransformer implements IJSONTransformer {
-    public Transform(cmsPageData:any):any {
-        let bodyData = {
-            componentName: "ThemePage",
-            mainIntro: cmsPageData.mainIntro,
-            themeGroups: [],
-            pageName: cmsPageData.name,
-            bottomContentArea: {},
-            breadcrumb: []
-        };
+  public Transform(cmsPageData: any): any {
+    const bodyData = {
+      componentName: "ThemePage",
+      mainIntro: cmsPageData.mainIntro,
+      themeGroups: [],
+      pageName: cmsPageData.name,
+      bottomContentArea: {},
+      breadcrumb: [],
+    };
 
-        //bodyData.themeGroups = this.TransformThemeGroups(cmsPageData);
+    //bodyData.themeGroups = this.TransformThemeGroups(cmsPageData);
 
-        return bodyData;
-    }
+    return bodyData;
+  }
 
-   /* private TransformThemeGroups(cmsPageData:any):any {
+  /* private TransformThemeGroups(cmsPageData:any):any {
             var themeGroups = [];
 
             var themePageChildren = contentRepository.GetChildren<SitePageData>(currentPage.ContentLink)
@@ -61,5 +61,3 @@ export class ThemePageTransformer implements IJSONTransformer {
             }
     }*/
 }
-
-
