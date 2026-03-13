@@ -1114,13 +1114,14 @@
         return;
       }
 
-      var target = $__default['default'](selector)[0];
+      var target = document.querySelector(selector);
+      var $target = target ? $__default['default'](target) : null;
 
-      if (!target || !$__default['default'](target).hasClass(CLASS_NAME_CAROUSEL)) {
+      if (!target || !$target.hasClass(CLASS_NAME_CAROUSEL)) {
         return;
       }
 
-      var config = _extends({}, $__default['default'](target).data(), $__default['default'](this).data());
+      var config = _extends({}, $target.data(), $__default['default'](this).data());
 
       var slideIndex = this.getAttribute('data-slide-to');
 
@@ -1128,10 +1129,10 @@
         config.interval = false;
       }
 
-      Carousel._jQueryInterface.call($__default['default'](target), config);
+      Carousel._jQueryInterface.call($target, config);
 
       if (slideIndex) {
-        $__default['default'](target).data(DATA_KEY$2).to(slideIndex);
+        $target.data(DATA_KEY$2).to(slideIndex);
       }
 
       event.preventDefault();
