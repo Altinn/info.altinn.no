@@ -18,6 +18,8 @@ spec:
         linkerd.io/inject: enabled
     spec:
       serviceAccountName: umbraco
+      nodeSelector:
+        kubernetes.io/arch: amd64
       containers:
         - name: umbraco
           image: umbraco:1
