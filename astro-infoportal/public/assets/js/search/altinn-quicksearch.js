@@ -21,9 +21,25 @@
 
         $query = encodeURIComponent($query);
 
-        const $baseUrl = $isFooter
+        let $baseUrl = $isFooter
             ? $("input[name=search-page-url-footer]").val()
             : $("input[name=search-page-url-body]").val();
+
+        // Ensure that the base URL is safe to use. Only allow same-origin URLs.
+        const currentOrigin = window.location.origin || (window.location.protocol + "//" + window.location.host);
+        if (typeof $baseUrl !== "string") {
+            $baseUrl = "/";
+        } else {
+            $baseUrl = $baseUrl.trim();
+            // If the base URL is absolute and starts with the current origin, strip the origin.
+            if ($baseUrl.indexOf(currentOrigin) === 0) {
+                $baseUrl = $baseUrl.substring(currentOrigin.length);
+            }
+            // If it is now not a relative path starting with "/", fall back to root.
+            if ($baseUrl.charAt(0) !== "/") {
+                $baseUrl = "/";
+            }
+        }
 
         const $url = $baseUrl + "?q=" + $query;
         window.location.href = $url;
