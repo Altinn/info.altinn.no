@@ -7,7 +7,7 @@ export async function fetchUmbracoContent(path: string) {
         'Accept-Language': 'nb-NO', // Default to Norwegian
     };
 
-  const response = await fetch(url);
+  const response = await fetch(url, { headers });
 
   if (!response.ok) {
     throw new Error(`Failed to fetch from Umbraco: ${response.statusText} ${url}`);

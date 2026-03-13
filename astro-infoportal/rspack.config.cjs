@@ -50,7 +50,7 @@ const getFilename = (env, ext) => {
   return isProd(env) ? `[name].[contenthash:8].${ext}` : `[name].${ext}`;
 };
 
-const getMode = (_env) => "production";
+const getMode = (env) => (isDevDebug(env) ? "development" : "production");
 
 const getEntry = (_env) => ({ 
   client: "./src/App.ts",
@@ -62,14 +62,6 @@ const getPlugins = (env) => [
     path: "./src",
     failOnWarning: isProd(env),
   }),
-
-  ...(isDevDebug(env)
-    ? [
-        new rspack.DefinePlugin({
-          "process.env.NODE_ENV": JSON.stringify("development"),
-        }),
-      ]
-    : []),
 
   new rspack.CssExtractRspackPlugin({
     filename: getFilename(env, "css"),
@@ -141,6 +133,7 @@ module.exports = (env = {}) => [
     mode: getMode(env),
     entry: { client: "./src/App.ts" },
     devtool: getDevtool(env),
+    performance: { hints: false },
     optimization: {
       runtimeChunk: "single",
       splitChunks: {
@@ -227,15 +220,12 @@ module.exports = (env = {}) => [
     mode: getMode(env),
     entry: { server: "./src/App.ts" },
     devtool: getDevtool(env),
+    performance: { hints: false },
     optimization: {
       splitChunks: false, // No code splitting for server
       minimize: false, // Don't minify server bundle for easier debugging
     },
-    plugins: [
-      new rspack.DefinePlugin({
-        "process.env.NODE_ENV": JSON.stringify(getMode(env)),
-      }),
-    ],
+    plugins: [],
     output: {
       path: path.resolve(__dirname, outputDirectory),
       filename: "server.js", // Fixed name for SSR
