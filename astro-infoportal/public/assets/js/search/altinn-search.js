@@ -3,6 +3,20 @@
      * Constant variables
      */
 
+    // Simple helper to HTML-escape text before inserting into HTML strings
+    var htmlEscape = function (str) {
+        if (str === null || str === undefined) {
+            return '';
+        }
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            .replace(/\//g, '&#x2F;');
+    };
+
     var $resultTypeSchema = $("input[name=search-result-type-schema]").val();
     var $resultTypeStartCompany = $("input[name=search-result-type-startcompany]").val();
     var $resultTypeInboxAdvertisement = $("input[name=search-result-type-inboxadvertisement]").val();
@@ -156,7 +170,7 @@
         var $card =
             "<img src='/Static/img/emailsok.svg' alt=''>" +
             "<div class='a-cardImage-text'>" +
-            "<p class='ignore-highlight'>" + $textAdvertisementInboxNotIncludedIntro + ". <a href='" + $searchInboxUrl + "' class='ignore-highlight'>" + $textClickHere + "</a> " + $textAdvertisementToSearchFor + " <b class='ignore-highlight'>\"" + $query + "\"</b> " + $textAdvertisementInboxNotIncludedInYourInbox + ".</p>" +
+            "<p class='ignore-highlight'>" + htmlEscape($textAdvertisementInboxNotIncludedIntro) + ". <a href='" + htmlEscape($searchInboxUrl) + "' class='ignore-highlight'>" + htmlEscape($textClickHere) + "</a> " + htmlEscape($textAdvertisementToSearchFor) + " <b class='ignore-highlight'>\"" + htmlEscape($query) + "\"</b> " + htmlEscape($textAdvertisementInboxNotIncludedInYourInbox) + ".</p>" +
             "</div>";
 
         if ($fullWidth) {
@@ -169,7 +183,7 @@
         } else {
             $html =
                 "<div class='col-sm-12 col-lg-6 pt-3 pt-lg-0'>" +
-                "<h2 class='ignore-highlight'>" + $textAdvertisementInboxNotIncludedSearchFor + " <b class='ignore-highlight'>'" + $query + "'</b> " + $textAdvertisementInboxNotIncludedInTheInbox + ":</h2>" +
+                "<h2 class='ignore-highlight'>" + htmlEscape($textAdvertisementInboxNotIncludedSearchFor) + " <b class='ignore-highlight'>'" + htmlEscape($query) + "'</b> " + htmlEscape($textAdvertisementInboxNotIncludedInTheInbox) + ":</h2>" +
                 "<div class='a-card a-cardImage a-cardImage-border'>" + $card + "</div>" +
                 "</div>";
         }
