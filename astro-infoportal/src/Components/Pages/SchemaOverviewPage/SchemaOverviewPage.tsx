@@ -4,31 +4,31 @@ import {
   Heading,
   List,
   ListItem,
-  MenuItemIcon,
+  ListItemIcon,
   PageBase,
   Section,
-} from "@altinn/altinn-components";
-import { Tabs } from "@digdir/designsystemet-react";
-import * as AkselIcons from "@navikt/aksel-icons";
-import { Fragment, useEffect, useState } from "react";
-import type { SchemaOverviewPageViewModel } from "/Models/Generated/SchemaOverviewPageViewModel";
+} from '@altinn/altinn-components';
+import {Tabs} from '@digdir/designsystemet-react';
+import * as AkselIcons from '@navikt/aksel-icons';
+import {Fragment, useEffect, useState} from 'react';
+import type {SchemaOverviewPageViewModel} from '/Models/Generated/SchemaOverviewPageViewModel';
 import ProvidersInline, {
   type ProviderInlineItem,
-} from "../../Shared/ProvidersInline/ProvidersInline";
-import "./SchemaOverviewPage.scss";
-import { SearchItem } from "/Components/Shared/SearchItem/SearchItem";
+} from '../../Shared/ProvidersInline/ProvidersInline';
+import './SchemaOverviewPage.scss';
+import {SearchItem} from '/Components/Shared/SearchItem/SearchItem';
 
 const TabsEnum = {
-  Category: "category",
-  Provider: "provider",
+  Category: 'category',
+  Provider: 'provider',
 } as const;
 
 type TabType = (typeof TabsEnum)[keyof typeof TabsEnum];
 
 const isBrowser =
-  typeof location !== "undefined" &&
-  typeof history !== "undefined" &&
-  typeof addEventListener !== "undefined";
+  typeof location !== 'undefined' &&
+  typeof history !== 'undefined' &&
+  typeof addEventListener !== 'undefined';
 
 const SchemaOverviewPage = ({
   schemaCategories,
@@ -40,7 +40,7 @@ const SchemaOverviewPage = ({
   initialTab,
 }: SchemaOverviewPageViewModel) => {
   const defaultTab = (
-    initialTab === "provider" ? TabsEnum.Provider : TabsEnum.Category
+    initialTab === 'provider' ? TabsEnum.Provider : TabsEnum.Category
   ) as TabType;
   const [tabValue, setTabValue] = useState<TabType>(defaultTab);
 
@@ -57,15 +57,17 @@ const SchemaOverviewPage = ({
     const syncFromUrl = () => {
       try {
         const params = new URLSearchParams(location.search);
-        const category = params.get("category") as TabType | null;
+        const category = params.get('category') as TabType | null;
         setTabValue(
-          category === TabsEnum.Provider ? TabsEnum.Provider : TabsEnum.Category
+          category === TabsEnum.Provider
+            ? TabsEnum.Provider
+            : TabsEnum.Category,
         );
       } catch {}
     };
 
-    addEventListener("popstate", syncFromUrl);
-    return () => removeEventListener("popstate", syncFromUrl);
+    addEventListener('popstate', syncFromUrl);
+    return () => removeEventListener('popstate', syncFromUrl);
   }, []);
 
   const setTabAndUrl = (tab: TabType) => {
@@ -75,14 +77,18 @@ const SchemaOverviewPage = ({
     }
     try {
       const url = new URL(location.href);
-      url.searchParams.set("category", tab);
-      history.pushState({}, "", url.toString());
+      url.searchParams.set('category', tab);
+      history.pushState({}, '', url.toString());
     } catch {}
     setTabValue(tab);
   };
 
   return (
-    <PageBase spacing={6} margin="page" className="schema-overview">
+    <PageBase
+      spacing={6}
+      margin="page"
+      className="schema-overview"
+    >
       <Tabs value={tabValue}>
         <Tabs.List>
           <Tabs.Tab
@@ -90,8 +96,8 @@ const SchemaOverviewPage = ({
             value={TabsEnum.Category}
             onClick={() => setTabAndUrl(TabsEnum.Category)}
           >
-            <MenuItemIcon
-              icon={{ theme: "subtle", svgElement: AkselIcons.MenuGridIcon }}
+            <ListItemIcon
+              icon={{theme: 'subtle', svgElement: AkselIcons.MenuGridIcon}}
               size="lg"
             />
             {servicesText}
@@ -101,8 +107,8 @@ const SchemaOverviewPage = ({
             value={TabsEnum.Provider}
             onClick={() => setTabAndUrl(TabsEnum.Provider)}
           >
-            <MenuItemIcon
-              icon={{ theme: "subtle", svgElement: AkselIcons.PassportIcon }}
+            <ListItemIcon
+              icon={{theme: 'subtle', svgElement: AkselIcons.PassportIcon}}
               size="lg"
             />
             {providersText}
@@ -112,13 +118,17 @@ const SchemaOverviewPage = ({
         <Tabs.Panel value={TabsEnum.Category}>
           {schemaCategories && (
             <div className="schema-overview__grid">
-              <Grid color="company" spacing={3} cols={3}>
+              <Grid
+                color="company"
+                spacing={3}
+                cols={3}
+              >
                 {schemaCategories.map((item, idx) => (
                   <ListItem
                     className="schema-overview__category-item"
                     id={idx.toString()}
                     as="a"
-                    href={item.url || "#"}
+                    href={item.url || '#'}
                     size="lg"
                     key={idx}
                     label={
@@ -128,7 +138,7 @@ const SchemaOverviewPage = ({
                     }
                     variant="subtle"
                     icon={{
-                      theme: "subtle",
+                      theme: 'subtle',
                       svgElement: getIcon(item.icon),
                     }}
                   />
@@ -140,22 +150,25 @@ const SchemaOverviewPage = ({
           <Section margin="section">
             <Heading size="lg">{recommendedSchemasHeaderText}</Heading>
             {recommendedSchemas?.length ? (
-              <List size="sm" color="neutral" spacing={0}>
+              <List
+                size="sm"
+                color="neutral"
+                spacing={0}
+              >
                 {recommendedSchemas.map(
-                  ({ pageName, providerIcons, url }, idx) => {
+                  ({pageName, providerIcons, url}, idx) => {
                     const providerItems: ProviderInlineItem[] = Array.isArray(
-                      providerIcons
+                      providerIcons,
                     )
                       ? providerIcons
                           .filter(
-                            (p): p is typeof p & { name: string } =>
-                              !!p?.name
+                            (p): p is typeof p & {name: string} => !!p?.name,
                           )
                           .map((p) => ({
                             name: p.name,
-                            imageUrl: p.imageUrl || "",
+                            imageUrl: p.imageUrl || '',
                             url:
-                              typeof (p as any).url === "string"
+                              typeof (p as any).url === 'string'
                                 ? (p as any).url
                                 : undefined,
                           }))
@@ -166,7 +179,7 @@ const SchemaOverviewPage = ({
                         <SearchItem
                           className="search-item__item"
                           as="a"
-                          href={url || "#"}
+                          href={url || '#'}
                           title={pageName}
                           summary={
                             providerItems.length ? (
@@ -180,7 +193,7 @@ const SchemaOverviewPage = ({
                         <Divider as="li" />
                       </Fragment>
                     );
-                  }
+                  },
                 )}
               </List>
             ) : null}
@@ -189,7 +202,7 @@ const SchemaOverviewPage = ({
 
         <Tabs.Panel value={TabsEnum.Provider}>
           <Section>
-            {providerCollections?.map(({ letter, providers }, idx) => {
+            {providerCollections?.map(({letter, providers}, idx) => {
               const providerList = Array.isArray(providers) ? providers : [];
               return (
                 <li key={idx}>
@@ -201,15 +214,14 @@ const SchemaOverviewPage = ({
                   </Heading>
 
                   <List>
-                    {providerList.map(({ name, url, imageUrl }, i) => {
-                      const providerIcon =
-                        name
-                          ? {
-                              name,
-                              imageUrl,
-                              type: "company" as const,
-                            }
-                          : undefined;
+                    {providerList.map(({name, url, imageUrl}, i) => {
+                      const providerIcon = name
+                        ? {
+                            name,
+                            imageUrl,
+                            type: 'company' as const,
+                          }
+                        : undefined;
 
                       return (
                         <ListItem
@@ -217,7 +229,7 @@ const SchemaOverviewPage = ({
                           variant="subtle"
                           key={i}
                           label={name}
-                          href={url || "#"}
+                          href={url || '#'}
                           as="a"
                           icon={providerIcon}
                         />
