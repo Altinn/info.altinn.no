@@ -6,7 +6,7 @@ resources:
 images:
 - name: umbraco
   newName: ghcr.io/altinn/umbraco
-  newTag: latest
+  newTag: test1
 
 patches:
   - target:
