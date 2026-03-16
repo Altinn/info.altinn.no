@@ -35,7 +35,7 @@ spec:
             - name: umbraco-data
               mountPath: /app/umbraco/Data
             - name: umbraco-media
-              mountPath: /app/umbraco/wwwroot/media
+              mountPath: /app/wwwroot/media
             - name: umbraco-logs
               mountPath: /app/umbraco/Logs
       volumes:
