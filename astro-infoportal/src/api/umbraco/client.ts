@@ -1,4 +1,6 @@
-export const UMBRACO_API_URL = import.meta.env.UMBRACO_API_URL || 'http://localhost:43450';
+import { env } from "cloudflare:workers";
+
+export const UMBRACO_API_URL = env.UMBRACO_API_URL || 'http://localhost:43450';
 
 export async function fetchUmbracoContent(path: string) {
     // Uses Umbraco Content Delivery API pattern
