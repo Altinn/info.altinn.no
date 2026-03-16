@@ -25,4 +25,4 @@ pnpm-debug.log*
 .idea/
 
 ### Cloudflare
-.wrangler
+.wrangler/
