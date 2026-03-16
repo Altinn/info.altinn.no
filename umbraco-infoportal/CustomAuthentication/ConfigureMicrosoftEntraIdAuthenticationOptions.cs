@@ -20,7 +20,7 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
         // Get Entra ID settings from configuration
         var clientId = _configuration["MicrosoftEntraId:ClientId"] ?? "YOUR_CLIENT_ID";
         var clientSecret = _configuration["MicrosoftEntraId:ClientSecret"] ?? "YOUR_CLIENT_SECRET";
-        var tenantId = _configuration["MicrosoftEntraId:TenantId"] ?? "YOUR_TENANT_ID";
+        var authority = _configuration["MicrosoftEntraId:Authority"] ?? "https://login.microsoftonline.com/YOUR_TENANT_ID/v2.0";
 
         // Callback path for Entra ID to redirect back to the application
         // This must match the redirect URI configured in your Azure app registration
@@ -29,7 +29,7 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
         // Get these values from your Azure Entra ID app registration
         options.ClientId = clientId;
         options.ClientSecret = clientSecret;
-        options.Authority = $"https://login.microsoftonline.com/{tenantId}/v2.0";
+        options.Authority = authority;
 
         // Configure scopes
         options.Scope.Clear();

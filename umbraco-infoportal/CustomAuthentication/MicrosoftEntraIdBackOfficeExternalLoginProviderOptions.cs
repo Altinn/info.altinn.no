@@ -26,7 +26,7 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
         // Auto-linking configuration
         options.AutoLinkOptions = new ExternalSignInAutoLinkOptions(
             // Set to true to enable auto-linking for Entra ID users
-            autoLinkExternalAccount: false,
+            autoLinkExternalAccount: true,
             // Specify User Groups - users will be assigned to these groups when auto-linked
             defaultUserGroups: ["editor"],
             // Use default culture from appsettings.json
