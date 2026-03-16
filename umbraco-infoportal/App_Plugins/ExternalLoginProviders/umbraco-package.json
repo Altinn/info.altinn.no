@@ -1,0 +1,26 @@
+{
+  "$schema": "../../umbraco-package-schema.json",
+  "name": "Microsoft Entra ID Authentication",
+  "allowPublicAccess": true,
+  "extensions": [
+    {
+      "type": "authProvider",
+      "alias": "Altinn.AuthProvider.MicrosoftEntraId",
+      "name": "Microsoft Entra ID Auth Provider",
+      "forProviderName": "Umbraco.MicrosoftEntraId",
+      "meta": {
+        "label": "Microsoft Entra ID",
+        "defaultView": {
+          "icon": "icon-cloud",
+          "color": "default"
+        },
+        "behavior": {
+          "autoRedirect": false
+        },
+        "linking": {
+          "allowManualLinking": true
+        }
+      }
+    }
+  ]
+}
