@@ -2,9 +2,10 @@ export const UMBRACO_API_URL = import.meta.env.UMBRACO_API_URL || 'http://localh
 
 export async function fetchUmbracoContent(path: string) {
     // Uses Umbraco Content Delivery API pattern
-    const url = `${UMBRACO_API_URL}/umbraco/delivery/api/v2/content/item/${path}`;
+    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+    const url = `${UMBRACO_API_URL}/umbraco/delivery/api/v2/content/item/${cleanPath}`;
     const headers: HeadersInit = {
-        'Accept-Language': 'nb-NO', // Default to Norwegian
+        'Accept-Language': 'nb', // Default to Norwegian
     };
 
   const response = await fetch(url, { headers });
