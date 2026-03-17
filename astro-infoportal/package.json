@@ -5,7 +5,7 @@
     "wrangler": "wrangler",
     "preview": "npm run build && wrangler dev -c ./dist/server/wrangler.json",
     "clean": "node -e \"require('fs').rmSync('./public/assets/generated', {recursive: true, force: true})\"",
-    "build": "npm run clean && cross-env rspack --env config=prod && astro build",
+    "build": "npm run clean && cross-env rspack --env config=dev && astro build",
     "dev": "cross-env rspack --env config=dev && astro dev",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
