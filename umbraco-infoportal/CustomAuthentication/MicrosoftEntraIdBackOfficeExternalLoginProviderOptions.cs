@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Options;
 using Umbraco.Cms.Api.Management.Security;
 using Umbraco.Cms.Core;
+using System.Security.Claims;
 
 namespace umbraco_infoportal.CustomAuthentication;
 
@@ -25,7 +26,7 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
     {
         options.AutoLinkOptions = new ExternalSignInAutoLinkOptions(
             autoLinkExternalAccount: true,
-            defaultUserGroups: [],
+            defaultUserGroups: Array.Empty<string>(),
             defaultCulture: null,
             allowManualLinking: true
         )
@@ -41,39 +42,38 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
 
             OnExternalLogin = (user, loginInfo) =>
             {
-                // 🔤 Sync navn
+                // Sync navn
                 var nameClaim = loginInfo.Principal.FindFirst("name");
                 if (nameClaim != null)
                 {
                     user.Name = nameClaim.Value;
                 }
 
-                // Hent Entra grupper (GUIDs)
-                var groupClaims = loginInfo.Principal
-                    .FindAll("groups")
-                    .Select(c => c.Value)
+                // Hent App Roles fra Entra
+                var roles = loginInfo.Principal
+                    .FindAll(ClaimTypes.Role)
+                    .Select(r => r.Value)
                     .ToList();
 
-                // Mapping: Entra Group GUID → Umbraco grupper
                 var mappedGroups = new List<string>();
 
-                // TODO: Bytt ut med ekte GUIDs fra Entra ID
-                if (groupClaims.Contains("950fd95d-e202-4d66-8739-13bcc58b150b"))
+                //  Mapping: App Role → Umbraco gruppe
+                if (roles.Contains("umbraco-admin"))
                     mappedGroups.Add("admin");
 
-                if (groupClaims.Contains("df301fe8-14aa-4123-be58-a09f6960c1ab"))
+                if (roles.Contains("umbraco-editor"))
                     mappedGroups.Add("editor");
 
-                // if (groupClaims.Contains("GUID-WRITER-GROUP"))
-                //     mappedGroups.Add("writer");
+                if (roles.Contains("node-test-role"))
+                    mappedGroups.Add("nodeTest");
 
-                // fallback hvis ingen match
+                // fallback
                 if (!mappedGroups.Any())
                 {
                     mappedGroups.Add("writer");
                 }
 
-                // Oppdater roller i Umbraco
+                // Sett roller i Umbraco
                 user.Roles.Clear();
                 foreach (var group in mappedGroups)
                 {

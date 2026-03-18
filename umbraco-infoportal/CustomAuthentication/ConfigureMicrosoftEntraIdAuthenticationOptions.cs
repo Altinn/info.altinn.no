@@ -38,11 +38,13 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
 
         options.GetClaimsFromUserInfoEndpoint = true;
 
-        // 🔑 Viktig: map groups claim
-        options.ClaimActions.MapJsonKey("groups", "groups");
+        // map groups 
+        //options.ClaimActions.MapJsonKey("groups", "groups");
 
+        // Set claim types to match what Entra ID provides
         options.TokenValidationParameters.NameClaimType = "name";
-        options.TokenValidationParameters.RoleClaimType = "roles";
+        options.TokenValidationParameters.RoleClaimType =
+            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
 
         options.SaveTokens = true;
 

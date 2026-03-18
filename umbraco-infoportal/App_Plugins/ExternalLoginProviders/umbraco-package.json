@@ -9,9 +9,9 @@
       "name": "Microsoft Entra ID Auth Provider",
       "forProviderName": "Umbraco.MicrosoftEntraId",
       "meta": {
-        "label": "Microsoft Entra ID",
+        "label": "Microsoft",
         "defaultView": {
-          "icon": "icon-cloud",
+          "icon": "icon-microsoft",
           "color": "default"
         },
         "behavior": {
