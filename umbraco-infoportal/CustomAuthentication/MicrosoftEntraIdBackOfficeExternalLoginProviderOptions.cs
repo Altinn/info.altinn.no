@@ -23,23 +23,15 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
 
     public void Configure(BackOfficeExternalLoginProviderOptions options)
     {
-        // Auto-linking configuration
         options.AutoLinkOptions = new ExternalSignInAutoLinkOptions(
-            // Set to true to enable auto-linking for Entra ID users
             autoLinkExternalAccount: true,
-            // Specify User Groups - users will be assigned to these groups when auto-linked
-            defaultUserGroups: ["editor"],
-            // Use default culture from appsettings.json
+            defaultUserGroups: [],
             defaultCulture: null,
-            // Allow manual linking/unlinking from backoffice
             allowManualLinking: true
         )
         {
-            // Optional: Customize user before linking
             OnAutoLinking = (autoLinkUser, loginInfo) =>
             {
-                // You can customize the user before it's linked.
-                // For example, modify user's groups based on claims
                 var nameClaim = loginInfo.Principal.FindFirst("name");
                 if (nameClaim != null)
                 {
@@ -47,21 +39,51 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
                 }
             },
 
-            // Optional: Customize user before saving on external login
             OnExternalLogin = (user, loginInfo) =>
             {
-                // Sync the user's name based on claims from Entra ID
+                // 🔤 Sync navn
                 var nameClaim = loginInfo.Principal.FindFirst("name");
                 if (nameClaim != null)
                 {
                     user.Name = nameClaim.Value;
                 }
 
+                // Hent Entra grupper (GUIDs)
+                var groupClaims = loginInfo.Principal
+                    .FindAll("groups")
+                    .Select(c => c.Value)
+                    .ToList();
+
+                // Mapping: Entra Group GUID → Umbraco grupper
+                var mappedGroups = new List<string>();
+
+                // TODO: Bytt ut med ekte GUIDs fra Entra ID
+                if (groupClaims.Contains("950fd95d-e202-4d66-8739-13bcc58b150b"))
+                    mappedGroups.Add("admin");
+
+                if (groupClaims.Contains("df301fe8-14aa-4123-be58-a09f6960c1ab"))
+                    mappedGroups.Add("editor");
+
+                // if (groupClaims.Contains("GUID-WRITER-GROUP"))
+                //     mappedGroups.Add("writer");
+
+                // fallback hvis ingen match
+                if (!mappedGroups.Any())
+                {
+                    mappedGroups.Add("writer");
+                }
+
+                // Oppdater roller i Umbraco
+                user.Roles.Clear();
+                foreach (var group in mappedGroups)
+                {
+                    user.AddRole(group);
+                }
+
                 return true;
             }
         };
 
-        // Allow users to login with username/password (set to true to deny local login)
         options.DenyLocalLogin = false;
     }
 }

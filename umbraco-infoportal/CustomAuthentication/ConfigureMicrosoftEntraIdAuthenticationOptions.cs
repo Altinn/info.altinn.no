@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.Options;
 
@@ -17,41 +19,39 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
 
     public void Configure(OpenIdConnectOptions options)
     {
-        // Get Entra ID settings from configuration
         var clientId = _configuration["MicrosoftEntraId:ClientId"] ?? "YOUR_CLIENT_ID";
         var clientSecret = _configuration["MicrosoftEntraId:ClientSecret"] ?? "YOUR_CLIENT_SECRET";
         var authority = _configuration["MicrosoftEntraId:Authority"] ?? "https://login.microsoftonline.com/YOUR_TENANT_ID/v2.0";
 
-        // Callback path for Entra ID to redirect back to the application
-        // This must match the redirect URI configured in your Azure app registration
         options.CallbackPath = "/signin-entra";
 
-        // Get these values from your Azure Entra ID app registration
         options.ClientId = clientId;
         options.ClientSecret = clientSecret;
         options.Authority = authority;
 
-        // Configure scopes
+        options.ResponseType = "code";
+
         options.Scope.Clear();
         options.Scope.Add("openid");
         options.Scope.Add("profile");
         options.Scope.Add("email");
 
-        // Get claims from user info endpoint
         options.GetClaimsFromUserInfoEndpoint = true;
 
-        // Configure claim mapping
+        // 🔑 Viktig: map groups claim
+        options.ClaimActions.MapJsonKey("groups", "groups");
+
         options.TokenValidationParameters.NameClaimType = "name";
         options.TokenValidationParameters.RoleClaimType = "roles";
 
-        // Disable session cookie requirement for this flow
+        options.SaveTokens = true;
+
         options.NonceCookie.SecurePolicy = CookieSecurePolicy.Always;
         options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
     }
 
     public void Configure(string? name, OpenIdConnectOptions options)
     {
-        // Only configure if this is for the backoffice
         if (name == Umbraco.Cms.Api.Management.Security.BackOfficeAuthenticationBuilder.SchemeForBackOffice(
                 MicrosoftEntraIdBackOfficeExternalLoginProviderOptions.SchemeName))
         {
@@ -59,4 +59,3 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
         }
     }
 }
-
