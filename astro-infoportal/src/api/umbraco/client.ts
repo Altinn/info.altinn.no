@@ -18,3 +18,19 @@ export async function fetchUmbracoContent(path: string) {
 
   return await response.json();
 }
+
+export async function fetchUmbracoChildren(id: string) {
+  const url = `${UMBRACO_API_URL}/umbraco/delivery/api/v2/content?fetch=children:${id}`;
+  const headers: HeadersInit = {
+    'Accept-Language': 'nb',
+  };
+
+  const response = await fetch(url, { headers });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch children from Umbraco: ${response.statusText} ${url}`);
+  }
+
+  const data = await response.json();
+  return data.items ?? [];
+}

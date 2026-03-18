@@ -1,7 +1,7 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
 
 export class HelpLandingPageTransformer implements IJSONTransformer {
-  public Transform(cmsPageData: any): any {
+  public async Transform(cmsPageData: any): Promise<any> {
     return {
       componentName: "HelpLandingPage",
       pageName: cmsPageData.name,

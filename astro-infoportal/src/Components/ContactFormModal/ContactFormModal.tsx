@@ -1,23 +1,23 @@
-import { Heading } from "@altinn/altinn-components";
-import { Fieldset, Radio } from "@digdir/designsystemet-react";
-import { PaperplaneIcon, XMarkIcon } from "@navikt/aksel-icons";
-import { useEffect, useRef, useState } from "react";
-import ContactForm from "./ContactForm";
-import ContactFormError from "./ContactFormError";
-import ContactFormSuccess from "./ContactFormSuccess";
+import {Heading} from '@altinn/altinn-components';
+import {Fieldset, Radio} from '@digdir/designsystemet-react';
+import {PaperplaneIcon, XMarkIcon} from '@navikt/aksel-icons';
+import {useEffect, useRef, useState} from 'react';
+import ContactForm from './ContactForm';
+import ContactFormError from './ContactFormError';
+import ContactFormSuccess from './ContactFormSuccess';
 import type {
   ContactFormLabels,
   ContactFormModalProps,
-} from "./ContactFormTypes";
-import "./ContactFormModal.scss";
-import { ContentArea, RichTextArea } from "/App.Components";
+} from './ContactFormTypes';
+import './ContactFormModal.scss';
+import {ContentArea, RichTextArea} from '/App.Components';
 
-type ModalState = "form" | "success" | "error";
+type ModalState = 'form' | 'success' | 'error';
 
 const localization = (key: string): string => {
-  if (typeof window === "undefined") return "";
+  if (typeof window === 'undefined') return '';
 
-  const paths = key.split("/").filter(Boolean);
+  const paths = key.split('/').filter(Boolean);
   const translationsRoot =
     (window as any).translations ||
     (window as any).localization ||
@@ -27,19 +27,19 @@ const localization = (key: string): string => {
   let current: any = translationsRoot;
 
   for (const segment of paths) {
-    if (current && typeof current === "object" && segment in current) {
+    if (current && typeof current === 'object' && segment in current) {
       current = current[segment];
     } else {
-      return "";
+      return '';
     }
   }
 
-  return typeof current === "string" ? current : "";
+  return typeof current === 'string' ? current : '';
 };
 
 const getLabelValue = (
   labels: ContactFormLabels | undefined,
-  key: keyof ContactFormLabels
+  key: keyof ContactFormLabels,
 ) => {
   return labels?.[key] ?? localization(`/contactform/${key.toLowerCase()}`);
 };
@@ -57,8 +57,8 @@ const ContactFormModal = ({
   labels,
   title,
 }: ContactFormModalProps) => {
-  const [modalState, setModalState] = useState<ModalState>("form");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [modalState, setModalState] = useState<ModalState>('form');
+  const [errorMessage, setErrorMessage] = useState('');
   const [activeTab, setActiveTab] = useState<number | null>(null);
   const [hideFormTypeSelector, setHideFormTypeSelector] = useState(false);
   const modalRef = useRef<HTMLDivElement | null>(null);
@@ -67,9 +67,9 @@ const ContactFormModal = ({
 
   useEffect(() => {
     if (!isOpen || !useRecaptcha || !recaptchaSiteKey) return;
-    if (typeof window === "undefined") return;
+    if (typeof window === 'undefined') return;
 
-    const script = document.createElement("script");
+    const script = document.createElement('script');
     script.src = `https://www.google.com/recaptcha/enterprise.js?render=${recaptchaSiteKey}`;
     script.async = true;
     document.head.appendChild(script);
@@ -87,17 +87,17 @@ const ContactFormModal = ({
     const getFocusable = () => {
       const nodes = Array.from(
         modalRef.current?.querySelectorAll<HTMLElement>(
-          'a, button, textarea, input, select, [tabindex]:not([tabindex="-1"])'
-        ) || []
+          'a, button, textarea, input, select, [tabindex]:not([tabindex="-1"])',
+        ) || [],
       );
 
       return nodes.filter((el) => {
-        if (el.hasAttribute("disabled")) return false;
-        if (el.getAttribute("aria-hidden") === "true") return false;
-        if ((el as HTMLInputElement).type === "hidden") return false;
+        if (el.hasAttribute('disabled')) return false;
+        if (el.getAttribute('aria-hidden') === 'true') return false;
+        if ((el as HTMLInputElement).type === 'hidden') return false;
 
         const style = window.getComputedStyle(el);
-        if (style.display === "none" || style.visibility === "hidden")
+        if (style.display === 'none' || style.visibility === 'hidden')
           return false;
 
         return el.offsetParent !== null || el.getClientRects().length > 0;
@@ -110,11 +110,11 @@ const ContactFormModal = ({
   }, [isOpen]);
 
   useEffect(() => {
-    if (typeof document === "undefined") return;
+    if (typeof document === 'undefined') return;
     const originalOverflow = document.body.style.overflow;
 
     if (isOpen) {
-      document.body.style.overflow = "hidden";
+      document.body.style.overflow = 'hidden';
     }
 
     return () => {
@@ -123,15 +123,15 @@ const ContactFormModal = ({
   }, [isOpen]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === 'undefined') return;
 
     const handleFormBlockError = (event: Event) => {
-      const customEvent = event as CustomEvent<{ hasError?: boolean }>;
+      const customEvent = event as CustomEvent<{hasError?: boolean}>;
       setHideFormTypeSelector(!!customEvent.detail?.hasError);
     };
 
     const handleFormBlockSuccess = (event: Event) => {
-      const customEvent = event as CustomEvent<{ hasSuccess?: boolean }>;
+      const customEvent = event as CustomEvent<{hasSuccess?: boolean}>;
       setHideFormTypeSelector(!!customEvent.detail?.hasSuccess);
     };
 
@@ -139,28 +139,28 @@ const ContactFormModal = ({
       onClose();
     };
 
-    window.addEventListener("contactformblock:has-error", handleFormBlockError);
+    window.addEventListener('contactformblock:has-error', handleFormBlockError);
     window.addEventListener(
-      "contactformblock:has-success",
-      handleFormBlockSuccess
+      'contactformblock:has-success',
+      handleFormBlockSuccess,
     );
     window.addEventListener(
-      "contactformblock:close-modal",
-      handleFormBlockClose
+      'contactformblock:close-modal',
+      handleFormBlockClose,
     );
 
     return () => {
       window.removeEventListener(
-        "contactformblock:has-error",
-        handleFormBlockError
+        'contactformblock:has-error',
+        handleFormBlockError,
       );
       window.removeEventListener(
-        "contactformblock:has-success",
-        handleFormBlockSuccess
+        'contactformblock:has-success',
+        handleFormBlockSuccess,
       );
       window.removeEventListener(
-        "contactformblock:close-modal",
-        handleFormBlockClose
+        'contactformblock:close-modal',
+        handleFormBlockClose,
       );
     };
   }, [onClose]);
@@ -172,27 +172,27 @@ const ContactFormModal = ({
   }, [isOpen]);
 
   useEffect(() => {
-    setHideFormTypeSelector(modalState === "error" || modalState === "success");
+    setHideFormTypeSelector(modalState === 'error' || modalState === 'success');
   }, [modalState]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen) {
+      if (e.key === 'Escape' && isOpen) {
         onClose();
       }
 
-      if (e.key === "Tab" && isOpen && modalRef.current) {
+      if (e.key === 'Tab' && isOpen && modalRef.current) {
         const nodes = Array.from(
           modalRef.current.querySelectorAll<HTMLElement>(
-            'a, button, textarea, input, select, [tabindex]:not([tabindex="-1"])'
-          )
+            'a, button, textarea, input, select, [tabindex]:not([tabindex="-1"])',
+          ),
         ).filter((el) => {
-          if (el.hasAttribute("disabled")) return false;
-          if (el.getAttribute("aria-hidden") === "true") return false;
-          if ((el as HTMLInputElement).type === "hidden") return false;
+          if (el.hasAttribute('disabled')) return false;
+          if (el.getAttribute('aria-hidden') === 'true') return false;
+          if ((el as HTMLInputElement).type === 'hidden') return false;
 
           const style = window.getComputedStyle(el);
-          if (style.display === "none" || style.visibility === "hidden")
+          if (style.display === 'none' || style.visibility === 'hidden')
             return false;
 
           return el.offsetParent !== null || el.getClientRects().length > 0;
@@ -225,37 +225,40 @@ const ContactFormModal = ({
       }
     };
 
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
   const handleSuccess = () => {
-    setModalState("success");
+    setModalState('success');
   };
 
   const handleError = (message?: string) => {
-    setErrorMessage(message || getLabelValue(labels, "errorMessage"));
-    setModalState("error");
+    setErrorMessage(message || getLabelValue(labels, 'errorMessage'));
+    setModalState('error');
   };
 
   const handleClose = () => {
-    setModalState("form");
-    setErrorMessage("");
+    setModalState('form');
+    setErrorMessage('');
     onClose();
   };
 
   const handleRetry = () => {
-    setModalState("form");
-    setErrorMessage("");
+    setModalState('form');
+    setErrorMessage('');
   };
 
   if (!isOpen) return null;
 
   const headerTitle =
-    title || getLabelValue(labels, "submitButton") || "Contact form";
+    title || getLabelValue(labels, 'submitButton') || 'Contact form';
 
   return (
-    <div className="contact-form-modal" role="presentation">
+    <div
+      className="contact-form-modal"
+      role="presentation"
+    >
       <div
         className="contact-form-modal__content"
         role="dialog"
@@ -266,7 +269,7 @@ const ContactFormModal = ({
       >
         <div className="contact-form-modal__inner">
           <img
-            src="/Static/img/a-logo-black.svg"
+            src="/assets/img/a-logo-black.svg"
             alt="Altinn logo"
             className="a-logo a-modal-top-logo"
           />
@@ -274,7 +277,7 @@ const ContactFormModal = ({
             type="button"
             className="contact-form-modal__close"
             onClick={handleClose}
-            aria-label={getLabelValue(labels, "closeButton") || "Close"}
+            aria-label={getLabelValue(labels, 'closeButton') || 'Close'}
           >
             <XMarkIcon
               aria-hidden="true"
@@ -286,11 +289,11 @@ const ContactFormModal = ({
               <Heading
                 as="h1"
                 size="lg"
-                style={{ display: "flex", alignItems: "center" }}
+                style={{display: 'flex', alignItems: 'center'}}
               >
                 <PaperplaneIcon
                   aria-hidden="true"
-                  style={{ marginRight: "0.5rem" }}
+                  style={{marginRight: '0.5rem'}}
                 />
                 {headerTitle}
               </Heading>
@@ -298,7 +301,7 @@ const ContactFormModal = ({
           </div>
           {isTabMode ? (
             <div className="modal-body a-modal-body">
-              {modalState === "form" &&
+              {modalState === 'form' &&
                 !hideFormTypeSelector &&
                 formTypeArea &&
                 formTypeArea.items &&
@@ -311,7 +314,7 @@ const ContactFormModal = ({
                           <Heading
                             as="h2"
                             size="lg"
-                            style={{ marginTop: "2rem" }}
+                            style={{marginTop: '2rem'}}
                           >
                             {teaserHeading}
                           </Heading>
@@ -321,8 +324,8 @@ const ContactFormModal = ({
                     {formTypeArea.items.map((item, index) => (
                       <Radio
                         key={index}
-                        label={(item as any).heading || ""}
-                        name={`contact-form-type-${schemaId ?? "default"}`}
+                        label={(item as any).heading || ''}
+                        name={`contact-form-type-${schemaId ?? 'default'}`}
                         value={`${index}`}
                         checked={activeTab === index}
                         onChange={() => setActiveTab(index)}
@@ -331,7 +334,7 @@ const ContactFormModal = ({
                   </Fieldset>
                 )}
 
-              {modalState === "form" && (
+              {modalState === 'form' && (
                 <div className="tab-content">
                   {activeTab !== null && formTypeArea && (
                     <ContentArea
@@ -342,30 +345,30 @@ const ContactFormModal = ({
                 </div>
               )}
 
-              {modalState === "success" && (
+              {modalState === 'success' && (
                 <ContactFormSuccess
                   onClose={handleClose}
-                  successMessage={getLabelValue(labels, "successMessage")}
-                  closeButtonText={getLabelValue(labels, "closeButton")}
+                  successMessage={getLabelValue(labels, 'successMessage')}
+                  closeButtonText={getLabelValue(labels, 'closeButton')}
                   autoCloseAfterSeconds={5}
                 />
               )}
 
-              {modalState === "error" && (
+              {modalState === 'error' && (
                 <ContactFormError
                   onRetry={handleRetry}
                   onClose={handleClose}
                   errorMessage={
-                    errorMessage || getLabelValue(labels, "errorMessage")
+                    errorMessage || getLabelValue(labels, 'errorMessage')
                   }
-                  closeButtonText={getLabelValue(labels, "closeButton")}
-                  retryButtonText={getLabelValue(labels, "retryButton")}
+                  closeButtonText={getLabelValue(labels, 'closeButton')}
+                  retryButtonText={getLabelValue(labels, 'retryButton')}
                 />
               )}
             </div>
           ) : (
             <div className="modal-body a-modal-body">
-              {modalState === "form" && (
+              {modalState === 'form' && (
                 <ContactForm
                   schemaId={schemaId || 0}
                   showAttachment={showAttachment || false}
@@ -378,23 +381,23 @@ const ContactFormModal = ({
                   labels={labels}
                 />
               )}
-              {modalState === "success" && (
+              {modalState === 'success' && (
                 <ContactFormSuccess
                   onClose={handleClose}
-                  successMessage={getLabelValue(labels, "successMessage")}
-                  closeButtonText={getLabelValue(labels, "closeButton")}
+                  successMessage={getLabelValue(labels, 'successMessage')}
+                  closeButtonText={getLabelValue(labels, 'closeButton')}
                   autoCloseAfterSeconds={5}
                 />
               )}
-              {modalState === "error" && (
+              {modalState === 'error' && (
                 <ContactFormError
                   onRetry={handleRetry}
                   onClose={handleClose}
                   errorMessage={
-                    errorMessage || getLabelValue(labels, "errorMessage")
+                    errorMessage || getLabelValue(labels, 'errorMessage')
                   }
-                  closeButtonText={getLabelValue(labels, "closeButton")}
-                  retryButtonText={getLabelValue(labels, "retryButton")}
+                  closeButtonText={getLabelValue(labels, 'closeButton')}
+                  retryButtonText={getLabelValue(labels, 'retryButton')}
                 />
               )}
             </div>

@@ -7,25 +7,34 @@ import { JSONTransformer } from '@transformers/JSONTransformer';
 const path = Astro.url.pathname;
 
 // Specifically ignore internal/vite, api, and file asset requests
-if (path.startsWith('/@vite/client')) {
-  return new Response("/* Vite dev script bypassed to prevent routing errors */", { 
-    status: 200, 
-    headers: { "Content-Type": "application/javascript" } 
-  });
+if (
+  path.startsWith('/@vite/') || 
+  path.startsWith('/@react-refresh') || 
+  path.startsWith('/@id/') || 
+  path.startsWith('/@fs/')
+) {
+  // Let Vite handle these natively during development
+  return new Response(null, { status: 404 });
 }
 
 if (path.startsWith('/api/') || path.match(/\.[a-zA-Z0-9]+$/)) {
   return new Response(null, { status: 404 });
 }
 
-let umbracoPageData = "";
-try {
-  umbracoPageData = await fetchUmbracoContent(path);
-} catch (e) {
+let umbracoPageData: any = null;
+let globalData: any = null;
+
+const [pageResult] = await Promise.allSettled([
+  fetchUmbracoContent(path),
+]);
+
+if (pageResult.status === 'rejected') {
+  console.error("Error fetching page data from Umbraco:", pageResult.reason);
   return Astro.redirect("/404");
 }
+umbracoPageData = pageResult.value;
 
-const pageData = new JSONTransformer().Transform(umbracoPageData);
+const pageData = await new JSONTransformer().Transform(umbracoPageData, globalData);
 
 Astro.response.headers.set("Cache-Control", "public, max-age=0, s-maxage=86400");
 ---

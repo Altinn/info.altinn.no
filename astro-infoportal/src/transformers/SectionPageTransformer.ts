@@ -1,35 +1,59 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
+import { BlockTransformer } from "./BlockTransformer";
 
 export class SectionPageTransformer implements IJSONTransformer {
-  public Transform(cmsPageData: any): any {
-    const bodyData = {
+  public async Transform(cmsPageData: any): Promise<any> {
+    const props = cmsPageData.properties ?? {};
+
+    const backgroundImage = props.backgroundImage
+      ? { src: props.backgroundImage.url ?? props.backgroundImage, componentName: "Image" }
+      : undefined;
+
+    const searchForm = props.searchForm
+      ? {
+          componentName: "SearchForm",
+          searchLabel: props.searchForm.searchLabel,
+          searchPageUrl: props.searchForm.searchPageUrl,
+        }
+      : undefined;
+
+    const goToLinkLocation = props.goToLinkLocation
+      ? {
+          componentName: "LinkItem",
+          text: props.goToLinkLocation.text ?? props.goToLinkText,
+          url: props.goToLinkLocation.url,
+        }
+      : undefined;
+
+    // themePageArea is a flat array of child content items (not a Block List)
+    const themePageLinks = Array.isArray(props.themePageArea)
+      ? props.themePageArea.map((item: any) => ({
+          componentName: "LinkItem",
+          text: item.name,
+          url: item.route?.path,
+        }))
+      : [];
+
+    const themeArea = props.themeArea
+      ? BlockTransformer.TransformBlocks(props.themeArea)
+      : undefined;
+
+    const bottomArea = props.bottomArea
+      ? BlockTransformer.TransformBlocks(props.bottomArea)
+      : undefined;
+
+    return {
       componentName: "SectionPage",
       pageName: cmsPageData.name,
-      backgroundImage: {
-        src: "/assets/img/illustrasjon_starte_og_drive.svg",
-        componentName: "Image",
-      },
-      searchForm: {
-        searchLabel: "Søk i innhold",
-        searchPageUrl: "/sok/",
-        componentName: "SearchForm",
-      },
-      goToLinkText: "Veiledere innen ulike tema og bransjer",
-      goToLinkLocation: {
-        text: "Veiledere innen ulike tema og bransjer",
-        url: "/starte-og-drive/starte/guider/",
-        componentName: "LinkItem",
-      },
-      themePageLinks: {},
+      heading: props.heading,
+      backgroundHexColor: props.backgroundHexColor,
+      backgroundImage,
+      searchForm,
+      goToLinkText: props.goToLinkText,
+      goToLinkLocation,
+      themePageLinks,
+      themeArea,
+      bottomArea,
     };
-
-    const themePageLinks = [];
-
-    for (const item of cmsPageData.properties.themePageArea) {
-      themePageLinks.push({ text: item.name, url: item.route.path });
-    }
-
-    bodyData.themePageLinks = themePageLinks;
-    return bodyData;
   }
 }

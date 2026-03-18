@@ -1,7 +1,7 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
 
 export class StartPageTransformer implements IJSONTransformer {
-  public Transform(cmsPageData: any): any {
+  public async Transform(cmsPageData: any): Promise<any> {
     const bodyData = {
       componentName: "StartPage",
       pageName: cmsPageData.name,

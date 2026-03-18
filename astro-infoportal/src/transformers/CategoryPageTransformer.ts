@@ -1,7 +1,7 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
 
 export class CategoryPageTransformer implements IJSONTransformer {
-  public Transform(cmsPageData: any): any {
+  public async Transform(cmsPageData: any): Promise<any> {
     return {
       componentName: "CategoryPage",
       pageName: cmsPageData.name,

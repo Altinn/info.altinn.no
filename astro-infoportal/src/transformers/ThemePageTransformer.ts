@@ -1,63 +1,58 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
+import { fetchUmbracoChildren } from "../api/umbraco/client";
+import { BlockTransformer } from "./BlockTransformer";
+
+const articleContentTypes = new Set([
+  "helpDrilldownPage",
+  "aboutPage",
+  "subsidyPage",
+  "schemaPage",
+]);
 
 export class ThemePageTransformer implements IJSONTransformer {
-  public Transform(cmsPageData: any): any {
-    const bodyData = {
+  public async Transform(cmsPageData: any): Promise<any> {
+    const props = cmsPageData.properties ?? {};
+
+    const allChildren = await fetchUmbracoChildren(cmsPageData.id);
+    const children = allChildren.filter(
+      (c: any) => c.properties?.showInNavigation !== false,
+    );
+
+    const themeGroups = await Promise.all(
+      children.map(async (child: any) => {
+        const allChildPages = await fetchUmbracoChildren(child.id);
+        const childPages = allChildPages.filter(
+          (c: any) => c.properties?.showInNavigation !== false,
+        );
+
+        const mappedChildPages = childPages.map((sub: any) => ({
+          componentName: "LinkItem",
+          text: sub.name,
+          url: sub.route?.path,
+        }));
+
+        const isArticle = articleContentTypes.has(child.contentType);
+
+        return {
+          type: isArticle ? "article" : "container",
+          title: child.name,
+          intro: isArticle ? (child.properties?.mainIntro ?? null) : null,
+          url: isArticle ? (child.route?.path ?? null) : null,
+          childPages: mappedChildPages,
+        };
+      }),
+    );
+
+    const bottomContentArea = props.bottomContentArea
+      ? BlockTransformer.TransformBlocks(props.bottomContentArea)
+      : undefined;
+
+    return {
       componentName: "ThemePage",
-      mainIntro: cmsPageData.mainIntro,
-      themeGroups: [],
       pageName: cmsPageData.name,
-      bottomContentArea: {},
-      breadcrumb: [],
+      mainIntro: props.mainIntro,
+      themeGroups,
+      bottomContentArea,
     };
-
-    //bodyData.themeGroups = this.TransformThemeGroups(cmsPageData);
-
-    return bodyData;
   }
-
-  /* private TransformThemeGroups(cmsPageData:any):any {
-            var themeGroups = [];
-
-            var themePageChildren = contentRepository.GetChildren<SitePageData>(currentPage.ContentLink)
-                .FilterForDisplay()
-                .Where(x => x.VisibleInMenu && x is IThemeSitePages)
-                .ToList();
-
-            foreach (var child in themePageChildren)
-            {
-                var childPages = contentRepository.GetChildren<SitePageData>(child.ContentLink)
-                    .FilterForDisplay()
-                    .Where(x => x.VisibleInMenu)
-                    .Select(x => new LinkItemViewModel
-                    {
-                        Text = x.PageName,
-                        Url = urlResolver.GetUrl(x.ContentLink)
-                    })
-                    .ToList();
-
-                if (child is ArticlePageBase articlePage)
-                {
-                    themeGroups.Add(new ThemeGroupItemViewModel
-                    {
-                        Type = "article",
-                        Title = articlePage.PageName,
-                        Intro = articlePage.MainIntro,
-                        Url = urlResolver.GetUrl(articlePage.ContentLink),
-                        ChildPages = childPages
-                    });
-                }
-                else if (child is ThemeContainerPage containerPage)
-                {
-                    themeGroups.Add(new ThemeGroupItemViewModel
-                    {
-                        Type = "container",
-                        Title = containerPage.PageName,
-                        Intro = null,
-                        Url = null,
-                        ChildPages = childPages
-                    });
-                }
-            }
-    }*/
 }

@@ -1,20 +1,22 @@
-// @ts-check
 import {defineConfig} from 'astro/config';
-
 import cloudflare from '@astrojs/cloudflare';
-
 import react from '@astrojs/react';
 
-// https://astro.build/config
 export default defineConfig({
   output: 'server',
   adapter: cloudflare({
     routes: {
       extend: {
         exclude: [
+          {pattern: '/@*'},
           {pattern: '/@vite/*'},
           {pattern: '/@id/*'},
+          {pattern: '/@fs/*'},
           {pattern: '/@react-refresh'},
+          {pattern: '/node_modules/*'},
+          {pattern: '/src/*'},
+          {pattern: '/favicon.ico'},
+          {pattern: '/_astro/*'},
         ],
       },
     },
