@@ -1,13 +1,20 @@
 ---
 
 import { fetchUmbracoContent } from '@api/umbraco/client';
-import ReactView from '@layouts/ReactView.astro';
+import AstroSiteLayout from '@layouts/AstroSiteLayout.astro';
 import { JSONTransformer } from '@transformers/JSONTransformer';
 
 const path = Astro.url.pathname;
 
 // Specifically ignore internal/vite, api, and file asset requests
-if (path.startsWith('/@') || path.startsWith('/_astro') || path.startsWith('/api/') || path.match(/\.[a-zA-Z0-9]+$/)) {
+if (path.startsWith('/@vite/client')) {
+  return new Response("/* Vite dev script bypassed to prevent routing errors */", { 
+    status: 200, 
+    headers: { "Content-Type": "application/javascript" } 
+  });
+}
+
+if (path.startsWith('/api/') || path.match(/\.[a-zA-Z0-9]+$/)) {
   return new Response(null, { status: 404 });
 }
 
@@ -23,4 +30,4 @@ const pageData = new JSONTransformer().Transform(umbracoPageData);
 Astro.response.headers.set("Cache-Control", "public, max-age=0, s-maxage=86400");
 ---
 
-<ReactView {pageData} />
+<AstroSiteLayout pageData={pageData} />
