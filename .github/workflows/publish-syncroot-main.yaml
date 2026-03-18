@@ -1,7 +1,12 @@
 name: Publish Syncroot artifacts
+run-name: Deploy ${{ inputs.image-tag }}
 
 on:
   workflow_dispatch:
+    inputs:
+      image-tag:
+        description: 'Umbraco image tag to deploy'
+        required: true
   # push:
   #   branches:
   #     - main
@@ -25,6 +30,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+
+      - name: Update image tag
+        run: yq -i '(.images[] | select(.name == "umbraco")).newTag = "${{ inputs.image-tag }}"' ./syncroot/at22/kustomization.yaml
 
       - name: Build and push syncroot artifact
         uses: Altinn/altinn-platform/actions/flux/build-push-image@8d4e42eae11efbc3a159aa62fe15ed49954d9df9 # main
