@@ -57,7 +57,7 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
 
                 var mappedGroups = new List<string>();
 
-                //  Mapping: App Role → Umbraco gruppe
+                //  Mapping: App Role til Umbraco gruppe
                 if (roles.Contains("umbraco-admin"))
                     mappedGroups.Add("admin");
 
@@ -67,7 +67,7 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
                 if (roles.Contains("node-test-role"))
                     mappedGroups.Add("nodeTest");
 
-                // fallback
+                // Writer rolle om ingen andre er spesifisert
                 if (!mappedGroups.Any())
                 {
                     mappedGroups.Add("writer");

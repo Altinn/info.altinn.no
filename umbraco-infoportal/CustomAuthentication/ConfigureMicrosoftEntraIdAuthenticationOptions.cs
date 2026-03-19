@@ -19,12 +19,24 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
 
     public void Configure(OpenIdConnectOptions options)
     {
-        var clientId = _configuration["MicrosoftEntraId:ClientId"] ?? "YOUR_CLIENT_ID";
-        var clientSecret = _configuration["MicrosoftEntraId:ClientSecret"] ?? "YOUR_CLIENT_SECRET";
-        var authority = _configuration["MicrosoftEntraId:Authority"] ?? "https://login.microsoftonline.com/YOUR_TENANT_ID/v2.0";
+        // var clientId = _configuration["MicrosoftEntraId:ClientId"] ?? "YOUR_CLIENT_ID";
+        // var clientSecret = _configuration["MicrosoftEntraId:ClientSecret"] ?? "YOUR_CLIENT_SECRET";
+        // var authority = _configuration["MicrosoftEntraId:Authority"] ?? "https://login.microsoftonline.com/YOUR_TENANT_ID/v2.0";
 
-        options.CallbackPath = "/signin-entra";
+        var clientId = _configuration["MicrosoftEntraId:ClientId"]
+            ?? throw new Exception("Missing MicrosoftEntraId:ClientId");
 
+        var clientSecret = _configuration["MicrosoftEntraId:ClientSecret"]
+            ?? throw new Exception("Missing MicrosoftEntraId:ClientSecret");
+
+        var authority = _configuration["MicrosoftEntraId:Authority"]
+            ?? throw new Exception("Missing MicrosoftEntraId:Authority");
+
+        var callbackPath = _configuration["MicrosoftEntraId:CallbackPath"]
+            ?? throw new Exception("Missing MicrosoftEntraId:CallbackPath");
+
+        //options.CallbackPath = "/signin-entra";
+        options.CallbackPath = callbackPath;
         options.ClientId = clientId;
         options.ClientSecret = clientSecret;
         options.Authority = authority;
