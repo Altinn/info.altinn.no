@@ -26,6 +26,9 @@ export const createLocaleSelectHandler = (
  * @returns Formatted language props
  */
 export const buildLanguageProps = (menuLanguageList: LanguageItemViewModel[]) => {
+  if (!menuLanguageList || !Array.isArray(menuLanguageList)) {
+    return [];
+  }
   return menuLanguageList.map(({ languageName, selected }) => ({
     label: languageName,
     id: languageName,
