@@ -5,9 +5,8 @@ export class SectionPageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any): Promise<any> {
     const props = cmsPageData.properties ?? {};
 
-    const backgroundImage = props.backgroundImage
-      ? { src: props.backgroundImage.url ?? props.backgroundImage, componentName: "Image" }
-      : undefined;
+    // Always use static asset for background image, never Umbraco media
+    const backgroundImage = { src: `/assets/img/illustrasjon_starte_og_drive.svg`, componentName: "Image" };
 
     const searchForm = props.searchForm
       ? {
