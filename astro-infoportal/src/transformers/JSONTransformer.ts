@@ -1,7 +1,7 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
 import { SectionPageTransformer } from "./SectionPageTransformer";
+import { HeroArticlePageBaseTransformer } from "./HeroArticlePageBaseTransformer";
 import { ThemePageTransformer } from "./ThemePageTransformer";
-import { AboutPageTransformer } from "./AboutPageTransformer";
 import { CategoryPageTransformer } from "./CategoryPageTransformer";
 import { HelpDrilldownPageTransformer } from "./HelpDrilldownPageTransformer";
 import { HelpLandingPageTransformer } from "./HelpLandingPageTransformer";
@@ -40,8 +40,6 @@ export class JSONTransformer implements IJSONTransformer {
     switch (umbracoContentType) {
       case "startPage":
         return new StartPageTransformer();
-      case "aboutPage":
-        return new AboutPageTransformer();
       case "categoryPage":
         return new CategoryPageTransformer();
       case "helpDrilldownPage":
@@ -64,6 +62,9 @@ export class JSONTransformer implements IJSONTransformer {
         return new SubCategoryPageTransformer();
       case "sectionPage":
         return new SectionPageTransformer();
+      case "sectionArticlePage":
+      case "newsArticlePage":
+        return new HeroArticlePageBaseTransformer();
       case "themePage":
         return new ThemePageTransformer();
       default:
