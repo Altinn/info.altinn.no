@@ -7,8 +7,10 @@ import { formatDisplayName } from "@altinn/altinn-components";
 import {
   Buildings2Icon,
   ChatExclamationmarkIcon,
+  GlobeIcon,
   InboxFillIcon,
   InformationSquareIcon,
+  MagnifyingGlassIcon,
   MenuGridIcon,
   PadlockLockedFillIcon,
   PersonCircleIcon,
@@ -82,6 +84,18 @@ export const buildMenuItems = (pages: MenuPages, isLoggedIn: boolean, currentPat
     });
   }
 
+  if (pages.searchPageUrl && pages.searchTextPlaceholder) {
+    items.push({
+      id: "altinn-search",
+      groupId: "apps",
+      title: pages.searchTextPlaceholder,
+      href: pages.searchPageUrl,
+      icon: MagnifyingGlassIcon,
+      size: "lg" as const,
+      selected: isCurrentPage(currentPath, pages.searchPageUrl),
+    });
+  }
+
   if (pages.aboutNewAltinnPage?.url && pages.aboutNewAltinnPage?.text) {
     items.push({
       id: "about-new-altinn",
@@ -115,6 +129,27 @@ export const buildMenuItems = (pages: MenuPages, isLoggedIn: boolean, currentPat
       icon: ChatExclamationmarkIcon,
       size: "sm" as const,
       selected: isCurrentPage(currentPath, pages.helpPage.url),
+    });
+  }
+
+  if (pages.chooseLanguageText && pages.menuLanguageList && pages.menuLanguageList.length > 0) {
+    const currentLang = pages.menuLanguageList.find((l) => l.selected);
+    items.push({
+      id: "language",
+      groupId: "shortcuts",
+      title: pages.chooseLanguageText,
+      icon: GlobeIcon,
+      size: "sm" as const,
+      description: currentLang?.languageName,
+      items: pages.menuLanguageList.map((lang) => ({
+        id: lang.languageName,
+        groupId: "language",
+        title: lang.languageName,
+        selected: lang.selected,
+        onClick: () => {
+          window.location.assign(lang.pageUrl);
+        },
+      })),
     });
   }
 

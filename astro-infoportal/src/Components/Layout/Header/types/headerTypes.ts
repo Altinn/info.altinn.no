@@ -16,6 +16,10 @@ export interface MenuPages {
   schemaOverviewPage?: LinkItemViewModel;
   profilePage?: LinkItemViewModel;
   aboutNewAltinnPage?: LinkItemViewModel;
+  searchPageUrl?: string;
+  searchTextPlaceholder?: string;
+  chooseLanguageText?: string;
+  menuLanguageList?: { languageName: string; pageUrl: string; selected: boolean }[];
 }
 
 /**

@@ -2,7 +2,7 @@ import { Card } from "@digdir/designsystemet-react";
 import type { ContentAreaProps } from "/Models/Generated/ContentAreaProps";
 import * as Components from "../../../App.Components";
 import "./ContentArea.scss";
-import { IReactComponentProps } from "/Models/Generated/IReactComponentProps";
+import type { IReactComponentProps } from "/Models/Generated/IReactComponentProps";
 
 interface IReactComponentPropsType {
   type: string;
