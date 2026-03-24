@@ -34,3 +34,16 @@ export async function fetchUmbracoChildren(id: string) {
   const data = await response.json();
   return data.items ?? [];
 }
+
+export async function fetchUmbracoAncestors(id: string) {
+  const url = `${UMBRACO_API_URL}/umbraco/delivery/api/v2/content?fetch=ancestors:${id}`;
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ancestors from Umbraco: ${response.statusText} ${url}`);
+  }
+
+  const data = await response.json();
+  return data.items ?? [];
+}

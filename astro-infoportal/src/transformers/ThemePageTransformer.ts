@@ -1,6 +1,7 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
-import { fetchUmbracoChildren } from "../api/umbraco/client";
+import { fetchUmbracoAncestors, fetchUmbracoChildren } from "../api/umbraco/client";
 import { BlockTransformer } from "./BlockTransformer";
+import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
 
 const articleContentTypes = new Set([
   "helpDrilldownPage",
@@ -12,6 +13,9 @@ const articleContentTypes = new Set([
 export class ThemePageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any): Promise<any> {
     const props = cmsPageData.properties ?? {};
+
+    const ancestors = await fetchUmbracoAncestors(cmsPageData.id);
+    const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
     const allChildren = await fetchUmbracoChildren(cmsPageData.id);
     const children = allChildren.filter(
@@ -51,6 +55,7 @@ export class ThemePageTransformer implements IJSONTransformer {
       componentName: "ThemePage",
       pageName: cmsPageData.name,
       mainIntro: props.mainIntro,
+      breadcrumb: breadcrumb,
       themeGroups,
       bottomContentArea,
     };

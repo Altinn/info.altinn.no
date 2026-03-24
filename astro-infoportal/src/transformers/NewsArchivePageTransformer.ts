@@ -1,9 +1,14 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
-import { fetchUmbracoChildren } from "../api/umbraco/client";
+import { fetchUmbracoAncestors, fetchUmbracoChildren } from "../api/umbraco/client";
+import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
 
 export class NewsArchivePageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any): Promise<any> {
     const children = await fetchUmbracoChildren(cmsPageData.id);
+ 
+    const ancestors = await fetchUmbracoAncestors(cmsPageData.id);
+    const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
+
     const newsArticles = 
       children.map((child: any) => {
         return {
@@ -18,7 +23,8 @@ export class NewsArchivePageTransformer implements IJSONTransformer {
     return {
       componentName: "NewsArchivePage",
       pageName: cmsPageData.name,
-      newsArticles: newsArticles
+      newsArticles: newsArticles,
+      breadcrumb: breadcrumb
     };
   }
 }
