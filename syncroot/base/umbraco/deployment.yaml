@@ -13,6 +13,7 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: umbraco
+        azure.workload.identity/use: "true"
       annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
         linkerd.io/inject: enabled
@@ -27,6 +28,9 @@ spec:
             requests:
               cpu: "1"
               memory: 2Gi
+          env:
+            - name: AZURE_SQL_FQDN
+              value: ${UMBRACO_SQL_CONN_FQDN}
           ports:
             - name: http
               containerPort: 8080
