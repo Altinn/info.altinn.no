@@ -90,7 +90,7 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
             Guid blockGuid = Guid.Parse(match.Groups["contentguid"].Value);
             items.Add(ConvertBlock(blockGuid, rteValue));
-            Console.WriteLine("Markup: " + markup);
+
             if (markup.Length > match.Length)
             {
                 markup = markup[(match.Index + match.Length)..];    
@@ -138,23 +138,6 @@ public class RichTextPropertyConverter : IPropertyValueConverter
                     } else {
                         item.Add(property.Alias, value.ConvertToJsonNode());    
                     }
-
-                    /*if (value is string)
-                    {
-                        item.Add(property.Alias, value.ToString());    
-                    }
-                    else if (value is Boolean)
-                    {
-                        item.Add(property.Alias, (Boolean) value);    
-                    } else if (value is JsonObject)
-                    {   
-                        item.Add(property.Alias, _json.Deserialize<JsonObject>(value.ToString()));
-                    } else
-                    {
-                        Console.WriteLine(value);
-                        item.Add("Hi", "Hi");
-                    }*/
-                    
                 }
                 return item;
             }

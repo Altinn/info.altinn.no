@@ -1,5 +1,6 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
 import { BlockTransformer } from "./BlockTransformer";
+import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
 
 export class SectionPageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any): Promise<any> {
