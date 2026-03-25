@@ -2,6 +2,35 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 WORKDIR /app
 EXPOSE 8080
 
+# Install Microsoft SQL tools prerequisites
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    unzip \
+    gnupg \
+    ca-certificates \
+    apt-transport-https \
+    unixodbc-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install sqlcmd via Microsoft package repo
+RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
+    curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list \
+        -o /etc/apt/sources.list.d/mssql-release.list && \
+    apt-get update && \
+    ACCEPT_EULA=Y apt-get install -y mssql-tools && \
+    echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> /etc/bash.bashrc
+
+# Install sqlpackage for Linux
+RUN curl -L -o sqlpackage.zip "https://aka.ms/sqlpackage-linux" && \
+    mkdir /opt/sqlpackage && \
+    unzip sqlpackage.zip -d /opt/sqlpackage && \
+    chmod +x /opt/sqlpackage/sqlpackage && \
+    rm sqlpackage.zip
+
+# Add sqlpackage + sqlcmd to PATH
+ENV PATH="${PATH}:/opt/sqlpackage:/opt/mssql-tools/bin"
+
+# Install Umbraco
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
