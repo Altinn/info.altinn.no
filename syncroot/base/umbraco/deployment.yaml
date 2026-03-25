@@ -29,8 +29,8 @@ spec:
               cpu: "1"
               memory: 2Gi
           env:
-            - name: AZURE_SQL_FQDN
-              value: ${UMBRACO_SQL_CONN_FQDN}
+            - name: ConnectionStrings__umbracoDbDSN
+              value: Server=tcp:${UMBRACO_SQL_CONN_FQDN},1433;Initial Catalog=umbraco;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication=\"Active Directory Default\
           ports:
             - name: http
               containerPort: 8080
