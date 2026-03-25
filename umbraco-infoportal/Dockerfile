@@ -19,7 +19,7 @@ RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc \
           > /etc/apt/sources.list.d/mssql-release.list && \
     apt-get update && \
     ACCEPT_EULA=Y apt-get install -y mssql-tools18 && \
-    echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> /etc/bash.bashrc
+    echo 'export PATH="$PATH:/opt/mssql-tools18/bin"' >> /etc/bash.bashrc
 
 # Install sqlpackage for Linux
 RUN curl -L -o sqlpackage.zip "https://aka.ms/sqlpackage-linux" && \
@@ -29,7 +29,7 @@ RUN curl -L -o sqlpackage.zip "https://aka.ms/sqlpackage-linux" && \
     rm sqlpackage.zip
 
 # Add sqlpackage + sqlcmd to PATH
-ENV PATH="${PATH}:/opt/sqlpackage:/opt/mssql-tools/bin"
+ENV PATH="${PATH}:/opt/sqlpackage:/opt/mssql-tools18/bin"
 
 # Install Umbraco
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
