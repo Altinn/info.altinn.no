@@ -18,7 +18,7 @@ RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc \
       echo "deb [signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/ubuntu/24.04/prod noble main" \
           > /etc/apt/sources.list.d/mssql-release.list && \
     apt-get update && \
-    ACCEPT_EULA=Y apt-get install -y mssql-tools && \
+    ACCEPT_EULA=Y apt-get install -y mssql-tools18 && \
     echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> /etc/bash.bashrc
 
 # Install sqlpackage for Linux
