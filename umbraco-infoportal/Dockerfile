@@ -18,7 +18,5 @@ RUN dotnet publish "umbraco-infoportal.csproj" -c  $BUILD_CONFIGURATION -o /app/
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENV ConnectionStrings__umbracoDbDSN="Server=tcp:${AZURE_SQL_FQDN},1433;Initial Catalog=umbraco;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication=\"Active Directory Default\";"
-ENV ConnectionStrings__umbracoDbDSN_ProviderName="Microsoft.Data.SqlClient"
 
 ENTRYPOINT ["dotnet", "umbraco-infoportal.dll"]
