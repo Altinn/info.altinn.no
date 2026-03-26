@@ -21,6 +21,7 @@ public class ReindexApiController : ControllerBase
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public IActionResult TriggerReindex()
     {
         if (!IsAuthorized())

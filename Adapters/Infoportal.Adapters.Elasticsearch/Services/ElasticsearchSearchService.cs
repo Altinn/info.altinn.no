@@ -235,7 +235,7 @@ public class ElasticsearchSearchService : ISearchService
             {
                 _logger.LogWarning(
                     "Search failed for query '{Query}': {Error}",
-                    query, searchResponse.DebugInformation);
+                    SanitizeForLog(query), searchResponse.DebugInformation);
                 return emptyResult;
             }
 
@@ -262,7 +262,7 @@ public class ElasticsearchSearchService : ISearchService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Search failed for query '{Query}'", query);
+            _logger.LogWarning(ex, "Search failed for query '{Query}'", SanitizeForLog(query));
             return emptyResult;
         }
     }
@@ -319,10 +319,13 @@ public class ElasticsearchSearchService : ISearchService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Suggestions failed for query '{Query}'", query);
+            _logger.LogWarning(ex, "Suggestions failed for query '{Query}'", SanitizeForLog(query));
             return emptyResult;
         }
     }
+
+    private static string SanitizeForLog(string? value) =>
+        value?.Replace("\r", " ").Replace("\n", " ") ?? "";
 
     private static SearchResultItem MapHitToResultItem(Hit<SearchDocument> hit)
     {
