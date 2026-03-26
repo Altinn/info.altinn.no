@@ -1,5 +1,6 @@
 # build output
 dist/
+public/assets/generated/
 # generated types
 .astro/
 
@@ -24,4 +25,4 @@ pnpm-debug.log*
 .idea/
 
 ### Cloudflare
-.wrangler
+.wrangler/

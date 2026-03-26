@@ -1,408 +1,77 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
 import { SectionPageTransformer } from "./SectionPageTransformer";
+import { HeroArticlePageBaseTransformer } from "./HeroArticlePageBaseTransformer";
 import { ThemePageTransformer } from "./ThemePageTransformer";
-
+import { CategoryPageTransformer } from "./CategoryPageTransformer";
+import { HelpDrilldownPageTransformer } from "./HelpDrilldownPageTransformer";
+import { HelpLandingPageTransformer } from "./HelpLandingPageTransformer";
+import { StartPageTransformer } from "./StartPageTransformer";
+import { Error404PageTransformer } from "./Error404PageTransformer";
+import { SchemaPageTransformer } from "./SchemaPageTransformer";
+import { SchemaOverviewPageTransformer } from "./SchemaOverviewPageTransformer";
+import { SubsidyPageTransformer } from "./SubsidyPageTransformer";
+import { SubsidyOverviewPageTransformer } from "./SubsidyOverviewPageTransformer";
+import { SearchPageTransformer } from "./SearchPageTransformer";
+import { SubCategoryPageTransformer } from "./SubCategoryPageTransformer";
+import { NewsArchivePageTransformer } from "./NewsArchivePageTransformer";
 
 export class JSONTransformer implements IJSONTransformer {
-    public Transform(umbracoPageData:any):any {
-        let data:any = JSONTransformer.GetLayoutData();
+  public async Transform(umbracoPageData: any, globalData?: any): Promise<any> {
+    const data: any = {
+      headerViewModel: globalData?.properties?.headerViewModel || globalData?.headerViewModel || null,
+      footerViewModel: globalData?.properties?.footerViewModel || globalData?.footerViewModel || null,
+      pageSidebarViewModel: globalData?.properties?.pageSidebarViewModel || globalData?.pageSidebarViewModel || null,
+      skipLinkText: globalData?.properties?.skipLinkText || globalData?.skipLinkText || "Hopp til hovedinnhold",
+      componentName: "SiteLayout",
+      child: null
+    };
 
-        let bodyDataTransformer:IJSONTransformer | null = this.GetTransformer(umbracoPageData.contentType);
+    const bodyDataTransformer: IJSONTransformer | null = this.GetTransformer(
+      umbracoPageData.contentType,
+    );
 
-        if (bodyDataTransformer != null) {
-            data.child = bodyDataTransformer.Transform(umbracoPageData);
-        }
-
-        return data;
+    if (bodyDataTransformer != null) {
+      data.child = await bodyDataTransformer.Transform(umbracoPageData, globalData);
     }
 
-    private GetTransformer(umbracoContentType:string):IJSONTransformer | null {
-        switch (umbracoContentType) {
-            case "sectionPage":
-                return new SectionPageTransformer();
-            case "themePage":
-                return new ThemePageTransformer();
-            default:
-                return null;    
-        }        
-    }
+    return data;
+  }
 
-    private static GetLayoutData() {
-        return {
-            headerViewModel: {
-                banner: {
-                    message: {
-                        items: [
-                            {
-                                html: "\u003cp\u003eVi fornyer Altinn.\u0026nbsp;\u003ca href=\u0022/nyheter/om-nye-altinn/\u0022 class=\u0022ds-link\u0022\u003eLes mer om hva som er nytt.\u003c/a\u003e\u003c/p\u003e",
-                                fullRefreshProperties: [],
-                                componentName: "RichText",
-                                ope: {},
-                                displayOptionId: null,
-                                displayOptionName: null,
-                                displayOptionTag: null,
-                            },
-                        ],
-                        fullRefreshProperties: [],
-                        componentName: "RichTextArea",
-                        ope: {},
-                        displayOptionId: null,
-                        displayOptionName: null,
-                        displayOptionTag: null,
-                    },
-                    isActive: true,
-                    badgeText: "Beta",
-                    colorTheme: "accent",
-                    closeButtonText: "Lukk",
-                    contentHash: "88628bb068b41760",
-                    localStoragePrefix: "infoportal-banner-dismissed",
-                    fullRefreshProperties: null,
-                    componentName: "BannerBlock",
-                    ope: {},
-                    displayOptionId: null,
-                    displayOptionName: null,
-                    displayOptionTag: null,
-                },
-                startAndRunCompany: {
-                    text: "Starte og drive bedrift",
-                    description: null,
-                    url: "/starte-og-drive/",
-                    target: null,
-                    externalLinkDomain: null,
-                    isExternal: false,
-                    image: null,
-                    preamble: null,
-                    fullRefreshProperties: [],
-                    componentName: "LinkItem",
-                    ope: {},
-                    displayOptionId: null,
-                    displayOptionName: null,
-                    displayOptionTag: null,
-                },
-                helpPage: {
-                    text: "Trenger du hjelp?",
-                    description: null,
-                    url: "/hjelp/",
-                    target: null,
-                    externalLinkDomain: null,
-                    isExternal: false,
-                    image: null,
-                    preamble: null,
-                    fullRefreshProperties: [],
-                    componentName: "LinkItem",
-                    ope: {},
-                    displayOptionId: null,
-                    displayOptionName: null,
-                    displayOptionTag: null,
-                },
-                loginPage: {
-                    text: "Logg inn",
-                    description: null,
-                    url: "https://af.at23.altinn.cloud/",
-                    target: null,
-                    externalLinkDomain: null,
-                    isExternal: false,
-                    image: null,
-                    preamble: null,
-                    fullRefreshProperties: [],
-                    componentName: "LinkItem",
-                    ope: {},
-                    displayOptionId: null,
-                    displayOptionName: null,
-                    displayOptionTag: null,
-                },
-                schemaOverviewPage: {
-                    text: "Alle skjema og tjenester",
-                    description: null,
-                    url: "/skjemaoversikt/",
-                    target: null,
-                    externalLinkDomain: null,
-                    isExternal: false,
-                    image: null,
-                    preamble: null,
-                    fullRefreshProperties: [],
-                    componentName: "LinkItem",
-                    ope: {},
-                    displayOptionId: null,
-                    displayOptionName: null,
-                    displayOptionTag: null,
-                },
-                inboxPage: {
-                    text: "Innboks",
-                    description: null,
-                    url: "https://af.at23.altinn.cloud/",
-                    target: null,
-                    externalLinkDomain: null,
-                    isExternal: false,
-                    image: null,
-                    preamble: null,
-                    fullRefreshProperties: [],
-                    componentName: "LinkItem",
-                    ope: {},
-                    displayOptionId: null,
-                    displayOptionName: null,
-                    displayOptionTag: null,
-                },
-                accessManagementPage: {
-                    text: "Tilgangsstyring",
-                    description: null,
-                    url: "https://am.ui.at23.altinn.cloud/accessmanagement/ui",
-                    target: null,
-                    externalLinkDomain: null,
-                    isExternal: false,
-                    image: null,
-                    preamble: null,
-                    fullRefreshProperties: [],
-                    componentName: "LinkItem",
-                    ope: {},
-                    displayOptionId: null,
-                    displayOptionName: null,
-                    displayOptionTag: null,
-                },
-                profilePage: {
-                    text: "Din profil",
-                    description: null,
-                    url: "https://af.at23.altinn.cloud/profile",
-                    target: null,
-                    externalLinkDomain: null,
-                    isExternal: false,
-                    image: null,
-                    preamble: null,
-                    fullRefreshProperties: [],
-                    componentName: "LinkItem",
-                    ope: {},
-                    displayOptionId: null,
-                    displayOptionName: null,
-                    displayOptionTag: null,
-                },
-                logOutPage: {
-                    text: "Logg ut",
-                    description: null,
-                    url: "https://platform.at23.altinn.cloud/authentication/api/v1/logout",
-                    target: null,
-                    externalLinkDomain: null,
-                    isExternal: false,
-                    image: null,
-                    preamble: null,
-                    fullRefreshProperties: [],
-                    componentName: "LinkItem",
-                    ope: {},
-                    displayOptionId: null,
-                    displayOptionName: null,
-                    displayOptionTag: null,
-                },
-                aboutNewAltinnPage: {
-                    text: "Om nye altinn",
-                    description: null,
-                    url: "/nyheter/om-nye-altinn/",
-                    target: null,
-                    externalLinkDomain: null,
-                    isExternal: false,
-                    image: null,
-                    preamble: null,
-                    fullRefreshProperties: [],
-                    componentName: "LinkItem",
-                    ope: {},
-                    displayOptionId: null,
-                    displayOptionName: null,
-                    displayOptionTag: null,
-                },
-                startPage: {
-                    text: "",
-                    description: null,
-                    url: "/",
-                    target: null,
-                    externalLinkDomain: null,
-                    isExternal: false,
-                    image: null,
-                    preamble: null,
-                    fullRefreshProperties: [],
-                    componentName: "LinkItem",
-                    ope: {},
-                    displayOptionId: null,
-                    displayOptionName: null,
-                    displayOptionTag: null,
-                },
-                loggedInAsText: "Logget inn som",
-                backButtonText: "Tilbake",
-                chooseLanguageText: "Velg språk",
-                menuLanguageList: [
-                    {
-                        pageUrl: "/starte-og-drive/",
-                        languageTeaser: "Alt innhold er tilgjengelig på bokmål.",
-                        languageImage: "/Static/img/no.svg",
-                        languageName: "Bokmål",
-                        selected: true,
-                        fullRefreshProperties: [],
-                        componentName: "LanguageItem",
-                        ope: {},
-                        displayOptionId: null,
-                        displayOptionName: null,
-                        displayOptionTag: null,
-                    },
-                    {
-                        pageUrl: "/nn/starte-og-drive/",
-                        languageTeaser:
-                            "Noko av innhaldet er tilgjengeleg på nynorsk.",
-                        languageImage: "/Static/img/no.svg",
-                        languageName: "Nynorsk",
-                        selected: false,
-                        fullRefreshProperties: [],
-                        componentName: "LanguageItem",
-                        ope: {},
-                        displayOptionId: null,
-                        displayOptionName: null,
-                        displayOptionTag: null,
-                    },
-                    {
-                        pageUrl: "/en/start-and-run-business/",
-                        languageTeaser: "Some content is available in English.",
-                        languageImage: "/Static/img/gb.svg",
-                        languageName: "English",
-                        selected: false,
-                        fullRefreshProperties: [],
-                        componentName: "LanguageItem",
-                        ope: {},
-                        displayOptionId: null,
-                        displayOptionName: null,
-                        displayOptionTag: null,
-                    },
-                ],
-                shortcutText: "Snarveier",
-                menuText: "Meny",
-                searchTextPlaceholder: "Søk i innhold",
-                searchPageUrl: "/sok/",
-                suggestionsTitle: "Utvalgte hurtiglenker",
-                useSearchSuggestions: false,
-                dateOfBirthText: "Fødslesnummer",
-                orgNrText: "Org. nr",
-                hostBaseUrl: "https://at23.altinn.cloud/",
-                fullRefreshProperties: [],
-                componentName: "Header",
-                ope: {},
-                displayOptionId: null,
-                displayOptionName: null,
-                displayOptionTag: null,
-            },
-            footerViewModel: {
-                startAndRunCompany: {
-                    text: "Starte og drive bedrift",
-                    description: null,
-                    url: "/starte-og-drive/",
-                    target: null,
-                    externalLinkDomain: null,
-                    isExternal: false,
-                    image: null,
-                    preamble: null,
-                    fullRefreshProperties: [],
-                    componentName: "LinkItem",
-                    ope: {},
-                    displayOptionId: null,
-                    displayOptionName: null,
-                    displayOptionTag: null,
-                },
-                helpPage: {
-                    text: "Hjelp og kontakt",
-                    description: null,
-                    url: "/hjelp/",
-                    target: null,
-                    externalLinkDomain: null,
-                    isExternal: false,
-                    image: null,
-                    preamble: null,
-                    fullRefreshProperties: [],
-                    componentName: "LinkItem",
-                    ope: {},
-                    displayOptionId: null,
-                    displayOptionName: null,
-                    displayOptionTag: null,
-                },
-                address1: "Digitaliseringsdirektoratet,",
-                address2: "Postboks 1382 Vika, 0114 Oslo. Org.nr. 991 825 827",
-                aboutAltinnReference: {
-                    text: "Om Altinn",
-                    description: null,
-                    url: "/om-altinn/",
-                    target: null,
-                    externalLinkDomain: null,
-                    isExternal: false,
-                    image: null,
-                    preamble: null,
-                    fullRefreshProperties: [],
-                    componentName: "LinkItem",
-                    ope: {},
-                    displayOptionId: null,
-                    displayOptionName: null,
-                    displayOptionTag: null,
-                },
-                operationalMessagesReference: {
-                    text: "Driftsmeldinger",
-                    description: null,
-                    url: "/om-altinn/driftsmeldinger/",
-                    target: null,
-                    externalLinkDomain: null,
-                    isExternal: false,
-                    image: null,
-                    preamble: null,
-                    fullRefreshProperties: [],
-                    componentName: "LinkItem",
-                    ope: {},
-                    displayOptionId: null,
-                    displayOptionName: null,
-                    displayOptionTag: null,
-                },
-                privacyReference: {
-                    text: "Personvern",
-                    description: null,
-                    url: "/om-altinn/personvern/",
-                    target: null,
-                    externalLinkDomain: null,
-                    isExternal: false,
-                    image: null,
-                    preamble: null,
-                    fullRefreshProperties: [],
-                    componentName: "LinkItem",
-                    ope: {},
-                    displayOptionId: null,
-                    displayOptionName: null,
-                    displayOptionTag: null,
-                },
-                accessibilityLocation: {
-                    text: "Tilgjengelighet",
-                    description: null,
-                    url: "/om-altinn/tilgjengelighet/",
-                    target: null,
-                    externalLinkDomain: null,
-                    isExternal: false,
-                    image: null,
-                    preamble: null,
-                    fullRefreshProperties: [],
-                    componentName: "LinkItem",
-                    ope: {},
-                    displayOptionId: null,
-                    displayOptionName: null,
-                    displayOptionTag: null,
-                },
-                searchContext: "",
-                searchPageUrl: "/sok/",
-                searchUrlBody: "/sok/",
-                fullRefreshProperties: [],
-                componentName: "Footer",
-                ope: {},
-                displayOptionId: null,
-                displayOptionName: null,
-                displayOptionTag: null,
-            },
-            pageSidebarViewModel: null,
-            skipLinkText: "Hopp til hovedinnhold",
-            fullRefreshProperties: [],
-            componentName: "SiteLayout",
-            ope: {},
-            displayOptionId: null,
-            displayOptionName: null,
-            displayOptionTag: null,
-        };
+  private GetTransformer(umbracoContentType: string): IJSONTransformer | null {
+    switch (umbracoContentType) {
+      case "startPage":
+        return new StartPageTransformer();
+      case "categoryPage":
+        return new CategoryPageTransformer();
+      case "helpDrilldownPage":
+        return new HelpDrilldownPageTransformer();
+      case "helpLandingPage":
+        return new HelpLandingPageTransformer();
+      case "error404Page":
+        return new Error404PageTransformer();
+      case "schemaPage":
+        return new SchemaPageTransformer();
+      case "schemaOverviewPage":
+        return new SchemaOverviewPageTransformer();
+      case "subsidyPage":
+        return new SubsidyPageTransformer();
+      case "subsidyOverviewPage":
+        return new SubsidyOverviewPageTransformer();
+      case "searchPage":
+        return new SearchPageTransformer();
+      case "subCategoryPage":
+        return new SubCategoryPageTransformer();
+      case "newsArchivePage":
+        return new NewsArchivePageTransformer();        
+      case "sectionPage":
+        return new SectionPageTransformer();
+      case "sectionArticlePage":
+      case "newsArticlePage":
+        return new HeroArticlePageBaseTransformer();
+      case "themePage":
+        return new ThemePageTransformer();
+      default:
+        return null;
     }
+  }
 }
-
-

@@ -1,14 +1,13 @@
-import type { GlobalHeaderProps } from "@altinn/altinn-components";
+import type {
+  AuthorizedParty as LibAuthorizedParty,
+  GlobalHeaderProps,
+} from "@altinn/altinn-components";
 import { useAccountSelector } from "@altinn/altinn-components";
 import type { HeaderViewModel } from "/Models/Generated/HeaderViewModel";
 import "@altinn/altinn-components/dist/global.css";
 import { useEffect, useMemo, useState } from "react";
 // import { useSearchSuggestions } from "./hooks/useSearchSuggestions";
 import { buildDesktopMenu } from "./builders/menuBuilder";
-import {
-  buildLanguageProps,
-  createLocaleSelectHandler,
-} from "./handlers/headerHandlers";
 import { useFavorites } from "./hooks/useFavorites";
 import type { MenuPages } from "./types/headerTypes";
 import { isBrowser } from "./utils/browserUtils";
@@ -45,22 +44,6 @@ interface AuthorizedPartyData {
   subunits?: AuthorizedPartyData[];
 }
 
-// Transformed party type for account selector
-interface TransformedParty {
-  partyUuid: string;
-  name: string;
-  organizationNumber?: string;
-  dateOfBirth?: string;
-  partyId: string; // Changed to match partyUuid
-  type: "Person" | "Organization";
-  unitType?: string;
-  isDeleted: boolean;
-  onlyHierarchyElementWithNoAccess: boolean;
-  authorizedResources: string[];
-  authorizedRoles: string[];
-  subunits: TransformedParty[];
-}
-
 const useHeaderConfig = (
   {
     startAndRunCompany,
@@ -71,6 +54,7 @@ const useHeaderConfig = (
     schemaOverviewPage,
     menuText,
     searchPageUrl,
+    searchTextPlaceholder,
     menuLanguageList,
     chooseLanguageText,
     hostBaseUrl,
@@ -90,14 +74,18 @@ const useHeaderConfig = (
   const [authorizedParties, setAuthorizedParties] = useState<AuthorizedPartyData[]>([]);
   const [currentPath, setCurrentPath] = useState<string>("");
   const [shouldShowDeletedUnits, setShouldShowDeletedUnits] = useState<boolean | undefined>(undefined);
+  const [isDataLoading, setIsDataLoading] = useState(isBrowser);
 
   // Custom hooks
-  const { favorites, addFavorite, removeFavorite } = useFavorites();
+  const { favorites, isLoading: isFavoritesLoading, addFavorite, removeFavorite } = useFavorites();
 
   // Fetch user data and authorized parties on mount
   useEffect(() => {
     // Only run in browser
-    if (!isBrowser) return;
+    if (!isBrowser) {
+      setIsDataLoading(false);
+      return;
+    }
 
     setCurrentPath(window.location.pathname);
 
@@ -130,8 +118,10 @@ const useHeaderConfig = (
             setShouldShowDeletedUnits(userData.showDeletedEntities);
           }
         }
-      } catch (_error) {
+      } catch {
         // Silent fail - user is not logged in or API unavailable
+      } finally {
+        setIsDataLoading(false);
       }
     };
 
@@ -150,7 +140,11 @@ const useHeaderConfig = (
     inboxPage,
     schemaOverviewPage,
     profilePage,
-    aboutNewAltinnPage
+    aboutNewAltinnPage,
+    searchPageUrl,
+    searchTextPlaceholder,
+    chooseLanguageText,
+    menuLanguageList,
   };
 
   // Find the main user and build menu - memoized to avoid recalculation
@@ -182,15 +176,21 @@ const useHeaderConfig = (
     [pages, isLoggedIn, loggedInAsText, currentUser?.name, userType, currentPath]
   );
 
-  const transformParty = (party: AuthorizedPartyData): TransformedParty => {
+  const transformParty = (party: AuthorizedPartyData): LibAuthorizedParty => {
     const isPerson = party.type === 1 || party.type === "Person";
 
     return {
-      ...party,
+      partyUuid: party.partyUuid,
+      name: party.name,
       partyId: party.partyUuid,
       type: isPerson ? "Person" : "Organization",
-      dateOfBirth: isPerson ? party.dateOfBirth : undefined,
-      organizationNumber: !isPerson ? party.organizationNumber : undefined,
+      isDeleted: party.isDeleted,
+      onlyHierarchyElementWithNoAccess: party.onlyHierarchyElementWithNoAccess,
+      authorizedResources: party.authorizedResources,
+      authorizedRoles: party.authorizedRoles,
+      ...(party.dateOfBirth && isPerson ? { dateOfBirth: party.dateOfBirth } : {}),
+      ...(party.organizationNumber && !isPerson ? { organizationNumber: party.organizationNumber } : {}),
+      ...(party.unitType ? { unitType: party.unitType } : {}),
       subunits: party.subunits?.map(transformParty) || [],
     };
   };
@@ -210,19 +210,19 @@ const useHeaderConfig = (
         const data = await response.json();
         setShouldShowDeletedUnits(data.shouldShowDeletedEntities);
       }
-    } catch (error) {
-      console.error("Error updating show deleted preference:", error);
+    } catch {
+      // Silent fail — preference update is non-critical
     }
   };
 
   const accountSelectorData = useAccountSelector({
     languageCode: languageCode,
-    partyListDTO: partyListDTO as any,
+    partyListDTO: partyListDTO,
     favoriteAccountUuids: favorites,
     currentAccountUuid: currentAccountUuid,
     selfAccountUuid: selfAccountUuid,
-    isVirtualized: authorizedParties.length > 20,
-    isLoading: false,
+    virtualized: authorizedParties.length > 20,
+    isLoading: isDataLoading || isFavoritesLoading,
     showDeletedUnits: shouldShowDeletedUnits,
     onShowDeletedUnitsChange: onShowDeletedUnitsChange,
     onToggleFavorite: (accountId: string) => {
@@ -243,9 +243,6 @@ const useHeaderConfig = (
       (window as Window).open(changeUrl.toString(), "_self");
     },
   });
-
-  const languageProps = buildLanguageProps(menuLanguageList);
-  const handleLocaleSelect = createLocaleSelectHandler(menuLanguageList);
 
   const globalHeaderProps: GlobalHeaderProps = {
     globalMenu: {
@@ -269,30 +266,6 @@ const useHeaderConfig = (
       logo: { href: startPage.url },
     }),
     desktopMenu,
-    globalSearch: {
-      // value: searchValue,
-      // onChange: setSearchValue,
-      // onFocus: () => setIsSearchFocused(true),
-      // onBlur: () => setIsSearchFocused(false),
-      // suggestions: suggestions,
-      onSearch: (query: string) => {
-        if (!isBrowser || !searchPageUrl) return;
-
-        const url = new URL(searchPageUrl, location.origin);
-        if (query) url.searchParams.set("q", query);
-        location.assign(url.toString());
-      },
-    },
-    locale: {
-      title: chooseLanguageText,
-      options: languageProps.map((l) => ({
-        value: l.value,
-        label: l.label,
-        checked: l.checked,
-        onClick: () => handleLocaleSelect(l.value),
-      })),
-      onSelect: handleLocaleSelect,
-    },
     accountSelector: {
       ...accountSelectorData,
       forceOpenFullScreen: false,

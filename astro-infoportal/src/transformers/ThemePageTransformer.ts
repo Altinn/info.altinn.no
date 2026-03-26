@@ -1,65 +1,63 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
+import { fetchUmbracoAncestors, fetchUmbracoChildren } from "../api/umbraco/client";
+import { BlockTransformer } from "./BlockTransformer";
+import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
+
+const articleContentTypes = new Set([
+  "helpDrilldownPage",
+  "aboutPage",
+  "subsidyPage",
+  "schemaPage",
+]);
 
 export class ThemePageTransformer implements IJSONTransformer {
-    public Transform(cmsPageData:any):any {
-        let bodyData = {
-            componentName: "ThemePage",
-            mainIntro: cmsPageData.mainIntro,
-            themeGroups: [],
-            pageName: cmsPageData.name,
-            bottomContentArea: {},
-            breadcrumb: []
+  public async Transform(cmsPageData: any): Promise<any> {
+    const props = cmsPageData.properties ?? {};
+
+    const ancestors = await fetchUmbracoAncestors(cmsPageData.id);
+    const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
+
+    const allChildren = await fetchUmbracoChildren(cmsPageData.id);
+    const children = allChildren.filter(
+      (c: any) => c.properties?.showInNavigation !== false,
+    );
+
+    const themeGroups = await Promise.all(
+      children.map(async (child: any) => {
+        const allChildPages = await fetchUmbracoChildren(child.id);
+        const childPages = allChildPages.filter(
+          (c: any) => c.properties?.showInNavigation !== false,
+        );
+
+        const mappedChildPages = childPages.map((sub: any) => ({
+          componentName: "LinkItem",
+          text: sub.name,
+          url: sub.route?.path,
+        }));
+
+        const isArticle = articleContentTypes.has(child.contentType);
+
+        return {
+          type: isArticle ? "article" : "container",
+          title: child.name,
+          intro: isArticle ? (child.properties?.mainIntro ?? null) : null,
+          url: isArticle ? (child.route?.path ?? null) : null,
+          childPages: mappedChildPages,
         };
+      }),
+    );
 
-        //bodyData.themeGroups = this.TransformThemeGroups(cmsPageData);
+    const bottomContentArea = props.bottomContentArea
+      ? BlockTransformer.TransformBlocks(props.bottomContentArea)
+      : undefined;
 
-        return bodyData;
-    }
-
-   /* private TransformThemeGroups(cmsPageData:any):any {
-            var themeGroups = [];
-
-            var themePageChildren = contentRepository.GetChildren<SitePageData>(currentPage.ContentLink)
-                .FilterForDisplay()
-                .Where(x => x.VisibleInMenu && x is IThemeSitePages)
-                .ToList();
-
-            foreach (var child in themePageChildren)
-            {
-                var childPages = contentRepository.GetChildren<SitePageData>(child.ContentLink)
-                    .FilterForDisplay()
-                    .Where(x => x.VisibleInMenu)
-                    .Select(x => new LinkItemViewModel
-                    {
-                        Text = x.PageName,
-                        Url = urlResolver.GetUrl(x.ContentLink)
-                    })
-                    .ToList();
-
-                if (child is ArticlePageBase articlePage)
-                {
-                    themeGroups.Add(new ThemeGroupItemViewModel
-                    {
-                        Type = "article",
-                        Title = articlePage.PageName,
-                        Intro = articlePage.MainIntro,
-                        Url = urlResolver.GetUrl(articlePage.ContentLink),
-                        ChildPages = childPages
-                    });
-                }
-                else if (child is ThemeContainerPage containerPage)
-                {
-                    themeGroups.Add(new ThemeGroupItemViewModel
-                    {
-                        Type = "container",
-                        Title = containerPage.PageName,
-                        Intro = null,
-                        Url = null,
-                        ChildPages = childPages
-                    });
-                }
-            }
-    }*/
+    return {
+      componentName: "ThemePage",
+      pageName: cmsPageData.name,
+      mainIntro: props.mainIntro,
+      breadcrumb: breadcrumb,
+      themeGroups,
+      bottomContentArea,
+    };
+  }
 }
-
-
