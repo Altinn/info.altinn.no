@@ -20,6 +20,5 @@ WORKDIR /app
 COPY --from=publish /app/publish .
 
 RUN apt-get update && apt-get install -y tar && apt-get clean && rm -rf /var/lib/apt/lists/*
-ENV PATH="/usr/bin/tar:${PATH}"
 
 ENTRYPOINT ["dotnet", "umbraco-infoportal.dll"]
