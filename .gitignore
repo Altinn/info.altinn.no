@@ -423,3 +423,5 @@ Frontend-old/
 # Wrangler
 .wrangler
 .wrangler/
+CLAUDE.md
+.claude/
