@@ -30,7 +30,9 @@ spec:
               memory: 2Gi
           env:
             - name: ConnectionStrings__umbracoDbDSN
-              value: Server=tcp:${UMBRACO_SQL_CONN_FQDN},1433;Initial Catalog=umbraco;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication="Active Directory Default"
+              value: "Data Source=|DataDirectory|/Umbraco.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True"
+            - name: ConnectionStrings__umbracoDbDSN_ProviderName
+              value: "Microsoft.Data.Sqlite"
           ports:
             - name: http
               containerPort: 8080
