@@ -46,11 +46,11 @@ jobs:
         run: yq -i '(.images[] | select(.name == "umbraco")).newTag = "${{ inputs.image-tag }}"' ./syncroot/at22/kustomization.yaml
 
       - name: Update db connection string
-        if: ${{ inputs.database == "AzureSQL" }}
+        if: inputs.database == "AzureSQL"
         run: yq -i '.spec.template.spec.containers[0].env.ConnectionStrings__umbracoDbDSN = "Server=tcp:${UMBRACO_SQL_CONN_FQDN},1433;Initial Catalog=umbraco;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication=\"Active Directory Default\""' ./syncroot/base/deployment.yaml
 
       - name: Update db provider
-        if: ${{ inputs.database == "AzureSQL" }}
+        if: inputs.database == "AzureSQL"
         run: yq -i '.spec.template.spec.containers[0].env.ConnectionStrings__umbracoDbDSN_ProviderName = "Microsoft.Data.SqlClient"' ./syncroot/base/deployment.yaml
 
       - name: Build and push syncroot artifact
