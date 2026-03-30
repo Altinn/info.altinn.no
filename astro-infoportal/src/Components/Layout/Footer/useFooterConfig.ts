@@ -1,5 +1,4 @@
 import type { FooterProps } from "@altinn/altinn-components";
-import type { FooterViewModel } from "/Models/Generated/FooterViewModel";
 
 const useFooterConfig = ({
   address1,
@@ -9,7 +8,7 @@ const useFooterConfig = ({
   privacyReference,
   accessibilityLocation,
   operationalMessagesReference
-}: FooterViewModel): FooterProps => {
+}: any): FooterProps => {
   const menuItems = [
     helpPage && { id: "1", title: helpPage.text || "", href: helpPage.url || "" },
     aboutAltinnReference && { id: "2", title: aboutAltinnReference.text || "", href: aboutAltinnReference.url || "" },

@@ -1,5 +1,4 @@
 import { RichTextArea } from "/App.Components";
-import { CompareBlockViewModel } from "/Models/Generated/CompareBlockViewModel";
 import "./CompareBlock.scss";
 
 const CompareBlock = ({
@@ -12,7 +11,7 @@ const CompareBlock = ({
   compareText3,
   compareHeading4,
   compareText4,
-}: CompareBlockViewModel) => {
+}: any) => {
   const hasColumn1 = compareHeading1 || compareText1;
   const hasColumn2 = compareHeading2 || compareText2;
   const hasColumn3 = compareHeading3 || compareText3;

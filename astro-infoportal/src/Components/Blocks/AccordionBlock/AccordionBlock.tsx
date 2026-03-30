@@ -1,11 +1,10 @@
 import { Details } from "@digdir/designsystemet-react";
 import { RichTextArea } from "/App.Components";
-import type { AccordionBlockViewModel} from "/Models/Generated/AccordionBlockViewModel";
 
 const AccordionBlock = ({
   heading,
   description,
-}: AccordionBlockViewModel) => {    
+}: any) => {    
   return (
     <Details variant="default" data-color="neutral" data-size="md">
       <Details.Summary role="button" tabIndex={0} slot="summary">

@@ -4,7 +4,7 @@ import * as Components from '../../../App.Components';
 import '@altinn/altinn-components/dist/global.css';
 import '@digdir/designsystemet-theme';
 import '@digdir/designsystemet-css';
-import type {SiteLayoutViewModel} from '/Models/Generated/SiteLayoutViewModel';
+import type {SiteLayoutProps} from './SiteLayout.types';
 import useSidebarConfig from '../../Shared/PageSidebar/useSidebarConfig';
 import useFooterConfig from '../Footer/useFooterConfig';
 import useHeaderConfig from '../Header/useHeaderConfig';
@@ -18,7 +18,7 @@ const SiteLayout = ({
   footerViewModel,
   pageSidebarViewModel,
   skipLinkText,
-}: SiteLayoutViewModel) => {
+}: SiteLayoutProps) => {
   const Comp = child ? (Components as any)[child.componentName] : null;
 
   // Only enable GlobalHeader on client side to avoid SSR issues
@@ -26,7 +26,7 @@ const SiteLayout = ({
   useEffect(() => setIsClient(true), []);
 
   const currentLanguage = headerViewModel?.menuLanguageList?.find(
-    (l) => l.selected,
+    (l: any) => l.selected,
   )?.languageName;
 
   const normalize = (s?: string) =>
@@ -85,8 +85,6 @@ const SiteLayout = ({
       <SkipLink
         className="site-layout__skip-link"
         href="#main-content"
-        data-color="person"
-        data-size="xs"
       >
         {skipLinkText}
       </SkipLink>

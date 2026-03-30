@@ -7,10 +7,9 @@ import {
 import { Fragment } from "react";
 import { ContentArea } from "/App.Components";
 import "./TimelineBlock.scss";
-import { TimelineItemBlockViewModel } from "/Models/Generated/TimelineItemBlockViewModel";
 
 type TimelineBlockProps = {
-  timelineItems: TimelineItemBlockViewModel[];
+  timelineItems: any[];
 };
 
 const TimelineBlock = ({ timelineItems }: TimelineBlockProps) => {

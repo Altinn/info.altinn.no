@@ -1,5 +1,4 @@
 import { FormEvent, useState } from "react";
-import { SearchFormViewModel } from "/Models/Generated/SearchFormViewModel";
 import "./SearchForm.scss";
 import { MagnifyingGlassIcon } from "@navikt/aksel-icons";
 
@@ -8,7 +7,7 @@ const SearchForm = ({
   query,
   preamble,
   searchPageUrl,
-}: SearchFormViewModel) => {
+}: any) => {
   const [searchQuery, setSearchQuery] = useState(query || "");
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {

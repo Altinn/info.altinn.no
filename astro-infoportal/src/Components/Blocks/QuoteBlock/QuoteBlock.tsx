@@ -1,7 +1,6 @@
-import { QuoteBlockViewModel } from "/Models/Generated/QuoteBlockViewModel";
 import "./QuoteBlock.scss";
 
-const QuoteBlock = ({ quote, author }: QuoteBlockViewModel) => {
+const QuoteBlock = ({ quote, author }: any) => {
   return (
     <blockquote className="a-blockquote a-article-right-off a-blockquote-right">
       <p className="">{quote || ""}</p>

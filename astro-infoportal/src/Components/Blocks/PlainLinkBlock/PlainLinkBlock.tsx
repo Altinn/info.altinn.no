@@ -1,11 +1,10 @@
-import type { PlainLinkBlockViewModel } from "/Models/Generated/PlainLinkBlockViewModel";
 import "../../../styles/legacy-pages.scss";
 
 const PlainLinkBlock = ({
   linkText,
   url,
   openInNewWindow,
-}: PlainLinkBlockViewModel) => {
+}: any) => {
   if (!linkText || !url) {
     return null;
   }

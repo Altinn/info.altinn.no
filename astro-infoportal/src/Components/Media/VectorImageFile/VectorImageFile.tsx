@@ -1,4 +1,3 @@
-import type { VectorImageFileViewModel } from "/Models/Generated/VectorImageFileViewModel";
 import "../../../styles/legacy-pages.scss";
 import "./VectorImageFile.scss";
 
@@ -6,7 +5,7 @@ const VectorImageFile = ({
   src,
   altText,
   backgroundColor,
-}: VectorImageFileViewModel) => {
+}: any) => {
   if (!src) {
     return null;
   }

@@ -3,7 +3,6 @@ import { Card, Paragraph } from "@digdir/designsystemet-react";
 import * as AkselIcons from "@navikt/aksel-icons";
 import { useState } from "react";
 import { RichTextArea } from "/App.Components";
-import type { BoxBlockViewModel } from "/Models/Generated/BoxBlockViewModel";
 import { BoxTypes, BoxColors } from "../../../Constants/ComponentVariants";
 
 import "./BoxBlock.scss";
@@ -15,7 +14,7 @@ const BoxBlock = ({
   type = BoxTypes.Link,
   title,
   modal,
-}: BoxBlockViewModel) => {
+}: any) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const isModalType = type === BoxTypes.Modal;

@@ -1,10 +1,9 @@
 import { Button } from "@digdir/designsystemet-react";
-import type { ThirdPartySubscriptionBlockViewModel } from "/Models/Generated/ThirdPartySubscriptionBlockViewModel";
 
 const ThirdPartySubscriptionBlock = ({
   buttonText,
   buttonUrl,
-}: ThirdPartySubscriptionBlockViewModel) => {
+}: any) => {
   if (!buttonUrl || !buttonText) {
     return null;
   }

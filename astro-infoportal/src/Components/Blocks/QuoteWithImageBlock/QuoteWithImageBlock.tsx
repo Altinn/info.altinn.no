@@ -1,5 +1,4 @@
 import { Image } from "/App.Components";
-import { QuoteWithImageBlockViewModel } from "/Models/Generated/QuoteWithImageBlockViewModel";
 import "./QuoteWithImageBlock.scss";
 
 const QuoteWithImageBlock = ({
@@ -7,7 +6,7 @@ const QuoteWithImageBlock = ({
   author,
   image,
   imageAltText,
-}: QuoteWithImageBlockViewModel) => {
+}: any) => {
   return (
     <div className="media a-media mb-2">
       {image && image.src && (

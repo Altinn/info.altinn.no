@@ -1,9 +1,9 @@
 import { ContentArea } from "/App.Components";
-import { SectionPageViewModel } from "/Models/Generated/SectionPageViewModel";
 // import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
 import "../../../styles/legacy-pages.scss";
 import "./SectionPage.scss";
 // import { ArrowRightIcon } from "@navikt/aksel-icons";
+import type { SectionPageProps } from "./SectionPage.types";
 
 const SectionPage = ({
   pageName,
@@ -16,7 +16,7 @@ const SectionPage = ({
   goToLinkLocation,
   themeArea,
   bottomArea,
-}: SectionPageViewModel) => {
+}: SectionPageProps) => {
   return (
     <section id="content" className="legacy-page" tabIndex={-1}>
       {/* Page Title Section */}
@@ -51,7 +51,7 @@ const SectionPage = ({
                 {themePageLinks && themePageLinks.length > 0 ? (
                   <div className="a-list-container pb-3">
                     <ul className="a-list a-list-large-forMD a-list-noIcon">
-                      {themePageLinks.map((link, idx) => (
+                      {themePageLinks.map((link: any, idx: number) => (
                         <li
                           className="a-dotted a-clickable a-list-hasRowLink"
                           key={link.url || link.text || idx}

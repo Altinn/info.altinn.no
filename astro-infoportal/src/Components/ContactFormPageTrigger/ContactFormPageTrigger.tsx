@@ -1,6 +1,5 @@
 import { useState } from "react";
 import ContactFormModal from "../ContactFormModal/ContactFormModal";
-import { ContactFormPageViewModel } from "/Models/Generated/ContactFormPageViewModel";
 
 interface ContactFormPageTriggerProps {
   contactFormUrl: string;
@@ -8,7 +7,7 @@ interface ContactFormPageTriggerProps {
 
 const ContactFormPageTrigger = ({ contactFormUrl }: ContactFormPageTriggerProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [pageData, setPageData] = useState<ContactFormPageViewModel | null>(null);
+  const [pageData, setPageData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,7 +29,7 @@ const ContactFormPageTrigger = ({ contactFormUrl }: ContactFormPageTriggerProps)
         throw new Error("Failed to load contact form");
       }
 
-      const data: ContactFormPageViewModel = await response.json();
+      const data: any = await response.json();
       setPageData(data);
       setIsModalOpen(true);
     } catch (err) {

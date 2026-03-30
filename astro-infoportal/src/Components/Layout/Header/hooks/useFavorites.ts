@@ -84,7 +84,7 @@ export const useFavorites = () => {
 
       const isFavorite = favorites.includes(partyUuid);
       const newFavorites = isFavorite
-        ? favorites.filter((id) => id !== partyUuid)
+        ? favorites.filter((id: any) => id !== partyUuid)
         : [...favorites, partyUuid];
 
       // Optimistic update
@@ -156,7 +156,7 @@ export const useFavorites = () => {
     async (partyUuid: string) => {
       if (!isBrowser || !favorites.includes(partyUuid)) return;
 
-      const newFavorites = favorites.filter((id) => id !== partyUuid);
+      const newFavorites = favorites.filter((id: any) => id !== partyUuid);
 
       // Optimistic update
       setFavorites(newFavorites);

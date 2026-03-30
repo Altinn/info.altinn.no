@@ -1,7 +1,6 @@
 import {
   Divider,
   DsLink,
-  FilterState,
   List,
   PageBase,
   SearchItem,
@@ -9,20 +8,19 @@ import {
   Toolbar,
   Typography,
 } from "@altinn/altinn-components";
+import type { FilterState } from "@altinn/altinn-components";
 import { Button, Pagination } from "@digdir/designsystemet-react";
 import * as AkselIcons from "@navikt/aksel-icons";
-import { SearchPageViewModel } from "/Models/Generated/SearchPageViewModel";
 import { useResponsivePagination } from "/Services/Hooks/UseResponsivePagination";
 import { useSearchPage } from "/Services/Hooks/UseSearch";
-import IconItemsInline, {
-  IconItemsInlineItem,
-} from "../../Shared/IconItemsInline/IconItemsInline";
-import ProvidersInline, {
-  ProviderInlineItem,
-} from "../../Shared/ProvidersInline/ProvidersInline";
+import IconItemsInline from "../../Shared/IconItemsInline/IconItemsInline";
+import type { IconItemsInlineItem } from "../../Shared/IconItemsInline/IconItemsInline";
+import ProvidersInline from "../../Shared/ProvidersInline/ProvidersInline";
+import type { ProviderInlineItem } from "../../Shared/ProvidersInline/ProvidersInline";
 import SearchInput from "../../Shared/SearchInput/SearchInput";
 import "./SearchPage.scss";
 import { useEffect, useState } from "react";
+import type { SearchPageProps } from "./SearchPage.types";
 
 const PAGE_SIZE = 10;
 
@@ -46,7 +44,7 @@ const highlightText = (text: string, query: string) => {
 
   return (
     <>
-      {parts.map((part, index) =>
+      {parts.map((part: any, index: number) =>
         regex.test(part) ? (
           <mark key={index} className="search-highlight">
             {part}
@@ -87,7 +85,7 @@ const SearchPage = ({
   providerFilterText,
   searchPlaceholder,
   searchAriaLabel
-}: SearchPageViewModel) => {
+}: SearchPageProps) => {
   const { maxPaginationButtons, isMobile } = useResponsivePagination();
   const safePageTypeFacets = Array.isArray(pageTypeFacets) ? pageTypeFacets : [];
   const safeProviderFacets = Array.isArray(providerFacets) ? providerFacets : [];
@@ -177,64 +175,68 @@ const SearchPage = ({
       />
       {items && items.length > 0 && (
         <Toolbar
-          filters={[
-            {
-              label: categoriesText || "",
-              name: "pagetypes",
-              optionType: "radio",
-              options: safePageTypeFacets
-                .filter((pt): pt is typeof pt & { name: string; value: string } =>
-                  pt.name != null && pt.value != null
-                )
-                .map((pageType) => ({
-                  label: pageType.name,
-                  value: pageType.value,
-                  badge: { label: pageType.count },
-                })),
-              removable: false,
-            },
-            ...(showProviderFilter
-              ? [
-                {
-                  label: providersText || "",
-                  name: "providers",
-                  optionType: "checkbox" as const,
-                  options: safeProviderFacets
-                    .filter((pf): pf is typeof pf & { name: string; value: string } =>
-                      pf.name != null && pf.value != null
-                    )
-                    .map((provider) => ({
-                      label: provider.name,
-                      value: provider.value,
-                      badge: { label: provider.count },
-                    })),
-                  removable: false,
-                },
-              ]
-              : []),
-          ]}
-          filterState={filters}
-          getFilterLabel={(
-            name: string,
-            value: (string | number)[] | undefined,
-          ) => {
-            if (!value || value.length === 0) return "";
-
-            if (name === "pagetypes") {
-              const v = String(value[0]);
-              return pageTypeLabelByValue?.[v] ?? v;
-            }
-
-            if (name === "providers") {
-              if (value.length >= 3) {
-                return `${value.length} ${providerFilterText}`;
+          filter={{
+            filters: [
+              {
+                label: categoriesText || "",
+                name: "pagetypes",
+                items: safePageTypeFacets
+                  .filter((pt): pt is typeof pt & { name: string; value: string } =>
+                    pt.name != null && pt.value != null
+                  )
+                  .map((pageType: any) => ({
+                    id: pageType.value,
+                    title: pageType.name,
+                    role: "radio" as const,
+                    name: "pagetypes",
+                    value: pageType.value,
+                    badge: { label: pageType.count },
+                  })),
+                removable: false,
+              },
+              ...(showProviderFilter
+                ? [
+                  {
+                    label: providersText || "",
+                    name: "providers",
+                    items: safeProviderFacets
+                      .filter((pf): pf is typeof pf & { name: string; value: string } =>
+                        pf.name != null && pf.value != null
+                      )
+                      .map((provider: any) => ({
+                        id: provider.value,
+                        title: provider.name,
+                        role: "checkbox" as const,
+                        name: "providers",
+                        value: provider.value,
+                        badge: { label: provider.count },
+                      })),
+                    removable: false,
+                  },
+                ]
+                : []),
+            ],
+            filterState: filters,
+            getFilterLabel: (
+              name: string,
+              value: (string | number)[] | undefined,
+            ) => {
+              if (!value || value.length === 0) return "";
+              if (name === "pagetypes") {
+                const v = String(value[0]);
+                return pageTypeLabelByValue?.[v] ?? v;
+              }
+              if (name === "providers") {
+                if (value.length >= 3) {
+                  return `${value.length} ${providerFilterText}`;
+                }
+                return (value as (string | number)[]).map(String).join(", ");
               }
               return (value as (string | number)[]).map(String).join(", ");
-            }
-            return (value as (string | number)[]).map(String).join(", ");
-          }}
-          onFilterStateChange={(newFilterState: FilterState) => {
-            applyFilters(newFilterState);
+            },
+            onFilterStateChange: (newFilterState: FilterState) => {
+              applyFilters(newFilterState);
+            },
           }}
         />
       )}

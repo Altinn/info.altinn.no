@@ -1,8 +1,8 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
-import type { SchemaOverviewPageViewModel } from "../Models/Generated/SchemaOverviewPageViewModel";
+import type { SchemaOverviewPageProps } from "@components/Pages/SchemaOverviewPage/SchemaOverviewPage.types";
 
 export class SchemaOverviewPageTransformer implements IJSONTransformer {
-  public async Transform(cmsPageData: any): Promise<SchemaOverviewPageViewModel> {
+  public async Transform(cmsPageData: any): Promise<SchemaOverviewPageProps> {
     return {
       componentName: "SchemaOverviewPage",
       renderAlternateHeader: cmsPageData.properties.renderAlternateHeader || false,
@@ -18,6 +18,6 @@ export class SchemaOverviewPageTransformer implements IJSONTransformer {
       recommendedSchemas: cmsPageData.properties.recommendedSchemas || [],
       initialTab: cmsPageData.properties.initialTab || undefined,
       ...cmsPageData.properties,
-    } as SchemaOverviewPageViewModel;
+    };
   }
 }

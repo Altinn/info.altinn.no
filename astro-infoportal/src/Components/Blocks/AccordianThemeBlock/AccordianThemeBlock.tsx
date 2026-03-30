@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { AccordianThemeBlockViewModel } from "/Models/Generated/AccordianThemeBlockViewModel";
 import { ContentArea } from "/App.Components";
 import "./AccordianThemeBlock.scss";
 import "../../../styles/legacy-pages.scss";
@@ -10,7 +9,7 @@ const AccordianThemeBlock = ({
   goToLinkLocation,
   goToLinkText,
   image,
-}: AccordianThemeBlockViewModel) => {
+}: any) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleExpanded = (e: React.MouseEvent) => {

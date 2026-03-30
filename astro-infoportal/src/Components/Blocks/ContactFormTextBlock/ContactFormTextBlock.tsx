@@ -1,12 +1,11 @@
 import { RichTextArea } from "/App.Components";
-import { ContactFormTextBlockViewModel } from "/Models/Generated/ContactFormTextBlockViewModel";
 import "./ContactFormTextBlock.scss";
 
 const ContactFormTextBlock = ({
   heading,
   contactHeading,
   teaserText,
-}: ContactFormTextBlockViewModel) => {
+}: any) => {
   return (
     <div className="tab-pane contact-form-text-block" id={heading?.replace(/\s/g, "") || ""} role="tabpanel">
       <h3 className="a-h2">{contactHeading || ""}</h3>

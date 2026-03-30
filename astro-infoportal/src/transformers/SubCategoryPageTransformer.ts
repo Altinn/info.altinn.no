@@ -1,8 +1,8 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
-import type { SubCategoryPageViewModel } from "../Models/Generated/SubCategoryPageViewModel";
+import type { SubCategoryPageProps } from "@components/Pages/SubCategoryPage/SubCategoryPage.types";
 
 export class SubCategoryPageTransformer implements IJSONTransformer {
-  public async Transform(cmsPageData: any): Promise<SubCategoryPageViewModel> {
+  public async Transform(cmsPageData: any): Promise<SubCategoryPageProps> {
     return {
       componentName: "SubCategoryPage",
       pageName: cmsPageData.name,
@@ -15,6 +15,6 @@ export class SubCategoryPageTransformer implements IJSONTransformer {
       accordions: cmsPageData.properties.accordions || undefined,
       promoArea: cmsPageData.properties.promoArea || undefined,
       ...cmsPageData.properties,
-    } as SubCategoryPageViewModel;
+    };
   }
 }

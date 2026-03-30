@@ -3,7 +3,6 @@ import type {
   GlobalHeaderProps,
 } from "@altinn/altinn-components";
 import { useAccountSelector } from "@altinn/altinn-components";
-import type { HeaderViewModel } from "/Models/Generated/HeaderViewModel";
 import "@altinn/altinn-components/dist/global.css";
 import { useEffect, useMemo, useState } from "react";
 // import { useSearchSuggestions } from "./hooks/useSearchSuggestions";
@@ -65,7 +64,7 @@ const useHeaderConfig = (
     loggedInAsText,
     startPage
     // useSearchSuggestions: useSuggestionsEnabled,
-  }: HeaderViewModel,
+  }: any,
   languageCode: "nb" | "nn" | "en" = "nb",
 ): { headerProps: GlobalHeaderProps; color: "person" | "company" } => {
   // State management for user session data
@@ -244,10 +243,30 @@ const useHeaderConfig = (
     },
   });
 
+  // Build locale switcher from menuLanguageList
+  const localeSwitcher = menuLanguageList && menuLanguageList.length > 0
+    ? {
+        title: chooseLanguageText || "Språk/language",
+        options: menuLanguageList.map((lang: any) => ({
+          id: lang.languageName,
+          title: lang.languageName,
+          value: lang.languageCode || lang.languageName,
+          checked: !!lang.selected,
+        })),
+        onSelect: (value: string) => {
+          const lang = menuLanguageList.find((l: any) => (l.languageCode || l.languageName) === value);
+          if (lang?.pageUrl && isBrowser) {
+            window.location.assign(lang.pageUrl);
+          }
+        },
+      }
+    : undefined;
+
   const globalHeaderProps: GlobalHeaderProps = {
     globalMenu: {
       menuLabel: menuText,
       menu: desktopMenu,
+      ...(localeSwitcher && { localeSwitcher }),
       ...(isLoggedIn && {
         backLabel: backButtonText,
       }),
@@ -265,6 +284,7 @@ const useHeaderConfig = (
     ...(startPage?.url && {
       logo: { href: startPage.url },
     }),
+    ...(localeSwitcher && { locale: localeSwitcher }),
     desktopMenu,
     accountSelector: {
       ...accountSelectorData,

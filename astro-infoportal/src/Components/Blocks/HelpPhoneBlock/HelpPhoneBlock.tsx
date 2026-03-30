@@ -1,7 +1,6 @@
-import { HelpPhoneBlockViewModel } from "/Models/Generated/HelpPhoneBlockViewModel";
 import "./HelpPhoneBlock.scss";
 
-const HelpPhoneBlock = ({ phone, phoneLink }: HelpPhoneBlockViewModel) => {
+const HelpPhoneBlock = ({ phone, phoneLink }: any) => {
   return (
     <a href={phoneLink || "#"} className="a-list-rowLink">
       <div className="row">

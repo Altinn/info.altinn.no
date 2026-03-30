@@ -1,11 +1,10 @@
 import { Icon } from "@altinn/altinn-components";
-import type { PromoBoxBlockViewModel } from "/Models/Generated/PromoBoxBlockViewModel";
 import Image from "../../Shared/Image/Image";
 import RichTextArea from "../../Shared/RichTextArea/RichTextArea";
 import "./PromoBoxBlock.scss";
 import { ChevronRightIcon } from "@navikt/aksel-icons";
 
-const PromoBoxBlock = ({ image, text, link }: PromoBoxBlockViewModel) => {
+const PromoBoxBlock = ({ image, text, link }: any) => {
   const decodeHtmlEntities = (str: string): string => {
     if (!str) return "";
 
@@ -74,7 +73,7 @@ const PromoBoxBlock = ({ image, text, link }: PromoBoxBlockViewModel) => {
       return "";
     }
 
-    const richTextItem = text.items.find((item) => {
+    const richTextItem = text.items.find((item: any) => {
       return (
         typeof item === "object" &&
         item !== null &&

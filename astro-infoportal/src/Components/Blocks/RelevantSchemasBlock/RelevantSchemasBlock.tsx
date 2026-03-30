@@ -1,5 +1,4 @@
 import { Divider, DsLink, Grid, Typography } from "@altinn/altinn-components";
-import type { RelevantSchemasBlockViewModel } from "/Models/Generated/RelevantSchemasBlockViewModel";
 import {
   type ProviderInlineItem,
   ProvidersInline,
@@ -13,7 +12,7 @@ const RelevantSchemasBlock = ({
   relevantSchemasHeader,
   schemaOverviewPageUrl,
   showAllSchemasText,
-}: RelevantSchemasBlockViewModel) => {
+}: any) => {
   return (
     <div className="relevant-schemas-block">
       <Typography
@@ -34,13 +33,13 @@ const RelevantSchemasBlock = ({
           size="lg"
           className="relevant-schemas-block__grid"
         >
-          {schemas.map(({ pageName, providerIcons, url, andMoreText }, idx) => {
+          {schemas.map(({ pageName, providerIcons, url, andMoreText }: any, idx: any) => {
             const providerItems: ProviderInlineItem[] = (providerIcons || [])
               .filter(
-                (p): p is typeof p & { name: string } =>
+                (p: any): p is typeof p & { name: string } =>
                   p?.name != null && p.name !== "",
               )
-              .map((p) => ({
+              .map((p: any) => ({
                 name: p.name,
                 imageUrl: p.imageUrl || "",
                 url: (p as any).url || undefined,
