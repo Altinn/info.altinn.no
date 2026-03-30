@@ -15,13 +15,6 @@ on:
           - AzureSQL
         required: true
 
-name: Deploy
-
-        
-  # push:
-  #   branches:
-  #     - main
-
 env:
   SYNCROOT_ARTIFACT_NAME: infoportal/syncroot
 
