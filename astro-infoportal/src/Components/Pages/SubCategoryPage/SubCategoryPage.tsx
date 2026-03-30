@@ -6,14 +6,13 @@ import {
   List,
 } from "@altinn/altinn-components";
 import { ContentArea, RichTextArea } from "/App.Components";
-import { SubCategoryPageViewModel } from "/Models/Generated/SubCategoryPageViewModel";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
-import ProvidersInline, {
-  ProviderInlineItem,
-} from "../../Shared/ProvidersInline/ProvidersInline";
+import ProvidersInline from "../../Shared/ProvidersInline/ProvidersInline";
+import type { ProviderInlineItem } from "../../Shared/ProvidersInline/ProvidersInline";
 import "./SubCategoryPage.scss";
 import TimelineBlock from "../../Blocks/TimelineBlock/TimelineBlock";
 import { SearchItem } from "/Components/Shared/SearchItem/SearchItem";
+import type { SubCategoryPageProps } from "./SubCategoryPage.types";
 
 const SubCategoryPage = ({
   pageName,
@@ -25,7 +24,7 @@ const SubCategoryPage = ({
   timeline,
   timelineHeading,
   accordions,
-}: SubCategoryPageViewModel) => {
+}: SubCategoryPageProps) => {
   return (
     <Article>
       {breadcrumb && <BreadcrumbsView {...breadcrumb} />}
@@ -46,13 +45,13 @@ const SubCategoryPage = ({
 
       {schemas?.length ? (
         <List size="sm" color="neutral" spacing={0}>
-          {schemas.map(({ providers, title, url, id }, idx) => {
+          {schemas.map(({ providers, title, url, id }: any, idx: any) => {
             const providerItems: ProviderInlineItem[] = (providers || [])
               .filter(
-                (p): p is typeof p & { name: string } =>
+                (p: any): p is typeof p & { name: string } =>
                   p?.name != null && p.name !== "",
               )
-              .map((p) => ({
+              .map((p: any) => ({
                 name: p.name,
                 imageUrl: p.imageUrl || "",
                 url: (p as any).url || undefined,

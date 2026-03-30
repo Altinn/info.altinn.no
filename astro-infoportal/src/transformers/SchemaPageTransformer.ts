@@ -1,8 +1,8 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
-import type { SchemaPageViewModel } from "../Models/Generated/SchemaPageViewModel";
+import type { SchemaPageProps } from "@components/Pages/SchemaPage/SchemaPage.types";
 
 export class SchemaPageTransformer implements IJSONTransformer {
-  public async Transform(cmsPageData: any): Promise<SchemaPageViewModel> {
+  public async Transform(cmsPageData: any): Promise<SchemaPageProps> {
     return {
       componentName: "SchemaPage",
       schemaCategory: cmsPageData.properties.schemaCategory || undefined,
@@ -19,6 +19,6 @@ export class SchemaPageTransformer implements IJSONTransformer {
       deadline: cmsPageData.properties.deadline || undefined,
       deadlineText: cmsPageData.properties.deadlineText || undefined,
       ...cmsPageData.properties,
-    } as SchemaPageViewModel;
+    };
   }
 }

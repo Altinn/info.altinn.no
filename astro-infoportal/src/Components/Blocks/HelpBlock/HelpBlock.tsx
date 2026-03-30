@@ -1,8 +1,7 @@
-import { HelpBlockViewModel } from "/Models/Generated/HelpBlockViewModel";
 import "./HelpBlock.scss";
 import { RichTextArea } from "/App.Components";
 
-const HelpBlock = ({ description }: HelpBlockViewModel) => {
+const HelpBlock = ({ description }: any) => {
 
   return (
     <div>

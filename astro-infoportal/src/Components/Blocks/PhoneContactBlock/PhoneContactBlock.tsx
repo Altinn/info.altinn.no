@@ -1,11 +1,10 @@
 import { Typography } from "@altinn/altinn-components";
-import type { PhoneContactBlockViewModel } from "/Models/Generated/PhoneContactBlockViewModel";
 
 const PhoneContactBlock = ({
   header,
   text,
   phoneNumber,
-}: PhoneContactBlockViewModel) => {
+}: any) => {
   return (
     <div className="contact-block contact-block--phone">
       {header && <Typography as="h3">{header}</Typography>}

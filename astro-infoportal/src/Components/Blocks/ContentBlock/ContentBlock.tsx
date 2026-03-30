@@ -1,7 +1,6 @@
-import { ContentBlockViewModel } from "/Models/Generated/ContentBlockViewModel";
 import { RichTextArea } from "/App.Components";
 
-const ContentBlock = ({ content }: ContentBlockViewModel) => {
+const ContentBlock = ({ content }: any) => {
   return content ? <RichTextArea {...content} /> : null;
 };
 

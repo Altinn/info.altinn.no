@@ -13,7 +13,6 @@ import {
   Typography,
 } from "@altinn/altinn-components";
 import { ContentArea, RichTextArea } from "/App.Components";
-import { HeroArticlePageBaseViewModel } from "/Models/Generated/HeroArticlePageBaseViewModel";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
 import "./HeroArticlePageBase.scss";
 
@@ -26,7 +25,7 @@ const HeroArticlePageBase = ({
   lastUpdatedDateText,
   lastUpdatedDateString,
   bottomContentArea,
-}: HeroArticlePageBaseViewModel) => {
+}: any) => {
   const lastUpdateText =
     lastUpdatedDateText && lastUpdatedDateString
       ? `${lastUpdatedDateText} ${lastUpdatedDateString}`
@@ -52,7 +51,7 @@ const HeroArticlePageBase = ({
         <Section align="start" spacing={4}>
           <div className="timeline-section">
             <Timeline>
-              {timeline.map(({ heading }, i) => {
+              {timeline.map(({ heading }: any, i: any) => {
                 const anchorId = `s${i + 1}`;
                 const link = (
                   <DsLink data-color="neutral" href={`#${anchorId}`}>
@@ -86,7 +85,7 @@ const HeroArticlePageBase = ({
       {hasTimeline && (
         <Section align="start" spacing={4}>
           <div className="timeline-list">
-            {timeline.map((item, i) => {
+            {timeline.map((item: any, i: number) => {
               const anchorId = `s${i + 1}`;
               return (
                 <Section

@@ -6,7 +6,6 @@ import {
   Typography,
 } from "@altinn/altinn-components";
 import { ContentArea } from "/App.Components";
-import { OperationalMessageArchivePageViewModel } from "/Models/Generated/OperationalMessageArchivePageViewModel";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
 import "./OperationalMessageArchivePage.scss";
 
@@ -15,7 +14,7 @@ const OperationalMessageArchivePage = ({
   breadcrumb,
   articles,
   bottomContentArea,
-}: OperationalMessageArchivePageViewModel) => {
+}: any) => {
   const hasArticles = articles && articles.length > 0;
 
   return (
@@ -27,7 +26,7 @@ const OperationalMessageArchivePage = ({
         </Heading>
       </ArticleHeader>
 
-      {hasArticles && articles.map((article, index) => (
+      {hasArticles && articles.map((article: any, index: number) => (
         <div key={index}>
           <Heading size="lg" as="h2">{article.pageName}</Heading>
           <Typography as="p">

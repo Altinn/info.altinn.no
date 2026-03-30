@@ -8,7 +8,6 @@ import {
 } from "@altinn/altinn-components";
 import { Card, Details } from "@digdir/designsystemet-react";
 import * as AkselIcons from "@navikt/aksel-icons";
-import { HelpStartPageViewModel } from "/Models/Generated/HelpStartPageViewModel";
 import ContentArea from "../../Shared/ContentArea/ContentArea";
 import RichTextArea from "../../Shared/RichTextArea/RichTextArea";
 import SearchInput from "../../Shared/SearchInput/SearchInput";
@@ -29,7 +28,7 @@ const HelpStartPage = ({
   helpSearchPageUrl,
   helpContentAreaHeading,
   // breadcrumb,
-}: HelpStartPageViewModel) => {
+}: any) => {
   const getIcon = (iconName?: string) => {
     if (!iconName) return undefined;
     const IconComponent = (AkselIcons as any)[iconName];
@@ -54,7 +53,7 @@ const HelpStartPage = ({
             </Heading>
           )}
           <Grid color="company" spacing={3} cols={2}>
-            {newDrilldownPages.map((page, idx) => {
+            {newDrilldownPages.map((page: any, idx: number) => {
               const iconName = (page as any).akselIcon;
               const IconComponent = getIcon(iconName);
 
@@ -83,7 +82,7 @@ const HelpStartPage = ({
             </Heading>
           )}
           <Grid color="company" spacing={3} cols={2}>
-            {oldDrilldownPages.map((page, idx) => {
+            {oldDrilldownPages.map((page: any, idx: number) => {
               const iconName = (page as any).akselIcon;
               const IconComponent = getIcon(iconName);
 
@@ -113,7 +112,7 @@ const HelpStartPage = ({
 
         {questionArea && questionArea.length > 0 && (
           <Card data-color="neutral">
-            {questionArea.map((page, idx) => (
+            {questionArea.map((page: any, idx: number) => (
               <Details
                 key={idx}
                 variant="default"

@@ -1,7 +1,6 @@
-import { VideoFileViewModel } from "/Models/Generated/VideoFileViewModel";
 import "./VideoFile.scss";
 
-const VideoFile = ({ src, copyright, previewImage }: VideoFileViewModel) => {
+const VideoFile = ({ src, copyright, previewImage }: any) => {
   return (
     <div className="video-file">
       <video

@@ -7,7 +7,6 @@ import {
 } from "@altinn/altinn-components";
 import { Card, Details } from "@digdir/designsystemet-react";
 import { useEffect, useState } from "react";
-import { HelpSearchPageViewModel } from "/Models/Generated/HelpSearchPageViewModel";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
 import RichTextArea from "../../Shared/RichTextArea/RichTextArea";
 import SearchInput from "../../Shared/SearchInput/SearchInput";
@@ -32,7 +31,7 @@ const HelpSearchPage = ({
   helpSearchPageUrl,
   searchPlaceholder,
   breadcrumb,
-}: HelpSearchPageViewModel) => {
+}: any) => {
   const getInitialSearchValue = () => {
     if (!isBrowser) return query || "";
     try {
@@ -112,7 +111,7 @@ const HelpSearchPage = ({
 
       {results && results.length > 0 && (
         <Card data-color="neutral">
-          {results.map((result, idx) => (
+          {results.map((result: any, idx: number) => (
             <Details
               key={idx}
               variant="default"

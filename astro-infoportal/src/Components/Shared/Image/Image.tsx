@@ -1,7 +1,6 @@
-import { ImageProps } from "/Models/Generated/ImageProps";
 import "./Image.scss";
 
-const Image = ({ imageSources, altText, description, src }: ImageProps) => {
+const Image = ({ imageSources, altText, description, src }: any) => {
   const hasSources = Array.isArray(imageSources) && imageSources.length > 0;
   const resolvedSrc = hasSources ? imageSources[0]?.srcSet : src;
 
@@ -12,7 +11,7 @@ const Image = ({ imageSources, altText, description, src }: ImageProps) => {
   return (
     <figure className="image">
       <picture>
-        {imageSources?.map((val, idx) => (
+        {imageSources?.map((val: any, idx: number) => (
           <source key={idx} media={val.media} srcSet={val.srcSet} />
         ))}
         {resolvedSrc && (

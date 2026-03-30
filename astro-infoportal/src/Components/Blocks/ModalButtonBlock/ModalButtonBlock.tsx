@@ -2,13 +2,11 @@ import { DsButton, Modal} from "@altinn/altinn-components";
 import { ArrowRightIcon } from "@navikt/aksel-icons";
 import { useState } from "react";
 import { RichTextArea, SchemaPage } from "/App.Components";
-import type { ModalButtonBlockViewModel } from "/Models/Generated/ModalButtonBlockViewModel";
-import ProvidersInline, {
-  ProviderInlineItem,
-} from "../../Shared/ProvidersInline/ProvidersInline";
+import ProvidersInline from "../../Shared/ProvidersInline/ProvidersInline";
+import type { ProviderInlineItem } from "../../Shared/ProvidersInline/ProvidersInline";
 import "./ModalButtonBlock.scss";
 
-const ModalButtonBlock = ({ name, modal }: ModalButtonBlockViewModel) => {
+const ModalButtonBlock = ({ name, modal }: any) => {
 	const [open, setOpen] = useState(false);
 	const providerPages = modal?.schemaPage?.providerPages ?? [];
 	const providersInline: ProviderInlineItem[] = providerPages.map(

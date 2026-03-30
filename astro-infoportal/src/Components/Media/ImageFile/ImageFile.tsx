@@ -1,7 +1,6 @@
-import { ImageFileViewModel } from "/Models/Generated/ImageFileViewModel";
 import "./ImageFile.scss";
 
-const ImageFile = ({ src, altText }: ImageFileViewModel) => {
+const ImageFile = ({ src, altText }: any) => {
   return (
     <img
       src={src || ""}

@@ -1,7 +1,5 @@
 import type { LayoutProps, MenuItemProps } from "@altinn/altinn-components";
 import * as AkselIcons from "@navikt/aksel-icons";
-import type { PageSidebarViewModel } from "/Models/Generated/PageSidebarViewModel";
-import type { SidebarMenuItem } from "/Models/Generated/SidebarMenuItem";
 import "./PageSidebar.scss";
 
 const resolveAkselIcon = (iconName?: string) => {
@@ -11,7 +9,7 @@ const resolveAkselIcon = (iconName?: string) => {
 };
 
 export default function useSidebarConfig(
-  vm?: PageSidebarViewModel,
+  vm?: any,
   opts?: { reserveWhenEmpty?: boolean },
 ): LayoutProps["sidebar"] {
   const items: MenuItemProps[] = [];
@@ -31,7 +29,7 @@ export default function useSidebarConfig(
   }
 
   if (vm?.mainItems?.length) {
-    vm.mainItems.forEach((mainItem: SidebarMenuItem, i: number) => {
+    vm.mainItems.forEach((mainItem: any, i: number) => {
       items.push({
         id: `main-item-${i}`,
         groupId: "main-group",
@@ -45,7 +43,7 @@ export default function useSidebarConfig(
       } as MenuItemProps);
 
       if (mainItem.subItems?.length) {
-        mainItem.subItems.forEach((subItem: SidebarMenuItem, j: number) => {
+        mainItem.subItems.forEach((subItem: any, j: number) => {
           items.push({
             id: `sub-item-${i}-${j}`,
             groupId: "sub-group",
@@ -67,7 +65,6 @@ export default function useSidebarConfig(
   return {
     menu: {
       items,
-      variant: "subtle",
     },
   } as LayoutProps["sidebar"];
 }

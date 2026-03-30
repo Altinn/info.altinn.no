@@ -1,5 +1,4 @@
 import { RichTextArea } from "/App.Components";
-import { EGuideStartBlockViewModel } from "/Models/Generated/EGuideStartBlockViewModel";
 import "./EGuideStartBlock.scss";
 import "../../../styles/legacy-pages.scss";
 import { PencilWritingIcon } from '@navikt/aksel-icons';
@@ -12,7 +11,7 @@ const EGuideStartBlock = ({
   image,
   imageAltText,
   startGuideText
-}: EGuideStartBlockViewModel) => {
+}: any) => {
   return (
     <div className="legacy-page eguide-start-block">
       <div className="a-card a-cardImage mt-4">

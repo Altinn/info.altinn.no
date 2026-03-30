@@ -5,7 +5,6 @@ import {
   Heading,
   Typography,
 } from "@altinn/altinn-components";
-import { HelpProcessArticlePageViewModel } from "/Models/Generated/HelpProcessArticlePageViewModel";
 import TimelineBlock from "../../Blocks/TimelineBlock/TimelineBlock";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
 import ContentArea from "../../Shared/ContentArea/ContentArea";
@@ -22,7 +21,7 @@ const HelpProcessArticlePage = ({
   lastUpdatedDateText,
   lastUpdatedDateString,
   breadcrumb,
-}: HelpProcessArticlePageViewModel) => {
+}: any) => {
   return (
     <Article>
       {breadcrumb && <BreadcrumbsView {...breadcrumb} />}

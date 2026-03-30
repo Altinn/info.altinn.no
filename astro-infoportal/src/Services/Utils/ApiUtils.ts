@@ -16,7 +16,7 @@ export const buildQuery = (
   const searchParams = new URLSearchParams();
   Object.entries(params).forEach(([k, v]) => {
     if (Array.isArray(v))
-      v.forEach((x) => {
+      v.forEach((x: any) => {
         searchParams.append(k, String(x));
       });
     else if (v !== undefined && v !== "") searchParams.set(k, String(v));

@@ -29,7 +29,7 @@ export const IconItemsInline = ({
 
   return (
     <span className={`icon-items-inline ${className}`.trim()}>
-      {items.map((item, idx) => {
+      {items.map((item: any, idx: number) => {
         const IconComponent = item.icon;
         const labelContent = strong ? <strong>{item.label}</strong> : item.label;
 

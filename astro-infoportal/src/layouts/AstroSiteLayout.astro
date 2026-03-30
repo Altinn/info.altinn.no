@@ -1,6 +1,5 @@
 ---
 import SiteLayout from "../Components/Layout/SiteLayout/SiteLayout";
-import BundleJS from "../bundles/BundleJS.astro";
 import ApplicationInsightsFilterJS from "../bundles/ApplicationInsightsFilterJS.astro";
 
 const { pageData, htmlLanguage, title, canonicalUrl, metaNoIndex, metaDescription, metaKeywords, seoScript, enableAppInsightsFiltering } = Astro.props;
@@ -17,7 +16,6 @@ const { pageData, htmlLanguage, title, canonicalUrl, metaNoIndex, metaDescriptio
     {metaKeywords && <meta name="keywords" content={metaKeywords} />}
     <link rel="stylesheet" href="https://altinncdn.no/fonts/inter/v4.1/inter.css" crossorigin="anonymous">
     {seoScript && <Fragment set:html={seoScript} />}
-    <BundleJS/>
     {enableAppInsightsFiltering && <ApplicationInsightsFilterJS/>}
 </head>
 <body>

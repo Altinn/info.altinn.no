@@ -1,8 +1,6 @@
-import { FilterState } from "@altinn/altinn-components";
+import type { FilterState } from "@altinn/altinn-components";
 import { usePagination } from "@digdir/designsystemet-react";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { FacetViewModel } from "/Models/Generated/FacetViewModel";
-import { SearchResultViewModel } from "/Models/Generated/SearchResultViewModel";
 import { createSearchApi } from "../API/SearchClient";
 
 type BrowserQueryState = {
@@ -32,15 +30,15 @@ export type UseSearchPageOptions = {
   query: string;
   currentContext: string;
   initialPageNumber?: number;
-  providerFacets: FacetViewModel[];
-  pageTypeFacets: FacetViewModel[];
-  initialResults?: SearchResultViewModel | null;
+  providerFacets: any[];
+  pageTypeFacets: any[];
+  initialResults?: any | null;
   pageSize?: number;
   maxPaginationButtons?: number;
 };
 
 export type UseSearchPageReturn = {
-  items: SearchResultViewModel["items"];
+  items: any["items"];
   loading: boolean;
   error: Error | null;
   hasNoResults: boolean;
@@ -79,7 +77,7 @@ export function useSearchPage(
 
   const initialPage = initialResults?.currentPageNumber ?? initialPageNumber;
 
-  const [items, setItems] = useState<SearchResultViewModel["items"]>(
+  const [items, setItems] = useState<any>(
     initialResults?.items ?? [],
   );
   const [loading, setLoading] = useState(false);
@@ -100,8 +98,8 @@ export function useSearchPage(
   const totalItems =
     selectedProviders.length > 0
       ? providerFacets
-          .filter((x) => x.value !== undefined && selectedProviders.includes(x.value))
-          .reduce((sum, x) => sum + x.count, 0)
+          .filter((x: any) => x.value !== undefined && selectedProviders.includes(x.value))
+          .reduce((sum: any, x: any) => sum + x.count, 0)
       : totalResultCount;
 
   const calculatedTotalPages = Math.max(1, Math.ceil(totalItems / pageSize));
@@ -118,7 +116,7 @@ export function useSearchPage(
 
   const pageTypeLabelByValue = useMemo(
     () =>
-      Object.fromEntries((pageTypeFacets ?? []).map((f) => [f.value, f.name])),
+      Object.fromEntries((pageTypeFacets ?? []).map((f: any) => [f.value, f.name])),
     [pageTypeFacets],
   );
 

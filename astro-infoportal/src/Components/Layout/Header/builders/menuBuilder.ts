@@ -132,26 +132,8 @@ export const buildMenuItems = (pages: MenuPages, isLoggedIn: boolean, currentPat
     });
   }
 
-  if (pages.chooseLanguageText && pages.menuLanguageList && pages.menuLanguageList.length > 0) {
-    const currentLang = pages.menuLanguageList.find((l) => l.selected);
-    items.push({
-      id: "language",
-      groupId: "shortcuts",
-      title: pages.chooseLanguageText,
-      icon: GlobeIcon,
-      size: "sm" as const,
-      description: currentLang?.languageName,
-      items: pages.menuLanguageList.map((lang) => ({
-        id: lang.languageName,
-        groupId: "language",
-        title: lang.languageName,
-        selected: lang.selected,
-        onClick: () => {
-          window.location.assign(lang.pageUrl);
-        },
-      })),
-    });
-  }
+  // Language switching is handled by the LocaleSwitcher component via the
+  // `locale` prop on GlobalHeaderProps — not as regular menu items.
 
   if (isLoggedIn && pages.profilePage?.url && pages.profilePage?.text) {
     items.push({

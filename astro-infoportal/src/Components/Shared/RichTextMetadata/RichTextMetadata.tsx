@@ -1,11 +1,10 @@
-import type { RichTextAreaProps } from "/Models/Generated/RichTextAreaProps";
 import RichTextArea from "../RichTextArea/RichTextArea";
 import "./RichTextMetadata.scss";
 
 export interface RichTextMetadataItem {
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   label: string;
-  content: RichTextAreaProps;
+  content: any;
 }
 
 interface RichTextMetadataProps {
@@ -17,7 +16,7 @@ export const RichTextMetadata = ({ items }: RichTextMetadataProps) => {
 
   return (
     <dl className="rich-text-metadata">
-      {items.map((item, idx) => {
+      {items.map((item: any, idx: number) => {
         const IconComponent = item.icon;
         return (
           <div key={idx} className="rich-text-metadata__item">

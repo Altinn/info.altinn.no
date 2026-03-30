@@ -1,5 +1,4 @@
 import { Typography } from "@altinn/altinn-components";
-import type { SocialNetworkContactBlockViewModel } from "/Models/Generated/SocialNetworkContactBlockViewModel";
 
 const SocialNetworkContactBlock = ({
   header,
@@ -7,7 +6,7 @@ const SocialNetworkContactBlock = ({
   facebookLink,
   twitterLink,
   linkedInLink,
-}: SocialNetworkContactBlockViewModel) => {
+}: any) => {
   return (
     <div className="contact-block contact-block--social">
       {header && <Typography as="h3">{header}</Typography>}

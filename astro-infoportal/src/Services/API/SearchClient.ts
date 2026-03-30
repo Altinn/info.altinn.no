@@ -1,18 +1,18 @@
-import { buildQuery, getJson, Fetcher } from "../Utils/ApiUtils";
-import { SearchSuggestionCollection } from "/Models/Local/SearchSuggestionCollection";
-import { SearchResultViewModel } from "/Models/Generated/SearchResultViewModel";
+import { buildQuery, getJson } from "../Utils/ApiUtils";
+import type { Fetcher } from "../Utils/ApiUtils";
+import type { SearchSuggestionCollection } from "/Models/Local/SearchSuggestionCollection";
 
 export function createSearchApi(language: string, fetchImpl?: Fetcher) {
     const base = `/api/search/${language}`;
 
-    async function getSearchPages(query: string, pageNumber: number, providers?: string[], context?: string, signal?: AbortSignal): Promise<SearchResultViewModel> {
+    async function getSearchPages(query: string, pageNumber: number, providers?: string[], context?: string, signal?: AbortSignal): Promise<any> {
         const queryString = buildQuery({
             q: query,
             pagenumber: String(pageNumber),
             context,
             ...(providers && providers.length ? { providers } : undefined),
         });
-        return getJson<SearchResultViewModel>(`${base}/page?${queryString}`, { signal, fetchImpl });
+        return getJson<any>(`${base}/page?${queryString}`, { signal, fetchImpl });
     }
 
     async function getSuggestions(query: string, signal?: AbortSignal): Promise<SearchSuggestionCollection> {

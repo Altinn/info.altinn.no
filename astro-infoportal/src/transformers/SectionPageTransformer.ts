@@ -1,9 +1,10 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
 import { BlockTransformer } from "./BlockTransformer";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
+import type { SectionPageProps } from "@components/Pages/SectionPage/SectionPage.types";
 
 export class SectionPageTransformer implements IJSONTransformer {
-  public async Transform(cmsPageData: any): Promise<any> {
+  public async Transform(cmsPageData: any): Promise<SectionPageProps> {
     const props = cmsPageData.properties ?? {};
 
     // Always use static asset for background image, never Umbraco media

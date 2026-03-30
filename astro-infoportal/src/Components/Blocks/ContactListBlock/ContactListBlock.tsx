@@ -2,7 +2,6 @@ import { ArticleContact } from "@altinn/altinn-components";
 import { EnvelopeOpenIcon, PhoneIcon } from "@navikt/aksel-icons";
 import { useState } from "react";
 import { RichTextArea } from "/App.Components";
-import { ContactListBlockViewModel } from "/Models/Generated/ContactListBlockViewModel";
 import ContactFormModal from "../../ContactFormModal/ContactFormModal";
 
 const ContactListBlock = ({
@@ -17,7 +16,7 @@ const ContactListBlock = ({
   useRecaptcha,
   recaptchaSiteKey,
   labels,
-}: ContactListBlockViewModel) => {
+}: any) => {
   const [isContactFormOpen, setIsContactFormOpen] = useState(false);
   const items = [];
   if (contactNumber && contactNumberText) {

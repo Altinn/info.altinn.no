@@ -5,7 +5,6 @@ import {
   List,
   ListItem,
 } from "@altinn/altinn-components";
-import { HelpDrilldownPageViewModel } from "/Models/Generated/HelpDrilldownPageViewModel";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
 import ContentArea from "../../Shared/ContentArea/ContentArea";
 import "./HelpDrilldownPage.scss";
@@ -17,7 +16,7 @@ const HelpDrilldownPage = ({
   landingPages,
   bottomContentArea,
   breadcrumb,
-}: HelpDrilldownPageViewModel) => {
+}: any) => {
   return (
     <Article>
       {breadcrumb && <BreadcrumbsView {...breadcrumb} />}
@@ -32,7 +31,7 @@ const HelpDrilldownPage = ({
 
       {landingPages && landingPages.length > 0 && (
         <List size="sm" color="neutral">
-          {landingPages.map((page, idx) => (
+          {landingPages.map((page: any, idx: number) => (
             <ListItem
               key={idx}
               title={page.pageName}
