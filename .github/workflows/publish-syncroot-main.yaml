@@ -40,11 +40,11 @@ jobs:
 
       - name: Update db connection string
         if: inputs.database == 'AzureSQL'
-        run: yq -i '.spec.template.spec.containers[0].env.ConnectionStrings__umbracoDbDSN = "Server=tcp:${UMBRACO_SQL_CONN_FQDN},1433;Initial Catalog=umbraco;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication=\"Active Directory Default\""' ./syncroot/base/deployment.yaml
+        run: yq -i '.spec.template.spec.containers[0].env.ConnectionStrings__umbracoDbDSN = "Server=tcp:${UMBRACO_SQL_CONN_FQDN},1433;Initial Catalog=umbraco;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication=\"Active Directory Default\""' ./syncroot/base/umbraco/deployment.yaml
 
       - name: Update db provider
         if: inputs.database == 'AzureSQL'
-        run: yq -i '.spec.template.spec.containers[0].env.ConnectionStrings__umbracoDbDSN_ProviderName = "Microsoft.Data.SqlClient"' ./syncroot/base/deployment.yaml
+        run: yq -i '.spec.template.spec.containers[0].env.ConnectionStrings__umbracoDbDSN_ProviderName = "Microsoft.Data.SqlClient"' ./syncroot/base/umbraco/deployment.yaml
 
       - name: Build and push syncroot artifact
         uses: Altinn/altinn-platform/actions/flux/build-push-image@8d4e42eae11efbc3a159aa62fe15ed49954d9df9 # main
