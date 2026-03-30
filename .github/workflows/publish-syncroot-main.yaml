@@ -9,7 +9,7 @@ on:
         required: true
       database:
         type: choice
-        description: Which database to use?
+        description: 'Which database to use?'
         options:
           - Sqlite
           - AzureSQL
