@@ -18,7 +18,7 @@
     "@digdir/designsystemet-react": "^1.13.0",
     "@digdir/designsystemet-theme": "^1.11.0",
     "@navikt/aksel-icons": "^8.7.0",
-    "astro": "^6.0.5",
+    "astro": "^6.1.1",
     "lodash.debounce": "^4.0.8",
     "message-channel": "^2.0.0",
     "react": "^19.2.4",
@@ -36,7 +36,6 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "lint-staged": "^16.4.0",
-    "patch-package": "^8.0.1",
     "postcss-preset-env": "^11.2.0",
     "prettier": "^3.8.1",
     "sass": "^1.98.0",
@@ -45,6 +44,7 @@
     "wrangler": "^4.74.0"
   },
   "overrides": {
-    "undici": "^7.24.4"
+    "undici": "^7.24.4",
+    "picomatch": ">=4.0.4"
   }
 }
