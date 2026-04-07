@@ -418,7 +418,12 @@ FodyWeavers.xsd
 *.msp
 
 ## Optimizely frotend which will be removed after migration to Astro
+Frontend
 Frontend-old/
+
+##codex files
+AGENTS.md
+specs
 
 # Wrangler
 .wrangler
