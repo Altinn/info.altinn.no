@@ -16,6 +16,12 @@ public class SearchResultResponse
     [JsonPropertyName("currentPageNumber")]
     public int CurrentPageNumber { get; set; }
 
+    [JsonPropertyName("pageTypeFacets")]
+    public List<FacetItem> PageTypeFacets { get; set; } = [];
+
+    [JsonPropertyName("providerFacets")]
+    public List<FacetItem> ProviderFacets { get; set; } = [];
+
     // TODO: Spellcheck suggestion — when search returns 0 results, populate this with
     // a corrected query term so the frontend can show "Mente du: <suggestionTerm>?"
     // Optimizely returns this via SuggestionTerm when hits < SpellcheckHitsCutoff.
@@ -51,4 +57,25 @@ public class SearchResultItem
 
     [JsonPropertyName("isFallbackLanguage")]
     public bool IsFallbackLanguage { get; set; }
+
+    [JsonPropertyName("parentContext")]
+    public ParentContext? ParentContext { get; set; }
+}
+
+public class ParentContext
+{
+    [JsonPropertyName("value")]
+    public string? Value { get; set; }
+}
+
+public class FacetItem
+{
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = "";
+
+    [JsonPropertyName("value")]
+    public string Value { get; set; } = "";
+
+    [JsonPropertyName("count")]
+    public long Count { get; set; }
 }

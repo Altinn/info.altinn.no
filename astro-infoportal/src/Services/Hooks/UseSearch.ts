@@ -2,6 +2,7 @@ import type { FilterState } from "@altinn/altinn-components";
 import { usePagination } from "@digdir/designsystemet-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { createSearchApi } from "../API/SearchClient";
+import { SearchContext } from "@constants/searchContext";
 
 type BrowserQueryState = {
   query?: string;
@@ -56,6 +57,8 @@ export type UseSearchPageReturn = {
   nextButtonProps: UsePaginationReturn["nextButtonProps"];
   providerLabelByValue?: Record<string, string>;
   pageTypeLabelByValue?: Record<string, string>;
+  livePageTypeFacets: any[];
+  liveProviderFacets: any[];
 };
 
 export function useSearchPage(
@@ -91,8 +94,26 @@ export function useSearchPage(
   );
   const [filters, setFilters] = useState<FilterState>(() => ({
     providers: [],
-    pagetypes: [currentContext || "All"],
+    pagetypes: [currentContext || SearchContext.All],
   }));
+
+  // Live facets updated from API response, merged with static labels
+  const mergeFacets = (staticFacets: any[], apiFacets: any[]) => {
+    if (!apiFacets?.length) return staticFacets;
+    return staticFacets
+      .map((f: any) => {
+        const live = apiFacets.find((a: any) => a.value === f.value);
+        return { ...f, count: live?.count ?? 0 };
+      })
+      .filter((f: any) => f.value === SearchContext.All || f.count > 0);
+  };
+
+  const [livePageTypeFacets, setLivePageTypeFacets] = useState<any[]>(
+    () => mergeFacets(pageTypeFacets, initialResults?.pageTypeFacets),
+  );
+  const [liveProviderFacets, setLiveProviderFacets] = useState<any[]>(
+    () => initialResults?.providerFacets ?? providerFacets,
+  );
 
   const selectedProviders = (filters.providers ?? []) as string[];
   const totalItems =
@@ -116,8 +137,8 @@ export function useSearchPage(
 
   const pageTypeLabelByValue = useMemo(
     () =>
-      Object.fromEntries((pageTypeFacets ?? []).map((f: any) => [f.value, f.name])),
-    [pageTypeFacets],
+      Object.fromEntries((livePageTypeFacets ?? pageTypeFacets ?? []).map((f: any) => [f.value, f.name])),
+    [livePageTypeFacets, pageTypeFacets],
   );
 
   const writeUrl = useCallback((q: string, context?: string) => {
@@ -162,6 +183,14 @@ export function useSearchPage(
           setTotalResultCount(0);
           setHasNoResults(true);
         }
+
+        // Update live facet counts from API response
+        if (result?.pageTypeFacets) {
+          setLivePageTypeFacets(mergeFacets(pageTypeFacets, result.pageTypeFacets));
+        }
+        if (result?.providerFacets) {
+          setLiveProviderFacets(result.providerFacets);
+        }
       } catch (err: any) {
         if (err?.name === "AbortError") return;
         // eslint-disable-next-line no-console
@@ -200,7 +229,7 @@ export function useSearchPage(
         const prevPageType = String((prev?.pagetypes ?? [])[0] ?? "");
         writeUrl(query, pageType || currentContext);
 
-        if (pageType !== prevPageType && pageType === "All") {
+        if (pageType !== prevPageType && pageType === SearchContext.All) {
           if (isBrowser) location.reload();
           return merged;
         }
@@ -227,5 +256,7 @@ export function useSearchPage(
     prevButtonProps,
     nextButtonProps,
     pageTypeLabelByValue,
+    livePageTypeFacets,
+    liveProviderFacets,
   };
 }

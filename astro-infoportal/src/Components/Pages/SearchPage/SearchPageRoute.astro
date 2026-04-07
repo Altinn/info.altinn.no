@@ -1,0 +1,58 @@
+---
+import AstroSiteLayout from "@layouts/AstroSiteLayout.astro";
+import { UMBRACO_API_URL } from "@api/umbraco/client";
+import { JSONTransformer } from "@transformers/JSONTransformer";
+import { getGlobalData } from "@constants/globalData";
+import { SearchContext, SearchContextLabels } from "@constants/searchContext";
+import { SearchPageLabels } from "@constants/searchPageLabels";
+
+interface Props {
+  language: string;
+}
+
+const { language } = Astro.props;
+const contextLabels = SearchContextLabels[language];
+const pageLabels = SearchPageLabels[language];
+
+const query = Astro.url.searchParams.get("q") || "";
+const pageNumber = parseInt(Astro.url.searchParams.get("pagenumber") || "1", 10);
+const context = Astro.url.searchParams.get("context") || "";
+
+let searchResultViewModel = undefined;
+
+if (query) {
+  try {
+    const params = new URLSearchParams({ q: query, pagenumber: String(pageNumber) });
+    if (context) params.set("context", context);
+    const res = await fetch(`${UMBRACO_API_URL}/api/search/${language}/page?${params}`);
+    if (res.ok) {
+      searchResultViewModel = await res.json();
+    }
+  } catch (e) {
+    console.error("Failed to pre-fetch search results:", e);
+  }
+}
+
+const searchPageData = {
+  contentType: "searchPage",
+  properties: {
+    currentLanguage: language,
+    currentQuery: query,
+    currentContext: context || SearchContext.All,
+    searchResultViewModel,
+    pageTypeFacets: [
+      { name: contextLabels[SearchContext.All], value: SearchContext.All },
+      { name: contextLabels[SearchContext.StartCompany], value: SearchContext.StartCompany },
+      { name: contextLabels[SearchContext.Schema], value: SearchContext.Schema },
+      { name: contextLabels[SearchContext.Help], value: SearchContext.Help },
+    ],
+    providerFacets: [],
+    ...pageLabels,
+  },
+};
+
+const globalData = getGlobalData(pageLabels.searchPageUrl);
+const pageData = await new JSONTransformer().Transform(searchPageData, globalData);
+---
+
+<AstroSiteLayout pageData={pageData} htmlLanguage={pageLabels.htmlLanguage} title={pageLabels.title} />
