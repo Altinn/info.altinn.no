@@ -3,7 +3,6 @@
  */
 
 import { isBrowser } from "../utils/browserUtils";
-import type { LanguageItemViewModel } from "/Models/Generated/LanguageItemViewModel";
 
 /**
  * Creates a locale select handler
@@ -11,11 +10,11 @@ import type { LanguageItemViewModel } from "/Models/Generated/LanguageItemViewMo
  * @returns Handler function for locale selection
  */
 export const createLocaleSelectHandler = (
-  menuLanguageList: LanguageItemViewModel[],
+  menuLanguageList: any[],
 ) => {
   return (value: string) => {
     if (!isBrowser) return;
-    const selected = menuLanguageList.find((l) => l.languageName === value);
+    const selected = menuLanguageList.find((l: any) => l.languageName === value);
     if (selected) location.assign(selected.pageUrl);
   };
 };
@@ -25,7 +24,7 @@ export const createLocaleSelectHandler = (
  * @param menuLanguageList List of available languages
  * @returns Formatted language props
  */
-export const buildLanguageProps = (menuLanguageList: LanguageItemViewModel[]) => {
+export const buildLanguageProps = (menuLanguageList: any[]) => {
   if (!menuLanguageList || !Array.isArray(menuLanguageList)) {
     return [];
   }

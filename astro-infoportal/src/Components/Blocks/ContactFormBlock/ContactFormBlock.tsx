@@ -1,6 +1,5 @@
 import { Heading } from "@altinn/altinn-components";
 import { useEffect, useState } from "react";
-import { ContactFormBlockViewModel } from "/Models/Generated/ContactFormBlockViewModel";
 import ContactForm from "../../ContactFormModal/ContactForm";
 import ContactFormError from "../../ContactFormModal/ContactFormError";
 import ContactFormSuccess from "../../ContactFormModal/ContactFormSuccess";
@@ -12,7 +11,7 @@ const ContactFormBlock = ({
   useRecaptcha,
   recaptchaSiteKey,
   labels,
-}: ContactFormBlockViewModel) => {
+}: any) => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 

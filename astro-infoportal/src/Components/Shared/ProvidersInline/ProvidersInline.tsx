@@ -36,7 +36,7 @@ export const ProvidersInline = ({
 
   return (
     <ul className={`providers-inline ${className}`.trim()}>
-      {displayProviders.map((p, idx) => {
+      {displayProviders.map((p: any, idx: number) => {
         const textStyle = textColor ? { color: textColor } : undefined;
         const nameEl = strong ? <strong>{p.name}</strong> : p.name;
 

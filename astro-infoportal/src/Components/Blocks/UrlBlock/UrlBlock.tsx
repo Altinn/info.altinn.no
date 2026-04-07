@@ -1,11 +1,10 @@
 import { DsLink } from "@altinn/altinn-components";
-import type { UrlBlockViewModel } from "/Models/Generated/UrlBlockViewModel";
 
 const UrlBlock = ({
   linkText,
   url,
   openInNewWindow,
-}: UrlBlockViewModel) => {
+}: any) => {
   if (!url || !linkText) {
     return null;
   }

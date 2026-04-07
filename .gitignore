@@ -428,3 +428,5 @@ specs
 # Wrangler
 .wrangler
 .wrangler/
+CLAUDE.md
+.claude/

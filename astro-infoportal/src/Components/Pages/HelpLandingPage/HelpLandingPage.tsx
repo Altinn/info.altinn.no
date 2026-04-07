@@ -5,7 +5,6 @@ import {
   Typography,
 } from "@altinn/altinn-components";
 import { Card, Details } from "@digdir/designsystemet-react";
-import { HelpLandingPageViewModel } from "/Models/Generated/HelpLandingPageViewModel";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
 import ContentArea from "../../Shared/ContentArea/ContentArea";
 import RichTextArea from "../../Shared/RichTextArea/RichTextArea";
@@ -19,7 +18,7 @@ const HelpLandingPage = ({
   childPages,
   bottomContentArea,
   breadcrumb,
-}: HelpLandingPageViewModel) => {
+}: any) => {
   return (
     <Article>
       {breadcrumb && <BreadcrumbsView {...breadcrumb} />}
@@ -40,7 +39,7 @@ const HelpLandingPage = ({
 
       {childPages && childPages.length > 0 && (
         <Card data-color="neutral">
-          {childPages.map((page, idx) => (
+          {childPages.map((page: any, idx: number) => (
             <Details
               key={idx}
               variant="default"

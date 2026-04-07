@@ -38,7 +38,7 @@ const localization = (key: string): string => {
 };
 
 const getLabelValue = (
-  labels: ContactFormLabels | undefined,
+  labels: any | undefined,
   key: keyof ContactFormLabels,
 ) => {
   return labels?.[key] ?? localization(`/contactform/${key.toLowerCase()}`);
@@ -91,7 +91,7 @@ const ContactFormModal = ({
         ) || [],
       );
 
-      return nodes.filter((el) => {
+      return nodes.filter((el: any) => {
         if (el.hasAttribute('disabled')) return false;
         if (el.getAttribute('aria-hidden') === 'true') return false;
         if ((el as HTMLInputElement).type === 'hidden') return false;
@@ -186,7 +186,7 @@ const ContactFormModal = ({
           modalRef.current.querySelectorAll<HTMLElement>(
             'a, button, textarea, input, select, [tabindex]:not([tabindex="-1"])',
           ),
-        ).filter((el) => {
+        ).filter((el: any) => {
           if (el.hasAttribute('disabled')) return false;
           if (el.getAttribute('aria-hidden') === 'true') return false;
           if ((el as HTMLInputElement).type === 'hidden') return false;
@@ -321,7 +321,7 @@ const ContactFormModal = ({
                         )}
                       </Fieldset.Description>
                     )}
-                    {formTypeArea.items.map((item, index) => (
+                    {formTypeArea.items.map((item: any, index: number) => (
                       <Radio
                         key={index}
                         label={(item as any).heading || ''}

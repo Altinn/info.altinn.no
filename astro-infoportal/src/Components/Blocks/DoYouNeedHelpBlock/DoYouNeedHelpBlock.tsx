@@ -1,6 +1,5 @@
 import { MobileIcon, PaperplaneIcon } from "@navikt/aksel-icons";
 import { useState } from "react";
-import { DoYouNeedHelpBlockViewModel } from "/Models/Generated/DoYouNeedHelpBlockViewModel";
 import ContactFormModal from "../../ContactFormModal/ContactFormModal";
 import "./DoYouNeedHelpBlock.scss";
 import "../../../styles/legacy-pages.scss";
@@ -23,7 +22,7 @@ const DoYouNeedHelpBlock = ({
   useRecaptcha,
   recaptchaSiteKey,
   labels,
-}: DoYouNeedHelpBlockViewModel) => {
+}: any) => {
   const phoneHref = phoneNumber
     ? `tel:+47${digitsOnly(phoneNumber)}`
     : undefined;

@@ -6,7 +6,6 @@ import {
   ListItem,
   Typography
 } from "@altinn/altinn-components";
-import { CategoryPageViewModel } from "/Models/Generated/CategoryPageViewModel";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
 import "./CategoryPage.scss";
 import RichTextArea from "../../Shared/RichTextArea/RichTextArea";
@@ -16,7 +15,7 @@ const CategoryPage = ({
   pageName,
   breadcrumb,
   subCategories,
-}: CategoryPageViewModel) => {
+}: any) => {
   return (
     <Article>
       {breadcrumb && <BreadcrumbsView {...breadcrumb} />}
@@ -29,7 +28,7 @@ const CategoryPage = ({
 
       {subCategories?.length ? (
         <List size="sm" color="neutral">
-          {subCategories.map(({ heading, schemaCountText, url }, idx) => (
+          {subCategories.map(({ heading, schemaCountText, url }: any, idx: any) => (
             <ListItem
               className="category-page__subcategory-item"
               key={idx}

@@ -1,4 +1,3 @@
-import type { TableBlockViewModel } from "/Models/Generated/TableBlockViewModel";
 import "./TableBlock.scss";
 
 const TableBlock = ({
@@ -9,7 +8,7 @@ const TableBlock = ({
   columnHeader5,
   columnHeader6,
   rows,
-}: TableBlockViewModel) => {
+}: any) => {
   // Build array of column headers, filtering out empty ones
   const columnHeaders = [
     columnHeader1,
@@ -18,14 +17,14 @@ const TableBlock = ({
     columnHeader4,
     columnHeader5,
     columnHeader6,
-  ].filter((header) => header && header.trim() !== "");
+  ].filter((header: any) => header && header.trim() !== "");
 
   return (
     <div className="legacy-page a-responsiveTable-container my-5">
       <table className="a-responsiveTable">
         <thead>
           <tr>
-            {columnHeaders.map((header, index) => (
+            {columnHeaders.map((header: any, index: number) => (
               <th key={index} scope="col">
                 {header}
               </th>
@@ -33,7 +32,7 @@ const TableBlock = ({
           </tr>
         </thead>
         <tbody>
-          {rows?.map((row, rowIndex) => {
+          {rows?.map((row: any, rowIndex: number) => {
             // Build array of column values in the same order as headers
             const columnValues = [
               row.column1,
@@ -46,7 +45,7 @@ const TableBlock = ({
 
             return (
               <tr key={rowIndex}>
-                {columnValues.map((value, colIndex) => {
+                {columnValues.map((value: any, colIndex: number) => {
                   // First column is rendered as <th scope="row">
                   if (colIndex === 0) {
                     return (

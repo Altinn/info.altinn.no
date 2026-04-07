@@ -10,7 +10,6 @@ import {
   Typography,
 } from "@altinn/altinn-components";
 import { ContentArea, OperationalMessage, RichTextArea } from "/App.Components";
-import type { SchemaPageViewModel } from "/Models/Generated/SchemaPageViewModel";
 import "./SchemaPage.scss";
 import {
   BankNoteIcon,
@@ -22,6 +21,7 @@ import MunicipalityCountySearch from "../../Shared/MunicipalityCountySearch/Muni
 import ProvidersInline, {
   type ProviderInlineItem,
 } from "../../Shared/ProvidersInline/ProvidersInline";
+import type {SchemaPageProps} from './SchemaPage.types';
 import RichTextMetadata, {
   type RichTextMetadataItem,
 } from "../../Shared/RichTextMetadata/RichTextMetadata";
@@ -58,7 +58,7 @@ const SchemaPage = ({
   noHitText,
   orangeMessage,
   orangeMessageTitle,
-}: SchemaPageViewModel) => {
+}: SchemaPageProps) => {
   const title = schemaPageNameText
     ? schemaCode
       ? `${schemaPageNameText} (${schemaCode})`
@@ -80,8 +80,8 @@ const SchemaPage = ({
   ) : null;
 
   const owners: ProviderInlineItem[] = (providerPages || [])
-    .filter((p) => p.providerIcon)
-    .map((p) => ({
+    .filter((p: any) => p.providerIcon)
+    .map((p: any) => ({
       name: p.providerIcon?.name || "",
       imageUrl: p.providerIcon?.imageUrl || "",
       url: p.url || "#",
@@ -115,7 +115,7 @@ const SchemaPage = ({
     <Article>
       {breadcrumb && <BreadcrumbsView {...breadcrumb} />}
 
-      {operationalMessages?.filter(Boolean).map((operationalmessage, idx) => (
+      {operationalMessages?.filter(Boolean).map((operationalmessage: any, idx: number) => (
         <OperationalMessage
           {...operationalmessage}
           key={operationalmessage.pageName || operationalmessage.message || idx}

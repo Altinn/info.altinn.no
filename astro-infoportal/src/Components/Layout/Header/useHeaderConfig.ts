@@ -3,7 +3,6 @@ import type {
   GlobalHeaderProps,
 } from "@altinn/altinn-components";
 import { useAccountSelector } from "@altinn/altinn-components";
-import type { HeaderViewModel } from "/Models/Generated/HeaderViewModel";
 import "@altinn/altinn-components/dist/global.css";
 import { useEffect, useMemo, useState } from "react";
 // import { useSearchSuggestions } from "./hooks/useSearchSuggestions";
@@ -65,7 +64,7 @@ const useHeaderConfig = (
     loggedInAsText,
     startPage
     // useSearchSuggestions: useSuggestionsEnabled,
-  }: HeaderViewModel,
+  }: any,
   languageCode: "nb" | "nn" | "en" = "nb",
 ): { headerProps: GlobalHeaderProps; color: "person" | "company" } => {
   // State management for user session data
@@ -244,10 +243,52 @@ const useHeaderConfig = (
     },
   });
 
+  // Build locale switcher from menuLanguageList
+  // Detect current language from URL path instead of relying on hardcoded 'selected' field
+  const detectCurrentLang = () => {
+    if (!isBrowser) return languageCode;
+    const path = window.location.pathname;
+    if (path.startsWith("/nn/")) return "nn";
+    if (path.startsWith("/en/")) return "en";
+    return "nb";
+  };
+
+  const currentLangCode = detectCurrentLang();
+
+  const langCodeMap: Record<string, string> = {
+    "Bokmål": "nb",
+    "Nynorsk": "nn",
+    "English": "en",
+  };
+
+  const localeSwitcher = menuLanguageList && menuLanguageList.length > 0
+    ? {
+        title: chooseLanguageText || "Språk/language",
+        options: menuLanguageList.map((lang: any) => {
+          const code = lang.languageCode || langCodeMap[lang.languageName] || lang.languageName;
+          return {
+            id: lang.languageName,
+            title: lang.languageName,
+            value: code,
+            checked: code === currentLangCode,
+          };
+        }),
+        onSelect: (value: string) => {
+          const lang = menuLanguageList.find((l: any) =>
+            (l.languageCode || langCodeMap[l.languageName] || l.languageName) === value
+          );
+          if (lang?.pageUrl && isBrowser) {
+            window.location.assign(lang.pageUrl);
+          }
+        },
+      }
+    : undefined;
+
   const globalHeaderProps: GlobalHeaderProps = {
     globalMenu: {
       menuLabel: menuText,
       menu: desktopMenu,
+      ...(localeSwitcher && { localeSwitcher }),
       ...(isLoggedIn && {
         backLabel: backButtonText,
       }),
@@ -265,6 +306,7 @@ const useHeaderConfig = (
     ...(startPage?.url && {
       logo: { href: startPage.url },
     }),
+    ...(localeSwitcher && { locale: localeSwitcher }),
     desktopMenu,
     accountSelector: {
       ...accountSelectorData,

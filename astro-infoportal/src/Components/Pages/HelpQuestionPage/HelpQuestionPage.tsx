@@ -3,7 +3,6 @@ import {
   ArticleHeader,
   Heading,
 } from "@altinn/altinn-components";
-import { HelpQuestionPageViewModel } from "/Models/Generated/HelpQuestionPageViewModel";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
 import RichTextArea from "../../Shared/RichTextArea/RichTextArea";
 import "./HelpQuestionPage.scss";
@@ -12,7 +11,7 @@ const HelpQuestionPage = ({
   pageName,
   mainBody,
   breadcrumb,
-}: HelpQuestionPageViewModel) => {
+}: any) => {
   return (
     <Article>
       {breadcrumb && <BreadcrumbsView {...breadcrumb} />}

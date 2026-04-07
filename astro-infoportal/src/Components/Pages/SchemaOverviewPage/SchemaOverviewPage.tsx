@@ -11,12 +11,12 @@ import {
 import {Tabs} from '@digdir/designsystemet-react';
 import * as AkselIcons from '@navikt/aksel-icons';
 import {Fragment, useEffect, useState} from 'react';
-import type {SchemaOverviewPageViewModel} from '/Models/Generated/SchemaOverviewPageViewModel';
 import ProvidersInline, {
   type ProviderInlineItem,
 } from '../../Shared/ProvidersInline/ProvidersInline';
 import './SchemaOverviewPage.scss';
 import {SearchItem} from '/Components/Shared/SearchItem/SearchItem';
+import type {SchemaOverviewPageProps} from './SchemaOverviewPage.types';
 
 const TabsEnum = {
   Category: 'category',
@@ -38,7 +38,7 @@ const SchemaOverviewPage = ({
   servicesText,
   recommendedSchemasHeaderText,
   initialTab,
-}: SchemaOverviewPageViewModel) => {
+}: SchemaOverviewPageProps) => {
   const defaultTab = (
     initialTab === 'provider' ? TabsEnum.Provider : TabsEnum.Category
   ) as TabType;
@@ -123,7 +123,7 @@ const SchemaOverviewPage = ({
                 spacing={3}
                 cols={3}
               >
-                {schemaCategories.map((item, idx) => (
+                {schemaCategories.map((item: any, idx: number) => (
                   <ListItem
                     className="schema-overview__category-item"
                     id={idx.toString()}
@@ -164,7 +164,7 @@ const SchemaOverviewPage = ({
                           .filter(
                             (p): p is typeof p & {name: string} => !!p?.name,
                           )
-                          .map((p) => ({
+                          .map((p: any) => ({
                             name: p.name,
                             imageUrl: p.imageUrl || '',
                             url:

@@ -1,7 +1,6 @@
-import { VideoBlockViewModel } from "/Models/Generated/VideoBlockViewModel";
 import "./VideoBlock.scss";
 
-const VideoBlock = ({ videoType, url }: VideoBlockViewModel) => {
+const VideoBlock = ({ videoType, url }: any) => {
   const isYoutube = videoType === 0;
   const isVimeo = videoType === 1;
 

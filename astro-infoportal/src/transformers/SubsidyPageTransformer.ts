@@ -1,8 +1,8 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
-import type { SubsidyPageViewModel } from "../Models/Generated/SubsidyPageViewModel";
+import type { SubsidyPageProps } from "@components/Pages/SubsidyPage/SubsidyPage.types";
 
 export class SubsidyPageTransformer implements IJSONTransformer {
-  public async Transform(cmsPageData: any): Promise<SubsidyPageViewModel> {
+  public async Transform(cmsPageData: any): Promise<SubsidyPageProps> {
     return {
       componentName: "SubsidyPage",
       pageName: cmsPageData.name,
@@ -19,6 +19,6 @@ export class SubsidyPageTransformer implements IJSONTransformer {
       industryConnection: cmsPageData.properties.industryConnection || undefined,
       purposeConnection: cmsPageData.properties.purposeConnection || undefined,
       ...cmsPageData.properties,
-    } as SubsidyPageViewModel;
+    };
   }
 }

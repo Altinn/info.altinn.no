@@ -1,10 +1,9 @@
-import type { RichTextAreaProps } from "/Models/Generated/RichTextAreaProps";
 import * as Components from "../../../App.Components";
 
-const RichTextArea = ({ items }: RichTextAreaProps) => {
+const RichTextArea = ({ items }: any) => {
   if (!items || items.length === 0) return null;
 
-  return items.map((item, idx) => {
+  return items.map((item: any, idx: number) => {
     // @ts-expect-error
     const Comp = Components[item.componentName];
 

@@ -1,5 +1,4 @@
 import { Alert } from "@altinn/altinn-components";
-import { OperationalMessageArticlePageViewModel } from "/Models/Generated/OperationalMessageArticlePageViewModel";
 import "./OperationalMessageArticlePage.scss";
 
 const OperationalMessageArticlePage = ({
@@ -8,7 +7,7 @@ const OperationalMessageArticlePage = ({
   mainBody,
   // linkUrl,
   // linkText,
-}: OperationalMessageArticlePageViewModel) => {
+}: any) => {
 
 
   return (

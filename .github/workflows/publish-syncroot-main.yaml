@@ -7,9 +7,13 @@ on:
       image-tag:
         description: 'Umbraco image tag to deploy'
         required: true
-  # push:
-  #   branches:
-  #     - main
+      database:
+        type: choice
+        description: 'Which database to use?'
+        options:
+          - Sqlite
+          - AzureSQL
+        required: true
 
 env:
   SYNCROOT_ARTIFACT_NAME: infoportal/syncroot
@@ -33,6 +37,14 @@ jobs:
 
       - name: Update image tag
         run: yq -i '(.images[] | select(.name == "umbraco")).newTag = "${{ inputs.image-tag }}"' ./syncroot/at22/kustomization.yaml
+
+      - name: Update db connection string
+        if: inputs.database == 'AzureSQL'
+        run: yq -i '(.spec.template.spec.containers[0].env[] | select(.name == "ConnectionStrings__umbracoDbDSN")).value = "Server=tcp:${UMBRACO_SQL_CONN_FQDN},1433;Initial Catalog=umbraco;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;Authentication=\"Active Directory Default\""' ./syncroot/base/umbraco/deployment.yaml
+
+      - name: Update db provider
+        if: inputs.database == 'AzureSQL'
+        run: yq -i '(.spec.template.spec.containers[0].env[] | select(.name == "ConnectionStrings__umbracoDbDSN_ProviderName")).value = "Microsoft.Data.SqlClient"' ./syncroot/base/umbraco/deployment.yaml
 
       - name: Build and push syncroot artifact
         uses: Altinn/altinn-platform/actions/flux/build-push-image@8d4e42eae11efbc3a159aa62fe15ed49954d9df9 # main

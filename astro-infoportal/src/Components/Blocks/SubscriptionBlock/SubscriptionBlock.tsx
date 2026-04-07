@@ -1,4 +1,3 @@
-import {SubscriptionBlockViewModel} from '/Models/Generated/SubscriptionBlockViewModel';
 import './SubscriptionBlock.scss';
 
 const SubscriptionBlock = ({
@@ -13,7 +12,7 @@ const SubscriptionBlock = ({
   confirmationUndoText,
   invalidMissingEmail,
   invalidEmail,
-}: SubscriptionBlockViewModel) => {
+}: any) => {
   const subscriptionTypeStr =
     subscriptionType === 1
       ? 'newsletter'

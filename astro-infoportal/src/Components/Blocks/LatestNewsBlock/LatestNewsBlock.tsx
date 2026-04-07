@@ -1,5 +1,4 @@
 import { ArrowRightIcon } from "@navikt/aksel-icons";
-import type { LatestNewsBlockViewModel } from "/Models/Generated/LatestNewsBlockViewModel";
 import "../../../styles/legacy-pages.scss";
 import "./LatestNewsBlock.scss";
 
@@ -7,7 +6,7 @@ const LatestNewsBlock = ({
   heading,
   news,
   archiveLink,
-}: LatestNewsBlockViewModel) => {
+}: any) => {
   return (
     <div className="legacy-page col-lg-8 offset-lg-2">
       <section className="a-articleList">
@@ -15,7 +14,7 @@ const LatestNewsBlock = ({
           <h2 className="pb-2">{heading || ""}</h2>
         )}
 
-        {news && news.length > 0 && news.map((article, index) => (
+        {news && news.length > 0 && news.map((article: any, index: number) => (
           <article
             className="a-linkArticle"
             key={`news-${index}`}

@@ -1,5 +1,4 @@
 import { Alert } from "@altinn/altinn-components";
-import { OperationalMessageViewModel } from "/Models/Generated/OperationalMessageViewModel";
 
 const OperationalMessage = ({
   pageName,
@@ -7,7 +6,7 @@ const OperationalMessage = ({
   // url,
   // urlText,
   isCritical
-}: OperationalMessageViewModel) => {
+}: any) => {
   return (
     <Alert
       variant={isCritical ? "danger" : "warning"}

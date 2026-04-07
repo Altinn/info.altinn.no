@@ -6,7 +6,7 @@ export class NewsArchivePageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any): Promise<any> {
     const children = await fetchUmbracoChildren(cmsPageData.id);
  
-    const ancestors = await fetchUmbracoAncestors(cmsPageData.id);
+    const ancestors = await fetchUmbracoAncestors(cmsPageData.route.path);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
     const newsArticles = 

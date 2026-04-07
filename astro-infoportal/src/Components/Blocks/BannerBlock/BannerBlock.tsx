@@ -2,7 +2,6 @@ import {Badge} from '@altinn/altinn-components';
 import {XMarkIcon} from '@navikt/aksel-icons';
 import {useEffect, useState} from 'react';
 import {RichTextArea} from '/App.Components';
-import type {BannerBlockViewModel} from '/Models/Generated/BannerBlockViewModel';
 import {IconButton} from '../../Shared/IconButton/IconButton';
 
 import './BannerBlock.scss';
@@ -15,7 +14,7 @@ const BannerBlock = ({
   closeButtonText,
   contentHash,
   localStoragePrefix,
-}: BannerBlockViewModel) => {
+}: any) => {
   const [isDismissed, setIsDismissed] = useState(true);
 
   useEffect(() => {

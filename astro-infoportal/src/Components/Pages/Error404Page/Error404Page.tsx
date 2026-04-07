@@ -1,6 +1,5 @@
 import { Heading, Typography } from "@altinn/altinn-components";
 import { RichTextArea } from "/App.Components";
-import { Error404PageViewModel } from "/Models/Generated/Error404PageViewModel";
 import "./Error404Page.scss";
 
 const Error404Page = ({
@@ -8,7 +7,7 @@ const Error404Page = ({
   subHeading,
   mainBody,
   image,
-}: Error404PageViewModel) => {
+}: any) => {
   return (
     <div className="error404-page">
       <div className="container">

@@ -1,6 +1,6 @@
 import { useMemo, useRef, useCallback } from "react";
 import { createSearchApi } from "../API/SearchClient";
-import { SearchSuggestionCollection } from "/Models/Local/SearchSuggestionCollection";
+import type { SearchSuggestionCollection } from "/Models/Local/SearchSuggestionCollection";
 
 function resolveLang(explicit?: string): string {
   if (explicit && explicit.trim()) return explicit.split("-")[0].toLowerCase();

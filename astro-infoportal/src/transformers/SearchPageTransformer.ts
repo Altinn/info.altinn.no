@@ -1,8 +1,8 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
-import type { SearchPageViewModel } from "../Models/Generated/SearchPageViewModel";
+import type { SearchPageProps } from "@components/Pages/SearchPage/SearchPage.types";
 
 export class SearchPageTransformer implements IJSONTransformer {
-  public async Transform(cmsPageData: any): Promise<SearchPageViewModel> {
+  public async Transform(cmsPageData: any): Promise<SearchPageProps> {
     return {
       componentName: "SearchPage",
       breadcrumb: cmsPageData.properties.breadcrumb || undefined,
@@ -23,6 +23,6 @@ export class SearchPageTransformer implements IJSONTransformer {
       errorText: cmsPageData.properties.errorText || undefined,
       noResultsText: cmsPageData.properties.noResultsText || undefined,
       ...cmsPageData.properties,
-    } as SearchPageViewModel;
+    };
   }
 }

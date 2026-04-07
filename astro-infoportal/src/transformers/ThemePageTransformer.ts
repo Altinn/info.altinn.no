@@ -14,17 +14,17 @@ export class ThemePageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any): Promise<any> {
     const props = cmsPageData.properties ?? {};
 
-    const ancestors = await fetchUmbracoAncestors(cmsPageData.id);
+    const ancestors = await fetchUmbracoAncestors(cmsPageData.route.path);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
-    const allChildren = await fetchUmbracoChildren(cmsPageData.id);
+    const allChildren = await fetchUmbracoChildren(cmsPageData.route.path);
     const children = allChildren.filter(
       (c: any) => c.properties?.showInNavigation !== false,
     );
 
     const themeGroups = await Promise.all(
       children.map(async (child: any) => {
-        const allChildPages = await fetchUmbracoChildren(child.id);
+        const allChildPages = await fetchUmbracoChildren(child.route.path);
         const childPages = allChildPages.filter(
           (c: any) => c.properties?.showInNavigation !== false,
         );

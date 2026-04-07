@@ -23,7 +23,7 @@ public class RichTextPropertyConverter : IPropertyValueConverter
         _publishedContentCache = publishedContentCache;
     }
 
-    // Make sure the Property Value Converter only applies to the Content Picker property editor
+    // Make sure the Property Value Converter only applies to the RichText property editor
     public bool IsConverter(IPublishedPropertyType propertyType)
         => propertyType.EditorAlias.Equals(Constants.PropertyEditors.Aliases.RichText);
 
@@ -129,14 +129,17 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
                 IPublishedContent content = _publishedContentCache.GetById(new GuidUdi(uri).Guid);
                 
-                foreach (IPublishedProperty property in content.Properties)
+                if (content != null)
                 {
-                    object value = property.GetDeliveryApiValue(true);
+                    foreach (IPublishedProperty property in content.Properties)
+                    {
+                        object value = property.GetDeliveryApiValue(true);
 
-                    if (value is Boolean) {
-                        item.Add(property.Alias, (Boolean) value);    
-                    } else {
-                        item.Add(property.Alias, value.ConvertToJsonNode());    
+                        if (value is bool v) {
+                            item.Add(property.Alias, v);    
+                        } else {
+                            item.Add(property.Alias, value.ConvertToJsonNode());    
+                        }
                     }
                 }
                 return item;
