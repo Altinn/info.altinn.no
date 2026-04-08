@@ -274,10 +274,29 @@ const useHeaderConfig = (
           };
         }),
         onSelect: (value: string) => {
+          if (!isBrowser) return;
           const lang = menuLanguageList.find((l: any) =>
             (l.languageCode || langCodeMap[l.languageName] || l.languageName) === value
           );
-          if (lang?.pageUrl && isBrowser) {
+          if (!lang) return;
+
+          // Search pages have different slugs per language — handle them explicitly
+          const searchSlugMap: Record<string, string> = {
+            nb: "/sok/",
+            nn: "/nn/sok/",
+            en: "/en/search/",
+          };
+          const searchSlugs = new Set(Object.values(searchSlugMap).flatMap(s => [s, s.replace(/\/$/, "")]));
+          const currentPath = window.location.pathname;
+          const targetLangCode = value;
+
+          if (searchSlugs.has(currentPath) && searchSlugMap[targetLangCode]) {
+            window.location.assign(searchSlugMap[targetLangCode]);
+            return;
+          }
+
+          // For Umbraco pages, use the CMS-provided pageUrl
+          if (lang.pageUrl) {
             window.location.assign(lang.pageUrl);
           }
         },

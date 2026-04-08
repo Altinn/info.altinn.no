@@ -1,6 +1,7 @@
 import {
   Divider,
   DsLink,
+  Heading,
   List,
   PageBase,
   SearchItem,
@@ -21,6 +22,7 @@ import SearchInput from "../../Shared/SearchInput/SearchInput";
 import "./SearchPage.scss";
 import { useEffect, useState } from "react";
 import type { SearchPageProps } from "./SearchPage.types";
+import { SearchContext, SearchContextIcons, SearchContextLabels } from "@constants/searchContext";
 
 const PAGE_SIZE = 10;
 
@@ -84,7 +86,8 @@ const SearchPage = ({
   loadingText,
   providerFilterText,
   searchPlaceholder,
-  searchAriaLabel
+  searchAriaLabel,
+  searchHeading
 }: SearchPageProps) => {
   const { maxPaginationButtons, isMobile } = useResponsivePagination();
   const safePageTypeFacets = Array.isArray(pageTypeFacets) ? pageTypeFacets : [];
@@ -143,11 +146,13 @@ const SearchPage = ({
     nextButtonProps,
     calculatedTotalPages,
     pageTypeLabelByValue,
+    livePageTypeFacets,
+    liveProviderFacets,
   } = useSearchPage({
     language: currentLanguage || "nb",
     query: currentQuery || "",
     initialPageNumber: searchResultViewModel?.currentPageNumber ?? 1,
-    currentContext: currentContext || "All",
+    currentContext: currentContext || SearchContext.All,
     providerFacets: safeProviderFacets,
     pageTypeFacets: safePageTypeFacets,
     initialResults: searchResultViewModel || undefined,
@@ -160,58 +165,62 @@ const SearchPage = ({
   const selectedContext = String(
     (filters.pagetypes ?? [])[0] ?? currentContext ?? "All",
   );
+  const hasProviders = (liveProviderFacets ?? safeProviderFacets).length > 0;
   const showProviderFilter =
-    selectedContext === "All" || selectedContext === "Schema";
+    hasProviders && (selectedContext === "All" || selectedContext === SearchContext.Schema);
 
   return (
     <PageBase className="search-page">
+      <Heading as="h2" size="xl">
+        {searchHeading || searchPlaceholder}
+      </Heading>
       <SearchInput
-        placeholder={(searchPlaceholder as any) || ""}
         searchPageUrl={isBrowser ? location.href : ""}
         value={searchValue}
         onChange={setSearchValue}
         onSubmit={handleSearchEnter}
         ariaLabel={searchAriaLabel}
+        autoFocus={!currentQuery}
       />
       {items && items.length > 0 && (
         <Toolbar
           filter={{
             filters: [
               {
+                id: "pagetypes",
                 label: categoriesText || "",
+                title: categoriesText || "",
                 name: "pagetypes",
-                items: safePageTypeFacets
-                  .filter((pt): pt is typeof pt & { name: string; value: string } =>
-                    pt.name != null && pt.value != null
-                  )
+                virtualized: true,
+                removable: false,
+                items: (livePageTypeFacets ?? safePageTypeFacets)
+                  .filter((pt: any) => pt.name != null && pt.value != null)
                   .map((pageType: any) => ({
-                    id: pageType.value,
-                    title: pageType.name,
+                    label: pageType.name,
+                    value: pageType.value,
+                    count: pageType.count,
                     role: "radio" as const,
                     name: "pagetypes",
-                    value: pageType.value,
-                    badge: { label: pageType.count },
                   })),
-                removable: false,
               },
               ...(showProviderFilter
                 ? [
                   {
+                    id: "providers",
                     label: providersText || "",
+                    title: providersText || "",
                     name: "providers",
-                    items: safeProviderFacets
-                      .filter((pf): pf is typeof pf & { name: string; value: string } =>
-                        pf.name != null && pf.value != null
-                      )
+                    searchable: true,
+                    removable: false,
+                    items: (liveProviderFacets ?? safeProviderFacets)
+                      .filter((pf: any) => pf.name != null && pf.value != null)
                       .map((provider: any) => ({
-                        id: provider.value,
-                        title: provider.name,
+                        label: provider.name,
+                        value: provider.value,
+                        count: provider.count,
                         role: "checkbox" as const,
                         name: "providers",
-                        value: provider.value,
-                        badge: { label: provider.count },
                       })),
-                    removable: false,
                   },
                 ]
                 : []),
@@ -221,18 +230,23 @@ const SearchPage = ({
               name: string,
               value: (string | number)[] | undefined,
             ) => {
-              if (!value || value.length === 0) return "";
+              if (!value?.length && name === "pagetypes")
+                return categoriesText || "";
+              if (!value?.length && name === "providers")
+                return providersText || "";
+
               if (name === "pagetypes") {
-                const v = String(value[0]);
+                const v = String(value?.[0]);
                 return pageTypeLabelByValue?.[v] ?? v;
               }
+
               if (name === "providers") {
-                if (value.length >= 3) {
-                  return `${value.length} ${providerFilterText}`;
+                if ((value?.length ?? 0) >= 3) {
+                  return `${value?.length} ${providerFilterText}`;
                 }
-                return (value as (string | number)[]).map(String).join(", ");
+                return value?.map(String).join(", ");
               }
-              return (value as (string | number)[]).map(String).join(", ");
+              return value?.map(String).join(", ");
             },
             onFilterStateChange: (newFilterState: FilterState) => {
               applyFilters(newFilterState);
@@ -251,7 +265,7 @@ const SearchPage = ({
           <Typography as="p">
             {errorText}
           </Typography>}
-        {hasNoResults &&
+        {hasNoResults && currentQuery &&
           <Typography as="p">
             {noResultsText + ''} <strong>{'"' + currentQuery + '"'}</strong>
           </Typography>}
@@ -298,11 +312,14 @@ const SearchPage = ({
                   )}
                 </>
               );
-            } else if (item.parentContext) {
-              const Icon = getIcon(item.parentContext.icon);
+            } else if (item.parentContext?.value) {
+              const contextValue = item.parentContext.value;
+              const iconName = SearchContextIcons[contextValue];
+              const Icon = getIcon(iconName);
+              const contextLabel = SearchContextLabels[currentLanguage || "nb"]?.[contextValue] ?? contextValue;
               if (Icon) {
                 const contextItem: IconItemsInlineItem = {
-                  label: item.parentContext.name,
+                  label: contextLabel,
                   icon: Icon,
                 };
                 summary = (

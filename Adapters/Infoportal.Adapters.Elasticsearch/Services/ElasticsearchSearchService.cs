@@ -189,46 +189,37 @@ public class ElasticsearchSearchService : ISearchService
 
                 // TODO: Exact/quoted search — if query contains double quotes, disable fuzziness
                 // and stemming to match exact phrases. Optimizely uses Language.None + WithAndAsDefaultOperator.
-                // Example: if (query.Contains('"')) use TextQueryType.Phrase with no fuzziness.
 
                 // TODO: Per-pagetype score boosting — Optimizely applies configurable BoostMatching()
-                // per content type (e.g., themePage boost 1.5, newsArticlePage boost 1.2).
-                // Can be implemented with ES function_score query wrapping the multi_match.
+                // per content type. Can be implemented with ES function_score query.
 
-                // TODO: Freshness decay — Optimizely uses date decay to rank newer content higher.
-                // ES supports this via function_score with decay functions:
-                // .Functions(f => f.Exp(e => e.Field("publishDate").Decay(0.5).Scale("30d").Offset("7d")))
+                // TODO: Freshness decay — ES function_score with decay functions on publishDate.
 
-                // TODO: Provider filtering — when SchemaPage content type exists, add:
-                // 1. "providers" parameter to SearchAsync() and ISearchService
-                // 2. "providerNames" keyword field on SearchDocument + index mapping
-                // 3. Terms filter: b.Filter(f => f.Terms(t => t.Field("providerNames").Terms(...)))
-                // 4. Terms aggregations on "contentType" and "providerNames" for facet counts
-                // Provider filtering applies only to schema pages, not article pages.
+                // Base query: full-text match (aggregations run on this, unfiltered by context)
+                s.Query(q => q.MultiMatch(mm => mm
+                    .Query(query)
+                    .Fields(SearchFields)
+                    .Type(TextQueryType.BestFields)
+                    .Fuzziness(new Fuzziness("AUTO"))
+                ));
 
-                if (!string.IsNullOrEmpty(context) && context != "All")
+                // Context filter applied via post_filter so aggregations count across ALL contexts
+                var contextContentTypes = SearchContextMapping.GetContentTypesForContext(context);
+                if (contextContentTypes != null)
                 {
-                    s.Query(q => q.Bool(b => b
-                        .Must(
-                            m => m.MultiMatch(mm => mm
-                                .Query(query)
-                                .Fields(SearchFields)
-                                .Type(TextQueryType.BestFields)
-                                .Fuzziness(new Fuzziness("AUTO"))
-                            ),
-                            m => m.Term(t => t.Field("contentType").Value(context))
-                        )
+                    var fieldValues = contextContentTypes.Select(t => FieldValue.String(t)).ToList();
+                    s.PostFilter(f => f.Terms(t => t
+                        .Field("contentType")
+                        .Terms(new TermsQueryField(fieldValues))
                     ));
                 }
-                else
-                {
-                    s.Query(q => q.MultiMatch(mm => mm
-                        .Query(query)
-                        .Fields(SearchFields)
-                        .Type(TextQueryType.BestFields)
-                        .Fuzziness(new Fuzziness("AUTO"))
-                    ));
-                }
+
+                // Aggregations for facet counts
+                s.Aggregations(a => a
+                    .Add("contentTypeCounts", agg => agg
+                        .Terms(t => t.Field("contentType").Size(50))
+                    )
+                );
             }, ct);
 
             if (!searchResponse.IsValidResponse)
@@ -241,14 +232,11 @@ public class ElasticsearchSearchService : ISearchService
 
             var totalHits = searchResponse.Total;
 
-            // TODO: Spellcheck / "did you mean" — when totalHits == 0, run a second query
-            // with ES suggest API (term suggester) to propose corrected spellings.
-            // Optimizely returns a SuggestionTerm when results < SpellcheckHitsCutoff (3).
-            // Return the suggestion in SearchResultResponse so the frontend can show
-            // "Fant ingen resultater. Mente du: <suggestion>?"
+            // Build facet counts from aggregations
+            var pageTypeFacets = BuildPageTypeFacets(searchResponse);
 
-            // TODO: Result caching — Optimizely caches results for 30 seconds.
-            // Consider IMemoryCache with a short TTL keyed on (query, culture, page, context).
+            // TODO: Spellcheck / "did you mean" — when totalHits == 0, suggest corrected query.
+            // TODO: Result caching — IMemoryCache with short TTL.
 
             return new SearchResultResponse
             {
@@ -257,7 +245,8 @@ public class ElasticsearchSearchService : ISearchService
                     .Select(hit => MapHitToResultItem(hit)).ToList(),
                 TotalResultCount = (int)totalHits,
                 TotalPages = (int)Math.Ceiling((double)totalHits / pageSize),
-                CurrentPageNumber = pageNumber
+                CurrentPageNumber = pageNumber,
+                PageTypeFacets = pageTypeFacets,
             };
         }
         catch (Exception ex)
@@ -327,19 +316,76 @@ public class ElasticsearchSearchService : ISearchService
     private static string SanitizeForLog(string? value) =>
         value?.Replace("\r", " ").Replace("\n", " ") ?? "";
 
+    private static List<FacetItem> BuildPageTypeFacets(SearchResponse<SearchDocument> searchResponse)
+    {
+        var facets = new List<FacetItem>();
+
+        if (searchResponse.Aggregations == null)
+            return facets;
+
+        if (!searchResponse.Aggregations.TryGetValue("contentTypeCounts", out var agg))
+            return facets;
+
+        if (agg is not Elastic.Clients.Elasticsearch.Aggregations.StringTermsAggregate termsAgg)
+            return facets;
+
+        // Extract raw content type counts from ES buckets
+        var rawCounts = termsAgg.Buckets
+            .Select(b => new KeyValuePair<string, long>(b.Key.ToString(), b.DocCount))
+            .ToList();
+
+        // Group by search context (StartCompany, Schema, Help)
+        var contextCounts = SearchContextMapping.GroupByContext(rawCounts);
+
+        // Build facet list — only include contexts with results
+        foreach (var (contextName, count) in contextCounts)
+        {
+            if (count > 0)
+            {
+                facets.Add(new FacetItem
+                {
+                    Name = contextName,
+                    Value = contextName,
+                    Count = count
+                });
+            }
+        }
+
+        // Add "All" as the sum of all context counts (if any results exist)
+        var allCount = contextCounts.Values.Sum();
+        if (allCount > 0)
+        {
+            facets.Insert(0, new FacetItem
+            {
+                Name = nameof(SearchContext.All),
+                Value = nameof(SearchContext.All),
+                Count = allCount
+            });
+        }
+
+        return facets;
+    }
+
+    private static string StripEmTags(string text) =>
+        text.Replace("<em>", "").Replace("</em>", "");
+
     private static SearchResultItem MapHitToResultItem(Hit<SearchDocument> hit)
     {
         var source = hit.Source!;
         var title = source.Title;
         var ingress = source.Ingress;
 
+        // Use highlighted ingress from ES (frontend renders it as HTML).
+        // Strip <em> tags from title since the frontend highlights it client-side as plain text.
         if (hit.Highlight != null)
         {
             if (hit.Highlight.TryGetValue("title", out var titleHighlight))
-                title = string.Join(" ", titleHighlight);
+                title = StripEmTags(string.Join(" ", titleHighlight));
             if (hit.Highlight.TryGetValue("ingress", out var ingressHighlight))
                 ingress = string.Join(" ", ingressHighlight);
         }
+
+        var searchContext = SearchContextMapping.GetContextForContentType(source.ContentType);
 
         return new SearchResultItem
         {
@@ -351,7 +397,11 @@ public class ElasticsearchSearchService : ISearchService
             Score = hit.Score ?? 0,
             HitId = hit.Id ?? "",
             TrackId = hit.Id ?? "",
-            IsFallbackLanguage = false
+            IsFallbackLanguage = false,
+            ParentContext = searchContext != null ? new ParentContext
+            {
+                Value = searchContext
+            } : null
         };
     }
 }

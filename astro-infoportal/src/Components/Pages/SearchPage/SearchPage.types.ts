@@ -18,4 +18,5 @@ export interface SearchPageProps {
   providerFilterText?: string;
   searchPlaceholder?: string;
   searchAriaLabel?: string;
+  searchHeading?: string;
 }
