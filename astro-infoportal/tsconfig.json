@@ -41,6 +41,9 @@
       ],
       "@transformers/*": [
         "transformers/*"
+      ],
+      "@i18n/*": [
+        "i18n/*"
       ]
     },
     "lib": [

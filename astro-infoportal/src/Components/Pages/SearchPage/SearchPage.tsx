@@ -196,7 +196,7 @@ const SearchPage = ({
                 items: (livePageTypeFacets ?? safePageTypeFacets)
                   .filter((pt: any) => pt.name != null && pt.value != null)
                   .map((pageType: any) => ({
-                    label: pageType.name,
+                    title: pageType.name,
                     value: pageType.value,
                     count: pageType.count,
                     role: "radio" as const,
@@ -215,7 +215,7 @@ const SearchPage = ({
                     items: (liveProviderFacets ?? safeProviderFacets)
                       .filter((pf: any) => pf.name != null && pf.value != null)
                       .map((provider: any) => ({
-                        label: provider.name,
+                        title: provider.name,
                         value: provider.value,
                         count: provider.count,
                         role: "checkbox" as const,

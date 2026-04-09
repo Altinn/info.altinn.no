@@ -4,8 +4,10 @@ import { fetchUmbracoContent } from '@api/umbraco/client';
 import AstroSiteLayout from '@layouts/AstroSiteLayout.astro';
 import { JSONTransformer } from '@transformers/JSONTransformer';
 import { getGlobalData } from '@constants/globalData';
+import type { Locale } from '@i18n/index';
 
 const path = Astro.url.pathname;
+const locale = (Astro.currentLocale || "nb") as Locale;
 
 
 // Ignore internal Vite/framework paths
@@ -24,7 +26,7 @@ if (path.startsWith('/api/') || path.match(/\.[a-zA-Z0-9]+$/)) {
 
 let umbracoPageData: any = null;
 
-let globalData: any = getGlobalData();
+let globalData: any = getGlobalData(locale);
 
 const [pageResult] = await Promise.allSettled([
   fetchUmbracoContent(path),
