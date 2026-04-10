@@ -5,6 +5,8 @@ resources:
 
 images:
 - name: umbraco
+  newName: altinncr.azurecr.io/ghcr.io/altinn/umbraco
+  newTag: will-be-replaced
 
 patches:
   - target:
