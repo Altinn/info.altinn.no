@@ -1,7 +1,9 @@
+import { t, type Locale } from "@i18n/index";
+
 // TODO: Replace with real Umbraco global data when backend supports it.
 // This is shared between the catch-all route and static pages (e.g., search).
 
-export function getGlobalData(searchPageUrl = "/sok/") {
+export function getGlobalData(locale: Locale = "nb", searchPageUrl = "/sok/") {
   return {
     headerViewModel: {
       banner: {
@@ -17,51 +19,54 @@ export function getGlobalData(searchPageUrl = "/sok/") {
         isActive: true,
         badgeText: "Beta",
         colorTheme: "accent",
-        closeButtonText: "Lukk",
+        closeButtonText: t("banner.closeButton", locale),
         contentHash: "88628bb068b41760",
         localStoragePrefix: "infoportal-banner-dismissed",
         componentName: "BannerBlock",
       },
-      startAndRunCompany: { text: "Starte og drive bedrift", url: "/starte-og-drive/" },
-      helpPage: { text: "Trenger du hjelp?", url: "/hjelp/" },
-      loginPage: { text: "Logg inn", url: "https://af.at23.altinn.cloud/" },
-      schemaOverviewPage: { text: "Alle skjema og tjenester", url: "/skjemaoversikt/" },
-      inboxPage: { text: "Innboks", url: "https://af.at23.altinn.cloud/" },
-      accessManagementPage: { text: "Tilgangsstyring", url: "https://am.ui.at23.altinn.cloud/accessmanagement/ui" },
-      profilePage: { text: "Din profil", url: "https://af.at23.altinn.cloud/profile" },
-      logOutPage: { text: "Logg ut", url: "https://platform.at23.altinn.cloud/authentication/api/v1/logout" },
-      aboutNewAltinnPage: { text: "Om nye altinn", url: "/nyheter/om-nye-altinn/" },
+      startAndRunCompany: { text: t("header.startAndRunCompany", locale), url: "/starte-og-drive/" },
+      helpPage: { text: t("header.help", locale), url: "/hjelp/" },
+      loginPage: { text: t("header.login", locale), url: "https://af.at23.altinn.cloud/" },
+      schemaOverviewPage: { text: t("header.allSchemas", locale), url: "/skjemaoversikt/" },
+      inboxPage: { text: t("header.inbox", locale), url: "https://af.at23.altinn.cloud/" },
+      accessManagementPage: { text: t("header.accessManagement", locale), url: "https://am.ui.at23.altinn.cloud/accessmanagement/ui" },
+      profilePage: { text: t("header.profile", locale), url: "https://af.at23.altinn.cloud/profile" },
+      logOutPage: { text: t("header.logout", locale), url: "https://platform.at23.altinn.cloud/authentication/api/v1/logout" },
+      aboutNewAltinnPage: { text: t("header.aboutNewAltinn", locale), url: "/nyheter/om-nye-altinn/" },
       startPage: { text: "", url: "/" },
-      loggedInAsText: "Logget inn som",
-      backButtonText: "Tilbake",
-      chooseLanguageText: "Velg språk",
+      loggedInAsText: t("header.loggedInAs", locale),
+      backButtonText: t("header.back", locale),
+      chooseLanguageText: t("header.chooseLanguage", locale),
+      // languageTeaser and languageName are not locale-dependent — each describes
+      // the language in its own language. Not provided by Umbraco, so hardcoded here.
       menuLanguageList: [
         { pageUrl: "/starte-og-drive/", languageTeaser: "Alt innhold er tilgjengelig på bokmål.", languageImage: "/Static/img/no.svg", languageName: "Bokmål", selected: true },
         { pageUrl: "/nn/starte-og-drive/", languageTeaser: "Noko av innhaldet er tilgjengeleg på nynorsk.", languageImage: "/Static/img/no.svg", languageName: "Nynorsk", selected: false },
         { pageUrl: "/en/start-and-run-business/", languageTeaser: "Some content is available in English.", languageImage: "/Static/img/gb.svg", languageName: "English", selected: false },
       ],
-      shortcutText: "Snarveier",
-      menuText: "Meny",
-      searchTextPlaceholder: "Søk i innhold",
+      shortcutText: t("header.shortcuts", locale),
+      menuText: t("header.menu", locale),
+      searchTextPlaceholder: t("header.searchPlaceholder", locale),
       searchPageUrl,
-      suggestionsTitle: "Utvalgte hurtiglenker",
+      suggestionsTitle: t("header.suggestions", locale),
       useSearchSuggestions: false,
-      dateOfBirthText: "Fødslesnummer",
-      orgNrText: "Org. nr",
+      dateOfBirthText: t("header.dateOfBirth", locale),
+      orgNrText: t("header.orgNr", locale),
       hostBaseUrl: "https://at23.altinn.cloud/",
     },
     footerViewModel: {
-      startAndRunCompany: { text: "Starte og drive bedrift", url: "/starte-og-drive/" },
-      helpPage: { text: "Hjelp og kontakt", url: "/hjelp/" },
+      startAndRunCompany: { text: t("footer.startAndRunCompany", locale), url: "/starte-og-drive/" },
+      helpPage: { text: t("footer.helpAndContact", locale), url: "/hjelp/" },
       address1: "Digitaliseringsdirektoratet,",
       address2: "Postboks 1382 Vika, 0114 Oslo. Org.nr. 991 825 827",
-      aboutAltinnReference: { text: "Om Altinn", url: "/om-altinn/" },
-      operationalMessagesReference: { text: "Driftsmeldinger", url: "/om-altinn/driftsmeldinger/" },
-      privacyReference: { text: "Personvern", url: "/om-altinn/personvern/" },
-      accessibilityLocation: { text: "Tilgjengelighet", url: "/om-altinn/tilgjengelighet/" },
+      aboutAltinnReference: { text: t("footer.aboutAltinn", locale), url: "/om-altinn/" },
+      operationalMessagesReference: { text: t("footer.operationalMessages", locale), url: "/om-altinn/driftsmeldinger/" },
+      privacyReference: { text: t("footer.privacy", locale), url: "/om-altinn/personvern/" },
+      accessibilityLocation: { text: t("footer.accessibility", locale), url: "/om-altinn/tilgjengelighet/" },
       searchPageUrl,
       searchUrlBody: searchPageUrl,
     },
-    skipLinkText: "Hopp til hovedinnhold",
+    skipLinkText: t("common.skipToContent", locale),
+    locale,
   };
 }

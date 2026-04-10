@@ -3,9 +3,10 @@ import type { SchemaOverviewPageProps } from "@components/Pages/SchemaOverviewPa
 import { fetchUmbracoAncestors, fetchUmbracoChildren } from "../api/umbraco/client";
 import { BlockTransformer } from "./BlockTransformer";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
+import { t, type Locale } from "@i18n/index";
 
 export class SchemaOverviewPageTransformer implements IJSONTransformer {
-  public async Transform(cmsPageData: any): Promise<any> {
+  public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
     const props = cmsPageData.properties ?? {};    
     const ancestors = await fetchUmbracoAncestors(cmsPageData.route.path);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
@@ -28,6 +29,7 @@ export class SchemaOverviewPageTransformer implements IJSONTransformer {
           componentName: "RecommendedSchema"
         }));
     
+    const locale: Locale = globalData?.locale || "nb";
     return {
       componentName: "SchemaOverviewPage",
       renderAlternateHeader: props.renderAlternateHeader || false,
@@ -36,10 +38,10 @@ export class SchemaOverviewPageTransformer implements IJSONTransformer {
       breadcrumb: breadcrumb,
       schemaCategories: schemaCategories,
       providerCollections: providerCollections,
-      agencyText: "Etater",
-      servicesText: "Alle tjenester",
-      providersText: "Alle etater",
-      recommendedSchemasHeaderText: "Aktuelle skjemaer og tjenester",
+      agencyText: t("schemaOverview.agency", locale),
+      servicesText: t("schemaOverview.allServices", locale),
+      providersText: t("schemaOverview.allProviders", locale),
+      recommendedSchemasHeaderText: t("schemaOverview.recommendedSchemas", locale),
       recommendedSchemas: recommendedSchemas,
       initialTab: cmsPageData.properties.initialTab || undefined
     };

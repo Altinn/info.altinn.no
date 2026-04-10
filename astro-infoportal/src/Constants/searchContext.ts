@@ -1,3 +1,5 @@
+import { t, type Locale } from "@i18n/index";
+
 export const SearchContext = {
   All: "All",
   StartCompany: "StartCompany",
@@ -14,23 +16,18 @@ export const SearchContextIcons: Record<string, string | undefined> = {
 };
 
 // Display names per language
+export function getSearchContextLabels(locale: Locale): Record<string, string> {
+  return {
+    [SearchContext.All]: t("searchContext.all", locale),
+    [SearchContext.StartCompany]: t("searchContext.startCompany", locale),
+    [SearchContext.Schema]: t("searchContext.schema", locale),
+    [SearchContext.Help]: t("searchContext.help", locale),
+  };
+}
+
+// Static lookup for React components that need labels by locale string
 export const SearchContextLabels: Record<string, Record<string, string>> = {
-  nb: {
-    [SearchContext.All]: "Alt innhold",
-    [SearchContext.StartCompany]: "Starte og drive bedrift",
-    [SearchContext.Schema]: "Skjema",
-    [SearchContext.Help]: "Hjelp",
-  },
-  nn: {
-    [SearchContext.All]: "Alt innhald",
-    [SearchContext.StartCompany]: "Starte og drive bedrift",
-    [SearchContext.Schema]: "Skjema",
-    [SearchContext.Help]: "Hjelp",
-  },
-  en: {
-    [SearchContext.All]: "All content",
-    [SearchContext.StartCompany]: "Start and run company",
-    [SearchContext.Schema]: "Forms",
-    [SearchContext.Help]: "Help",
-  },
+  nb: getSearchContextLabels("nb"),
+  nn: getSearchContextLabels("nn"),
+  en: getSearchContextLabels("en"),
 };

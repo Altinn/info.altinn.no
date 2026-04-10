@@ -1,4 +1,5 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
+import { t } from "@i18n/index";
 import { SectionPageTransformer } from "./SectionPageTransformer";
 import { HeroArticlePageBaseTransformer } from "./HeroArticlePageBaseTransformer";
 import { ThemePageTransformer } from "./ThemePageTransformer";
@@ -21,7 +22,7 @@ export class JSONTransformer implements IJSONTransformer {
       headerViewModel: globalData?.properties?.headerViewModel || globalData?.headerViewModel || null,
       footerViewModel: globalData?.properties?.footerViewModel || globalData?.footerViewModel || null,
       pageSidebarViewModel: globalData?.properties?.pageSidebarViewModel || globalData?.pageSidebarViewModel || null,
-      skipLinkText: globalData?.properties?.skipLinkText || globalData?.skipLinkText || "Hopp til hovedinnhold",
+      skipLinkText: globalData?.properties?.skipLinkText || globalData?.skipLinkText || t("common.skipToContent", globalData?.locale),
       componentName: "SiteLayout",
       child: null
     };
