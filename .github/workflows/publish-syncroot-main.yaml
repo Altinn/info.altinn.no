@@ -15,7 +15,7 @@ on:
         required: true
       database:
         type: choice
-        description: 'Select database?'
+        description: 'Select database'
         options:
           - Sqlite
           - AzureSQL
