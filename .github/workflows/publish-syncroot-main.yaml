@@ -42,7 +42,7 @@ jobs:
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
       - name: Update image tag
-        run: yq -i '(.images[] | select(.name == "umbraco")).newTag = "${{ inputs.image-tag }}"' ./syncroot/at22/kustomization.yaml
+        run: yq -i '(.images[] | select(.name == "umbraco")).newTag = "${{ inputs.image-tag }}"' ./syncroot/${{ inputs.environment }}/kustomization.yaml
 
       - name: Update db connection string
         if: inputs.database == 'AzureSQL'
