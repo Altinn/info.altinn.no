@@ -2,20 +2,23 @@
  * Shared types and interfaces for header configuration
  */
 
-import type { LinkItemViewModel } from "/Models/Generated/LinkItemViewModel";
 
 /**
  * Menu pages extracted from HeaderViewModel
  */
 export interface MenuPages {
-  startAndRunCompany?: LinkItemViewModel;
-  helpPage?: LinkItemViewModel;
-  accessManagementPage?: LinkItemViewModel;
-  loginPage?: LinkItemViewModel;
-  inboxPage?: LinkItemViewModel;
-  schemaOverviewPage?: LinkItemViewModel;
-  profilePage?: LinkItemViewModel;
-  aboutNewAltinnPage?: LinkItemViewModel;
+  startAndRunCompany?: any;
+  helpPage?: any;
+  accessManagementPage?: any;
+  loginPage?: any;
+  inboxPage?: any;
+  schemaOverviewPage?: any;
+  profilePage?: any;
+  aboutNewAltinnPage?: any;
+  searchPageUrl?: string;
+  searchTextPlaceholder?: string;
+  chooseLanguageText?: string;
+  menuLanguageList?: { languageName: string; pageUrl: string; selected: boolean }[];
 }
 
 /**

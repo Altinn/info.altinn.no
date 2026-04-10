@@ -1,5 +1,4 @@
 import { Button, DsLink, Typography } from "@altinn/altinn-components";
-import { AlternativeLoginBlockViewModel } from "/Models/Generated/AlternativeLoginBlockViewModel";
 import "./AlternativeLoginBlock.scss";
 
 const AlternativeLoginBlock = ({
@@ -10,7 +9,7 @@ const AlternativeLoginBlock = ({
   secondaryLinkText,
   secondaryLinkTarget,
   activated,
-}: AlternativeLoginBlockViewModel) => {
+}: any) => {
   if (!activated) {
     return null;
   }

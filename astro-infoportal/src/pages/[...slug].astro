@@ -1,0 +1,44 @@
+---
+
+import { fetchUmbracoContent } from '@api/umbraco/client';
+import AstroSiteLayout from '@layouts/AstroSiteLayout.astro';
+import { JSONTransformer } from '@transformers/JSONTransformer';
+import { getGlobalData } from '@constants/globalData';
+
+const path = Astro.url.pathname;
+
+
+// Ignore internal Vite/framework paths
+if (
+  path.startsWith('/@vite/') ||
+  path.startsWith('/@react-refresh') ||
+  path.startsWith('/@id/') ||
+  path.startsWith('/@fs/')
+) {
+  return new Response(null, { status: 404 });
+}
+
+if (path.startsWith('/api/') || path.match(/\.[a-zA-Z0-9]+$/)) {
+  return new Response(null, { status: 404 });
+}
+
+let umbracoPageData: any = null;
+
+let globalData: any = getGlobalData();
+
+const [pageResult] = await Promise.allSettled([
+  fetchUmbracoContent(path),
+]);
+
+if (pageResult.status === 'rejected') {
+  console.error("Error fetching page data from Umbraco:", pageResult.reason);
+  return Astro.redirect("/404");
+}
+umbracoPageData = pageResult.value;
+
+const pageData = await new JSONTransformer().Transform(umbracoPageData, globalData);
+
+Astro.response.headers.set("Cache-Control", "public, max-age=0, s-maxage=86400");
+---
+
+<AstroSiteLayout pageData={pageData} />

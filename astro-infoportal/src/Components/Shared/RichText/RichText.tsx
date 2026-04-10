@@ -1,7 +1,6 @@
-import { RichTextProps } from "/Models/Generated/RichTextProps";
 import "./RichText.scss";
 
-const RichText = ({ html }: RichTextProps) => {
+const RichText = ({ html }: any) => {
 
   return (
     <div className="rich-text" dangerouslySetInnerHTML={{ __html: html }} />

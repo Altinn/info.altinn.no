@@ -1,0 +1,34 @@
+export interface SchemaPageProps {
+  componentName?: string;
+  schemaPageNameText?: string;
+  schemaCode?: string;
+  mainBody?: any;
+  operationalMessages?: any[];
+  startSchemaLink?: string;
+  startSchemaLinkText?: string;
+  buttonInboxText?: string;
+  accordianList?: any;
+  providerPages?: any[];
+  preInstansiated?: boolean;
+  schemaNotInUse?: boolean;
+  deactivateButton?: any;
+  deadline?: any;
+  deadlineText?: string;
+  processTime?: any;
+  processTimeText?: string;
+  fee?: any;
+  feeText?: string;
+  securityLevelInfo?: any;
+  shallowLink?: string;
+  shallowLinkText?: string;
+  promoArea?: any;
+  breadcrumb?: any;
+  areThereMunicipalities?: boolean;
+  areThereCounties?: boolean;
+  apiSourceUrl?: string;
+  whatMunicipalityCountyText?: string;
+  searchForMunicipalityCountyText?: string;
+  noHitText?: string;
+  orangeMessage?: any;
+  orangeMessageTitle?: string;
+}

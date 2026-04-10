@@ -1,4 +1,3 @@
-import type { VectorImageBlockViewModel } from "/Models/Generated/VectorImageBlockViewModel";
 import "../../../styles/legacy-pages.scss";
 import "./VectorImageBlock.scss";
 
@@ -7,7 +6,7 @@ const VectorImageBlock = ({
   altText,
   caption,
   backgroundColor,
-}: VectorImageBlockViewModel) => {
+}: any) => {
   if (!vectorImage || !vectorImage.src) {
     return null;
   }

@@ -1,7 +1,4 @@
 import { RichTextArea } from "/App.Components";
-import { ImageProps } from "/Models/Generated/ImageProps";
-import { LinkItemViewModel } from "/Models/Generated/LinkItemViewModel";
-import { RichTextAreaProps } from "/Models/Generated/RichTextAreaProps";
 import "./AdvisorStartBlock.scss";
 import "../../../styles/legacy-pages.scss";
 import { PencilWritingIcon } from '@navikt/aksel-icons';
@@ -9,10 +6,10 @@ import { PencilWritingIcon } from '@navikt/aksel-icons';
 
 type Props = {
   heading: string;
-  mainBody: RichTextAreaProps;
-  linkLocation: LinkItemViewModel;
+  mainBody: any;
+  linkLocation: any;
   buttonText?: string;
-  image: ImageProps;
+  image: any;
   imageAltText?: string;
 };
 

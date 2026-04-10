@@ -1,7 +1,6 @@
-import { HelpContactBlockViewModel } from "/Models/Generated/HelpContactBlockViewModel";
 import "./HelpContactBlock.scss";
 
-const HelpContactBlock = ({ contactFormUrl, writeToUsText }: HelpContactBlockViewModel) => {
+const HelpContactBlock = ({ contactFormUrl, writeToUsText }: any) => {
   return (
     <a
       href="javascript:void(0)"

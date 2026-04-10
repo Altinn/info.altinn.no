@@ -1,5 +1,4 @@
-import type { ContentAreaProps } from "/Models/Generated/ContentAreaProps";
-import type { RichTextAreaProps } from "/Models/Generated/RichTextAreaProps";
+import type { ContentAreaProps } from "@components/Shared/ContentArea/ContentArea.types";
 
 export interface ContactFormModalProps {
   isOpen: boolean;
@@ -11,13 +10,13 @@ export interface ContactFormModalProps {
 
   // Mode 2: Tabbed forms (new - matches ContactFormPage.cshtml)
   formTypeArea?: ContentAreaProps;
-  teaserText?: RichTextAreaProps;
+  teaserText?: any;
   teaserHeading?: string;
 
   // Shared props
   useRecaptcha: boolean;
   recaptchaSiteKey?: string;
-  labels?: ContactFormLabels;
+  labels?: any;
   title?: string;
 }
 

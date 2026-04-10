@@ -1,5 +1,4 @@
 import { DownloadIcon } from "@navikt/aksel-icons";
-import type { LinkBlockViewModel } from "/Models/Generated/LinkBlockViewModel";
 import "../../../styles/legacy-pages.scss";
 
 const LinkBlock = ({
@@ -7,7 +6,7 @@ const LinkBlock = ({
   // icon,
   extraTitle,
   link,
-}: LinkBlockViewModel) => {
+}: any) => {
   if (!link?.linkText || !link?.url) {
     return null;
   }

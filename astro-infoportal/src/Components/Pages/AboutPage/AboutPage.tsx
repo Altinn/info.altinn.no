@@ -7,11 +7,10 @@ import {
   SearchItem,
   Section,
 } from "@altinn/altinn-components";
-import type { AboutPageViewModel } from "/Models/Generated/AboutPageViewModel";
 import ContentArea from "../../Shared/ContentArea/ContentArea";
 import "./AboutPage.scss";
 
-const AboutPage = ({ pageName, linkArea, contactArea }: AboutPageViewModel) => {
+const AboutPage = ({ pageName, linkArea, contactArea }: any) => {
   return (
     <Article>
       <ArticleHeader>
@@ -23,8 +22,8 @@ const AboutPage = ({ pageName, linkArea, contactArea }: AboutPageViewModel) => {
       {linkArea && linkArea.length > 0 && (
         <List className="about-page__link-list">
           {linkArea
-            .filter((link) => !!link?.url)
-            .map((link, index) => (
+            .filter((link: any) => !!link?.url)
+            .map((link: any, index: number) => (
               <React.Fragment key={link.url || index}>
                 <SearchItem
                   as="a"

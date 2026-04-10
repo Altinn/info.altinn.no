@@ -1,11 +1,10 @@
-import { Badge } from "@altinn/altinn-components";
-import { XMarkIcon } from "@navikt/aksel-icons";
-import { useEffect, useState } from "react";
-import { RichTextArea } from "/App.Components";
-import type { BannerBlockViewModel } from "/Models/Generated/BannerBlockViewModel";
-import { IconButton } from "../../Shared/IconButton/IconButton";
+import {Badge} from '@altinn/altinn-components';
+import {XMarkIcon} from '@navikt/aksel-icons';
+import {useEffect, useState} from 'react';
+import {RichTextArea} from '/App.Components';
+import {IconButton} from '../../Shared/IconButton/IconButton';
 
-import "./BannerBlock.scss";
+import './BannerBlock.scss';
 
 const BannerBlock = ({
   message,
@@ -15,7 +14,7 @@ const BannerBlock = ({
   closeButtonText,
   contentHash,
   localStoragePrefix,
-}: BannerBlockViewModel) => {
+}: any) => {
   const [isDismissed, setIsDismissed] = useState(true);
 
   useEffect(() => {
@@ -32,20 +31,27 @@ const BannerBlock = ({
     }
 
     const dismissed = localStorage.getItem(storageKey);
-    if (dismissed !== "true") {
+    if (dismissed !== 'true') {
       setIsDismissed(false);
     }
   }, [contentHash, localStoragePrefix]);
 
-  const validColors = ["accent", "success", "warning", "danger", "info"] as const;
-  const themeColor =
-    validColors.includes(colorTheme as (typeof validColors)[number]) ?
-      (colorTheme as (typeof validColors)[number]) :
-      "accent";
+  const validColors = [
+    'accent',
+    'success',
+    'warning',
+    'danger',
+    'info',
+  ] as const;
+  const themeColor = validColors.includes(
+    colorTheme as (typeof validColors)[number],
+  )
+    ? (colorTheme as (typeof validColors)[number])
+    : 'accent';
 
   const handleClose = () => {
     const storageKey = `${localStoragePrefix}-${contentHash}`;
-    localStorage.setItem(storageKey, "true");
+    localStorage.setItem(storageKey, 'true');
     setIsDismissed(true);
   };
 
@@ -54,7 +60,6 @@ const BannerBlock = ({
   }
 
   return (
-    // biome-ignore lint/a11y/useSemanticElements: role="status" is semantically correct for announcements
     <section
       className="banner-block"
       role="status"
@@ -62,7 +67,13 @@ const BannerBlock = ({
       data-color={themeColor}
     >
       <div className="banner-block__content">
-        {badgeText && <Badge label={badgeText} size="sm" className="altinn-badge"/>}
+        {badgeText && (
+          <Badge
+            label={badgeText}
+            size="sm"
+            className="altinn-badge"
+          />
+        )}
         {message && <RichTextArea {...message} />}
       </div>
       <IconButton
@@ -70,7 +81,7 @@ const BannerBlock = ({
         variant="solid"
         onClick={handleClose}
         className="banner-block__close"
-        iconAltText={closeButtonText || "Close"}
+        iconAltText={closeButtonText || 'Close'}
         themeColor={themeColor}
       />
     </section>

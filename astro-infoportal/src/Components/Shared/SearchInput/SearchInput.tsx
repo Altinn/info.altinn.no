@@ -8,7 +8,7 @@ const isBrowser =
   typeof location !== "undefined" && typeof history !== "undefined";
 
 interface SearchInputProps {
-  placeholder: string;
+  placeholder?: string;
   searchPageUrl: string;
   initialValue?: string;
   value?: string;
@@ -17,6 +17,7 @@ interface SearchInputProps {
   name?: string;
   ariaLabel?: string;
   className?: string;
+  autoFocus?: boolean;
 }
 
 const SearchInput = ({
@@ -28,6 +29,7 @@ const SearchInput = ({
   onSubmit,
   ariaLabel,
   className,
+  autoFocus,
 }: SearchInputProps) => {
   const [internalQuery, setInternalQuery] = useState<string>(initialValue);
   const isDesktop = useIsDesktop();
@@ -82,6 +84,7 @@ const SearchInput = ({
           value={query}
           aria-label={ariaLabel || placeholder}
           className="search-input"
+          autoFocus={autoFocus}
         />
         <DsSearch.Clear />
         <DsSearch.Button

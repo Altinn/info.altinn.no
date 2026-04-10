@@ -23,3 +23,17 @@ Once running, navigate to the default port indicated in your console output to v
 
 ## Database
 The project utilizes a local SQLite database by default, housed within the `umbraco/Data/` directory.
+
+## Elasticsearch (Search)
+
+Search is powered by Elasticsearch. For local development, run Elasticsearch in Docker:
+
+```
+docker run -d --name elasticsearch -p 9200:9200 -e "discovery.type=single-node" -e "xpack.security.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:9.0.1
+```
+
+After starting Umbraco, trigger a full reindex to populate the search index:
+
+```
+POST http://localhost:43450/api/search/reindex
+```

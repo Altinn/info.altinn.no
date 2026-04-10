@@ -1,8 +1,7 @@
-import { ContactFormSiteBlockDataViewModel } from "/Models/Generated/ContactFormSiteBlockDataViewModel"
 
 const ContactFormSiteBlockData = ({
     heading
-}: ContactFormSiteBlockDataViewModel) => {
+}: any) => {
 
     return (
         <div>

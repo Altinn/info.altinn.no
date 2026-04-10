@@ -1,5 +1,4 @@
 import { ContentArea } from "/App.Components";
-import { ThemePageViewModel } from "/Models/Generated/ThemePageViewModel";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
 import "../../../styles/legacy-pages.scss";
 import "./ThemePage.scss";
@@ -10,7 +9,7 @@ const ThemePage = ({
   themeGroups,
   bottomContentArea,
   breadcrumb,
-}: ThemePageViewModel) => {
+}: any) => {
   return (
     <section id="content" className="legacy-page" tabIndex={-1}>
       <div className="container">
@@ -23,7 +22,7 @@ const ThemePage = ({
             </div>
 
             {/* Render theme items in content tree order */}
-            {themeGroups?.map((group, index) => {
+            {themeGroups?.map((group: any, index: number) => {
               // Render articles with linked title
               if (group.type === "article") {
                 return (
@@ -38,7 +37,7 @@ const ThemePage = ({
                     {group.childPages && group.childPages.length > 0 && (
                       <div className="a-list-container clearfix mb-5">
                         <ul className="a-list a-list-noIcon a-list-2col">
-                          {group.childPages.map((page, pageIndex) => (
+                          {group.childPages.map((page: any, pageIndex: number) => (
                             <li
                               key={`page-${index}-${pageIndex}`}
                               className="a-dotted a-clickable a-list-hasRowLink"
@@ -65,7 +64,7 @@ const ThemePage = ({
                     {group.childPages && group.childPages.length > 0 && (
                       <div className="a-list-container clearfix mb-5">
                         <ul className="a-list a-list-noIcon a-list-2col">
-                          {group.childPages.map((page, pageIndex) => (
+                          {group.childPages.map((page: any, pageIndex: number) => (
                             <li
                               key={`container-page-${index}-${pageIndex}`}
                               className="a-dotted a-clickable a-list-hasRowLink"

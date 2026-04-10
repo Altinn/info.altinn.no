@@ -13,9 +13,9 @@ import {
   Typography,
 } from "@altinn/altinn-components";
 import { ContentArea, RichTextArea } from "/App.Components";
-import { SubsidyPageViewModel } from "/Models/Generated/SubsidyPageViewModel";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
 import "./SubsidyPage.scss";
+import type { SubsidyPageProps } from "./SubsidyPage.types";
 
 const SubsidyPage = ({
   pageName,
@@ -26,7 +26,7 @@ const SubsidyPage = ({
   lastUpdatedDateText,
   lastUpdatedDateString,
   bottomContentArea,
-}: SubsidyPageViewModel) => {
+}: SubsidyPageProps) => {
   const lastUpdateText =
     lastUpdatedDateText && lastUpdatedDateString
       ? `${lastUpdatedDateText} ${lastUpdatedDateString}`
@@ -51,7 +51,7 @@ const SubsidyPage = ({
         <Section align="start" spacing={4}>
           <div className="timeline-section">
             <Timeline>
-              {timeline.map(({ heading }, i) => {
+              {timeline!.map(({ heading }: any, i: any) => {
                 const anchorId = `s${i + 1}`;
                 const link = (
                   <DsLink data-color="neutral" href={`#${anchorId}`}>
@@ -60,7 +60,7 @@ const SubsidyPage = ({
                 );
                 return (
                   <div className="timeline-header-custom" key={`timeline-nav-${i}`}>
-                    {i !== timeline.length - 1 ? (
+                    {i !== timeline!.length - 1 ? (
                       <TimelineSegment
                         border="solid"
                         icon={{ type: "person", name: (i + 1).toString() }}
@@ -85,7 +85,7 @@ const SubsidyPage = ({
       {hasTimeline && (
         <Section align="start" spacing={4}>
           <div className="timeline-list">
-            {timeline.map((item, i) => {
+            {timeline!.map((item: any, i: number) => {
               const anchorId = `s${i + 1}`;
               return (
                 <Section

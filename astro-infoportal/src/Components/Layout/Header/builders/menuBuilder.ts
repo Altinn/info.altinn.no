@@ -7,8 +7,10 @@ import { formatDisplayName } from "@altinn/altinn-components";
 import {
   Buildings2Icon,
   ChatExclamationmarkIcon,
+  GlobeIcon,
   InboxFillIcon,
   InformationSquareIcon,
+  MagnifyingGlassIcon,
   MenuGridIcon,
   PadlockLockedFillIcon,
   PersonCircleIcon,
@@ -82,6 +84,18 @@ export const buildMenuItems = (pages: MenuPages, isLoggedIn: boolean, currentPat
     });
   }
 
+  if (pages.searchPageUrl && pages.searchTextPlaceholder) {
+    items.push({
+      id: "altinn-search",
+      groupId: "apps",
+      title: pages.searchTextPlaceholder,
+      href: pages.searchPageUrl,
+      icon: MagnifyingGlassIcon,
+      size: "lg" as const,
+      selected: isCurrentPage(currentPath, pages.searchPageUrl),
+    });
+  }
+
   if (pages.aboutNewAltinnPage?.url && pages.aboutNewAltinnPage?.text) {
     items.push({
       id: "about-new-altinn",
@@ -117,6 +131,9 @@ export const buildMenuItems = (pages: MenuPages, isLoggedIn: boolean, currentPat
       selected: isCurrentPage(currentPath, pages.helpPage.url),
     });
   }
+
+  // Language switching is handled by the LocaleSwitcher component via the
+  // `locale` prop on GlobalHeaderProps — not as regular menu items.
 
   if (isLoggedIn && pages.profilePage?.url && pages.profilePage?.text) {
     items.push({

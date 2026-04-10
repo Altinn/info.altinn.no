@@ -1,8 +1,7 @@
-import { RichTextBlockViewModel } from "/Models/Generated/RichTextBlockViewModel";
 import RichTextArea from "../../Shared/RichTextArea/RichTextArea";
 import "./RichTextBlock.scss";
 
-const RichTextBlock = ({ text }: RichTextBlockViewModel) => {
+const RichTextBlock = ({ text }: any) => {
   return text ? <RichTextArea {...text} /> : null;
 };
 

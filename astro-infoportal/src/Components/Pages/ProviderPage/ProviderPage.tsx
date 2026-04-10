@@ -1,20 +1,18 @@
 import {
   Article,
   ArticleHeader,
-  AvatarProps,
   Divider,
   Heading,
   List,
   ListItemIcon,
 } from "@altinn/altinn-components";
-import { ProviderPageViewModel } from "/Models/Generated/ProviderPageViewModel";
+import type { AvatarProps } from "@altinn/altinn-components";
 import "./ProviderPage.scss";
 import { OperationalMessage } from "/App.Components";
 import { SearchItem } from "/Components/Shared/SearchItem/SearchItem";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
-import ProvidersInline, {
-  ProviderInlineItem,
-} from "../../Shared/ProvidersInline/ProvidersInline";
+import ProvidersInline from "../../Shared/ProvidersInline/ProvidersInline";
+import type { ProviderInlineItem } from "../../Shared/ProvidersInline/ProvidersInline";
 import RichTextArea from "../../Shared/RichTextArea/RichTextArea";
 
 const ProviderPage = ({
@@ -24,7 +22,7 @@ const ProviderPage = ({
   operationalMessages,
   providerIcon,
   breadcrumb,
-}: ProviderPageViewModel) => {
+}: any) => {
   const providerAvatar: AvatarProps | null =
     providerIcon?.name
       ? { name: providerIcon.name, imageUrl: providerIcon.imageUrl || "", type: "company" }
@@ -34,7 +32,7 @@ const ProviderPage = ({
     <Article>
       {breadcrumb && <BreadcrumbsView {...breadcrumb} />}
 
-      {operationalMessages?.filter(Boolean).map((om, idx) => (
+      {operationalMessages?.filter(Boolean).map((om: any, idx: number) => (
         <OperationalMessage {...om} key={idx} />
       ))}
 
@@ -50,13 +48,13 @@ const ProviderPage = ({
 
       {schemas?.length ? (
         <List className="provider-page" size="sm" color="neutral" spacing={0}>
-          {schemas.map(({ providers, title, url, id }, idx) => {
+          {schemas.map(({ providers, title, url, id }: any, idx: any) => {
             const providerItems: ProviderInlineItem[] = (providers || [])
               .filter(
-                (p): p is typeof p & { name: string } =>
+                (p: any): p is typeof p & { name: string } =>
                   p?.name != null && p.name !== "",
               )
-              .map((p) => ({
+              .map((p: any) => ({
                 name: p.name,
                 imageUrl: p.imageUrl || "",
                 url: (p as any).url || undefined,

@@ -7,7 +7,6 @@ import {
 } from "@altinn/altinn-components";
 import { Card } from "@digdir/designsystemet-react";
 import { ArrowRightIcon } from "@navikt/aksel-icons";
-import type { StartPageViewModel } from "/Models/Generated/StartPageViewModel";
 // import LoginBlock from "../../Blocks/LoginBlock/LoginBlock";
 // import AlternativeLoginBlock from "../../Blocks/AlternativeLoginBlock/AlternativeLoginBlock";
 import RelevantSchemasBlock from "../../Blocks/RelevantSchemasBlock/RelevantSchemasBlock";
@@ -44,14 +43,14 @@ const StartPage = ({
   showArchiveText,
   campaginArea,
   topImageUrl,
-}: StartPageViewModel) => {
+}: any) => {
   return (
     <Article>
       <Section className="start-page__content">
         {criticalOperationalMessages &&
           criticalOperationalMessages.length > 0 && (
             <div className="start-page__critical-messages">
-              {criticalOperationalMessages.map((message, idx) => (
+              {criticalOperationalMessages.map((message: any, idx: number) => (
                 <OperationalMessageArticlePage key={idx} {...message} />
               ))}
             </div>
@@ -59,7 +58,7 @@ const StartPage = ({
 
         {operationalMessages && operationalMessages.length > 0 && (
           <div className="start-page__messages">
-            {operationalMessages.map((message, idx) => (
+            {operationalMessages.map((message: any, idx: number) => (
               <OperationalMessageArticlePage key={idx} {...message} />
             ))}
           </div>
@@ -131,7 +130,7 @@ const StartPage = ({
               </DsHeading>
             )}
             <div className="start-page__news-grid">
-              {newsList.map((article, idx) => (
+              {newsList.map((article: any, idx: number) => (
                 <Card data-color="neutral" key={"news-" + idx} asChild>
                   <a href={article.url || "#"}>
                     <Card.Block>

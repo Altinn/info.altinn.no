@@ -1,4 +1,3 @@
-import type { BudgetBlockViewModel } from "/Models/Generated/BudgetBlockViewModel";
 import "../../../styles/legacy-pages.scss";
 import "./BudgetBlock.scss";
 
@@ -6,7 +5,7 @@ const BudgetBlock = ({
   budgetDetails,
   sumDescriptionText,
   sumValueText,
-}: BudgetBlockViewModel) => {
+}: any) => {
   if (!budgetDetails || budgetDetails.length === 0) {
     return null;
   }
@@ -16,7 +15,7 @@ const BudgetBlock = ({
       <div className="table-responsive">
         <table className="table a-table a-table-calculation">
           <tbody>
-            {budgetDetails.map((budgetDetail, index) => (
+            {budgetDetails.map((budgetDetail: any, index: number) => (
               <tr key={index}>
                 <th scope="row">{budgetDetail.heading || ""}</th>
                 <td>{budgetDetail.value || ""}</td>

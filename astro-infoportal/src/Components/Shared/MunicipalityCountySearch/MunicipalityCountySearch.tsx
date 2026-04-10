@@ -52,7 +52,7 @@ const MunicipalityCountySearch = ({
     fetchData();
   }, [apiSourceUrl]);
 
-  const filteredItems = items.filter((item) =>
+  const filteredItems = items.filter((item: any) =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.parent.toLowerCase().includes(searchTerm.toLowerCase()),
   );
@@ -93,7 +93,7 @@ const MunicipalityCountySearch = ({
         <>
           <Section margin="section">
             <List>
-              {filteredItems?.map((article, index) => (
+              {filteredItems?.map((article: any, index: number) => (
                 <div key={index}>
                   <SearchItem as="a" href={article.url} title={article.name} />
                   <Divider as="li" />

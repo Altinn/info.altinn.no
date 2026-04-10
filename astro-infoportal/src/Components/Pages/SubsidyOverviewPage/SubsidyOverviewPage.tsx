@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { SubsidyOverviewPageViewModel } from "/Models/Generated/SubsidyOverviewPageViewModel";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
 import "./SubsidyOverviewPage.scss";
 import "../../../styles/legacy-pages.scss";
+import type { SubsidyOverviewPageProps } from "./SubsidyOverviewPage.types";
 
 interface SubsidyData {
   subsidyName: string;
@@ -25,7 +25,7 @@ const SubsidyOverviewPage = ({
   subsidyApiUrl,
   breadcrumb,
   translations: translationsProp,
-}: SubsidyOverviewPageViewModel) => {
+}: SubsidyOverviewPageProps) => {
   const translations = translationsProp ?? {
     purposeHeader: "",
     youHaveChosen: "",
@@ -60,11 +60,11 @@ const SubsidyOverviewPage = ({
       if (!filterParam) return;
       const tokens = filterParam
         .split(",")
-        .map((t) => t.trim())
+        .map((t: any) => t.trim())
         .filter(Boolean);
       const purposes: string[] = [];
       const industries: string[] = [];
-      tokens.forEach((tok) => {
+      tokens.forEach((tok: any) => {
         const m = /^d(\d+)-(\d+)$/.exec(tok);
         if (m) {
           const dim = m[1];
@@ -84,10 +84,10 @@ const SubsidyOverviewPage = ({
     try {
       const parts: string[] = [];
       // stable sort for deterministic URLs
-      [...selectedPurposes].sort().forEach((id) => {
+      [...selectedPurposes].sort().forEach((id: any) => {
         parts.push(`d1-${id}`);
       });
-      [...selectedIndustries].sort().forEach((id) => {
+      [...selectedIndustries].sort().forEach((id: any) => {
         parts.push(`d2-${id}`);
       });
 
@@ -174,15 +174,15 @@ const SubsidyOverviewPage = ({
       return subsidies;
     }
 
-    return subsidies.filter((subsidy) => {
+    return subsidies.filter((subsidy: any) => {
       const purposeMatch =
         selectedPurposes.length === 0 ||
-        subsidy.purposes?.some((p) => selectedPurposes.includes(p));
+        subsidy.purposes?.some((p: any) => selectedPurposes.includes(p));
 
       const industryMatch =
         selectedIndustries.length === 0 ||
         subsidy.industries?.length === 0 || // Industry-independent
-        subsidy.industries?.some((i) => selectedIndustries.includes(i));
+        subsidy.industries?.some((i: any) => selectedIndustries.includes(i));
 
       return purposeMatch && industryMatch;
     });
@@ -201,7 +201,7 @@ const SubsidyOverviewPage = ({
   const handlePurposeToggle = (purposeId: string) => {
     setSelectedPurposes((prev) =>
       prev.includes(purposeId)
-        ? prev.filter((id) => id !== purposeId)
+        ? prev.filter((id: any) => id !== purposeId)
         : [...prev, purposeId],
     );
   };
@@ -209,7 +209,7 @@ const SubsidyOverviewPage = ({
   const handleIndustryToggle = (industryId: string) => {
     setSelectedIndustries((prev) =>
       prev.includes(industryId)
-        ? prev.filter((id) => id !== industryId)
+        ? prev.filter((id: any) => id !== industryId)
         : [...prev, industryId],
     );
   };
@@ -305,7 +305,7 @@ const SubsidyOverviewPage = ({
                 }}
               >
                 <div className="text-sm-center pt-1">
-                  {purposeOptions.map((option) => (
+                  {purposeOptions.map((option: any) => (
                     <div key={option.id} className="a-switch">
                       <input
                         id={`purpose-${option.id}`}
@@ -377,7 +377,7 @@ const SubsidyOverviewPage = ({
                 }}
               >
                 <div className="text-sm-center pt-1">
-                  {industryOptions.map((option) => (
+                  {industryOptions.map((option: any) => (
                     <div key={option.id} className="a-switch">
                       <input
                         id={`industry-${option.id}`}
@@ -436,7 +436,7 @@ const SubsidyOverviewPage = ({
                 <p>{translations.noHits}</p>
               ) : (
                 <>
-                  {visibleResults.map((subsidy, index) => (
+                  {visibleResults.map((subsidy: any, index: number) => (
                     <article
                       key={`${subsidy.filterId}-${index}`}
                       className="subsidy-result"
@@ -460,7 +460,7 @@ const SubsidyOverviewPage = ({
                       >
                         {translations.industryIndependent}:
                       </h2>
-                      {industryIndependentResults.map((subsidy, index) => (
+                      {industryIndependentResults.map((subsidy: any, index: number) => (
                         <article
                           key={`alt-${subsidy.filterId}-${index}`}
                           className="subsidy-result"

@@ -1,6 +1,5 @@
 import { Button } from "@digdir/designsystemet-react";
 import * as AkselIcons from "@navikt/aksel-icons";
-import type { LinkButtonBlockViewModel } from "/Models/Generated/LinkButtonBlockViewModel";
 
 import "./LinkButtonBlock.scss";
 
@@ -8,7 +7,7 @@ const LinkButtonBlock = ({
   link,
   icon,
   buttonType,
-}: LinkButtonBlockViewModel) => {
+}: any) => {
   if (!link?.url || !link?.text) return null;
 
   const isExternal = /^https?:\/\//i.test(link.url);

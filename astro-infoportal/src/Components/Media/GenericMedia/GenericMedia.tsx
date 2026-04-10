@@ -1,7 +1,6 @@
-import { GenericMediaViewModel } from "/Models/Generated/GenericMediaViewModel";
 import "./GenericMedia.scss";
 
-const GenericMedia = ({ src, name, description }: GenericMediaViewModel) => {
+const GenericMedia = ({ src, name, description }: any) => {
   return (
     <div className="generic-media">
       <a

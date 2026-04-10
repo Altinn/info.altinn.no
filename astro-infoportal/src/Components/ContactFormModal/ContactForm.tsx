@@ -58,7 +58,7 @@ const fallbackLocalization = (key: string): string => {
 };
 
 const getLabelValue = (
-  labels: ContactFormLabels | undefined,
+  labels: any | undefined,
   key: keyof ContactFormLabels
 ) => {
   return (

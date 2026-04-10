@@ -13,6 +13,7 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: umbraco
+        azure.workload.identity/use: "true"
       annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
         linkerd.io/inject: enabled
@@ -27,6 +28,11 @@ spec:
             requests:
               cpu: "1"
               memory: 2Gi
+          env:
+            - name: ConnectionStrings__umbracoDbDSN
+              value: "Data Source=|DataDirectory|/Umbraco.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True"
+            - name: ConnectionStrings__umbracoDbDSN_ProviderName
+              value: "Microsoft.Data.Sqlite"
           ports:
             - name: http
               containerPort: 8080

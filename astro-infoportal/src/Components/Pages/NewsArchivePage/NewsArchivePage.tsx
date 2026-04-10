@@ -8,7 +8,6 @@ import {
   Section,
 } from "@altinn/altinn-components";
 import { Pagination, usePagination } from "@digdir/designsystemet-react";
-import { NewsArchivePageViewModel } from "/Models/Generated/NewsArchivePageViewModel";
 import { useResponsivePagination } from "/Services/Hooks/UseResponsivePagination";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
 
@@ -28,7 +27,7 @@ const NewsArchivePage = ({
   nextPageText,
   // bottomContentArea,
   breadcrumb,
-}: NewsArchivePageViewModel) => {
+}: any) => {
   const { maxPaginationButtons, isMobile } = useResponsivePagination();
   const showPagination = totalPages > 1;
 
@@ -61,7 +60,7 @@ const NewsArchivePage = ({
 
       <Section margin="section">
         <List>
-          {newsArticles?.map((article, index) => (
+          {newsArticles?.map((article: any, index: number) => (
             <>
               <SearchItem
                 key={index}

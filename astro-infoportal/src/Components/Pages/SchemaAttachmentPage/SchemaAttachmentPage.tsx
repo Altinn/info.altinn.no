@@ -10,11 +10,9 @@ import {
   Typography,
 } from "@altinn/altinn-components";
 import { ContentArea, OperationalMessage, RichTextArea } from "/App.Components";
-import { SchemaAttachmentPageViewModel } from "/Models/Generated/SchemaAttachmentPageViewModel";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
-import ProvidersInline, {
-  ProviderInlineItem,
-} from "../../Shared/ProvidersInline/ProvidersInline";
+import ProvidersInline from "../../Shared/ProvidersInline/ProvidersInline";
+import type { ProviderInlineItem } from "../../Shared/ProvidersInline/ProvidersInline";
 import { SearchItem } from "/Components/Shared/SearchItem/SearchItem";
 
 const SchemaAttachmentPage = ({
@@ -33,17 +31,17 @@ const SchemaAttachmentPage = ({
   criticalMessages,
   missingTranslation,
   missingTranslationText,
-}: SchemaAttachmentPageViewModel) => {
+}: any) => {
   const title = schemaCode
     ? `${pageName || ""} (${schemaCode})`
     : pageName || "";
 
   const owners: ProviderInlineItem[] = (ownerProviders || [])
     .filter(
-      (p): p is typeof p & { name: string } =>
+      (p: any): p is typeof p & { name: string } =>
         p?.name != null && p.name !== "",
     )
-    .map((p) => ({
+    .map((p: any) => ({
       name: p.name,
       imageUrl: p.imageUrl || "",
       url: p.url || undefined,
@@ -53,7 +51,7 @@ const SchemaAttachmentPage = ({
     <Article>
       {breadcrumb && <BreadcrumbsView {...breadcrumb} />}
 
-      {criticalMessages?.filter(Boolean).map((msg, idx) => (
+      {criticalMessages?.filter(Boolean).map((msg: any, idx: number) => (
         <OperationalMessage {...msg} key={idx} />
       ))}
 
@@ -95,13 +93,13 @@ const SchemaAttachmentPage = ({
             </Typography>
           )}
           <List size="sm" color="neutral" spacing={0}>
-            {relatedSchemas.map(({ providers, title, url, id }, idx) => {
+            {relatedSchemas.map(({ providers, title, url, id }: any, idx: any) => {
               const providerItems: ProviderInlineItem[] = (providers || [])
                 .filter(
-                  (p): p is typeof p & { name: string } =>
+                  (p: any): p is typeof p & { name: string } =>
                     p?.name != null && p.name !== "",
                 )
-                .map((p) => ({
+                .map((p: any) => ({
                   name: p.name,
                   imageUrl: p.imageUrl || "",
                   url: (p as any).url || undefined,
