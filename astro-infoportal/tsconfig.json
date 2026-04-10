@@ -13,7 +13,7 @@
         "*"
       ],
       "@components/*": [
-        "components/*"
+        "Components/*"
       ],
       "@layouts/*": [
         "layouts/*"
@@ -31,13 +31,13 @@
         "api/*"
       ],
       "@constants/*": [
-        "constants/*"
+        "Constants/*"
       ],
       "@services/*": [
-        "services/*"
+        "Services/*"
       ],
       "@models/*": [
-        "models/*"
+        "Models/*"
       ],
       "@transformers/*": [
         "transformers/*"
