@@ -15,8 +15,8 @@ export async function fetchUmbracoContent(path: string) {
     return await response.json();
 }
 
-export async function fetchUmbracoChildren(path: string) {
-  const url = `${UMBRACO_API_URL}/umbraco/delivery/api/v2/content?fetch=children:${path}`;
+export async function fetchUmbracoChildren(path: string, take = 100) {
+  const url = `${UMBRACO_API_URL}/umbraco/delivery/api/v2/content?fetch=children:${path}&take=${take}`;
 
   const response = await fetch(url);
 
