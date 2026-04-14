@@ -8,8 +8,8 @@ import {
   PageBase,
   Section,
 } from '@altinn/altinn-components';
-import {Tabs} from '@digdir/designsystemet-react';
 import * as AkselIcons from '@navikt/aksel-icons';
+import {Tabs} from '@digdir/designsystemet-react';
 import {Fragment, useEffect, useState} from 'react';
 import ProvidersInline, {
   type ProviderInlineItem,
