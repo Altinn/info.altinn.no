@@ -1,5 +1,5 @@
-import type { IJSONTransformer } from "./IJSONTransformer";
 import { DoYouNeedHelpBlockTransformer } from "./DoYouNeedHelpBlockTransformer";
+import type { IJSONTransformer } from "./IJSONTransformer";
 
 /** Registry of block-level transformers keyed by Umbraco contentType alias. */
 const blockTransformers: Record<string, IJSONTransformer> = {
@@ -46,7 +46,11 @@ export class BlockTransformer {
       // If a dedicated transformer exists, use it
       const transformer = blockTransformers[contentType];
       if (transformer) {
-        return transformer.Transform({ contentType, name: "", properties });
+        return transformer.Transform({
+          contentType,
+          name: content.name ?? "",
+          properties,
+        });
       }
 
       // Fallback: spread properties and derive componentName from alias

@@ -1,8 +1,11 @@
-import { ArticleContact } from "@altinn/altinn-components";
+import { Heading } from "@altinn/altinn-components";
 import { EnvelopeOpenIcon, PhoneIcon } from "@navikt/aksel-icons";
 import { useState } from "react";
 import { RichTextArea } from "/App.Components";
 import ContactFormModal from "../../ContactFormModal/ContactFormModal";
+import type { ContactCardItem } from "../../Shared/ContactCard/ContactCard";
+import ContactCard from "../../Shared/ContactCard/ContactCard";
+import type { ContactListBlockProps } from "./ContactListBlock.types";
 
 const ContactListBlock = ({
   contactHeading,
@@ -16,15 +19,14 @@ const ContactListBlock = ({
   useRecaptcha,
   recaptchaSiteKey,
   labels,
-}: any) => {
+}: ContactListBlockProps) => {
   const [isContactFormOpen, setIsContactFormOpen] = useState(false);
-  const items = [];
+  const items: ContactCardItem[] = [];
   if (contactNumber && contactNumberText) {
     items.push({
       icon: PhoneIcon,
       label: contactNumber,
       href: `tel:+47${contactNumber.replace(/\s/g, "")}`,
-      as: "a" as const
     });
   }
 
@@ -40,15 +42,10 @@ const ContactListBlock = ({
 
   return (
     <>
-      <ArticleContact
-        title={contactHeading}
-        items={items}
-        description=""
-        theme="surface"
-        color="company"
-      >
+      <ContactCard items={items}>
+        {contactHeading && <Heading size="lg">{contactHeading}</Heading>}
         {text && <RichTextArea {...text} />}
-      </ArticleContact>
+      </ContactCard>
 
       <ContactFormModal
         isOpen={isContactFormOpen}
@@ -56,7 +53,7 @@ const ContactListBlock = ({
         formTypeArea={contactFormPageData?.formTypeArea}
         teaserText={contactFormPageData?.teaserText}
         teaserHeading={contactFormPageData?.teaserHeading}
-        useRecaptcha={contactFormPageData?.useRecaptcha ?? useRecaptcha}
+        useRecaptcha={contactFormPageData?.useRecaptcha ?? useRecaptcha ?? false}
         recaptchaSiteKey={
           contactFormPageData?.recaptchaSiteKey ?? recaptchaSiteKey
         }

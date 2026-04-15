@@ -1,8 +1,8 @@
 using Infoportal.Adapters.Elasticsearch;
 using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.Notifications;
+using umbraco_infoportal.Search.EventHandlers;
 using umbraco_infoportal.Search.Jobs;
-using umbraco_infoportal.Search.Notifications;
 
 namespace umbraco_infoportal.Search;
 
@@ -15,8 +15,8 @@ public class SearchComposer : IComposer
         builder.Services.AddSingleton<ReindexBackgroundJob>();
         builder.Services.AddHostedService(sp => sp.GetRequiredService<ReindexBackgroundJob>());
 
-        builder.AddNotificationHandler<ContentPublishedNotification, ContentPublishHandler>();
-        builder.AddNotificationHandler<ContentUnpublishedNotification, ContentUnpublishHandler>();
-        builder.AddNotificationHandler<ContentMovedToRecycleBinNotification, ContentTrashHandler>();
+        builder.AddNotificationHandler<ContentPublishedNotification, SearchIndexOnPublishHandler>();
+        builder.AddNotificationHandler<ContentUnpublishedNotification, SearchIndexOnUnpublishHandler>();
+        builder.AddNotificationHandler<ContentMovedToRecycleBinNotification, SearchIndexOnTrashHandler>();
     }
 }

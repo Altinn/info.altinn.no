@@ -25,12 +25,13 @@ public class ContentTextExtractor
         RegexOptions.Compiled);
 
     // Content types to index. Add new page types here as they are created.
-    // TODO: Add schemaPage, helpQuestionPage, etc. when those content types exist.
+    // TODO: Add helpQuestionPage, etc. when those content types exist.
     // TODO: Consider moving this to a backoffice setting or a "hideFromSearch" composition
     // property so admins can control which pages are indexed without code changes.
     private static readonly HashSet<string> IndexableContentTypes =
     [
-        "sectionArticlePage"
+        "sectionArticlePage",
+        "schemaPage"
     ];
 
     private static readonly HashSet<string> TextEditors =

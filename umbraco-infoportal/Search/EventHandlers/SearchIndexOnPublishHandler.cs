@@ -2,18 +2,18 @@ using Infoportal.Adapters.Elasticsearch.Services;
 using Umbraco.Cms.Core.Events;
 using Umbraco.Cms.Core.Notifications;
 
-namespace umbraco_infoportal.Search.Notifications;
+namespace umbraco_infoportal.Search.EventHandlers;
 
-public class ContentPublishHandler : INotificationHandler<ContentPublishedNotification>
+public class SearchIndexOnPublishHandler : INotificationHandler<ContentPublishedNotification>
 {
     private readonly ISearchService _searchService;
     private readonly ContentTextExtractor _extractor;
-    private readonly ILogger<ContentPublishHandler> _logger;
+    private readonly ILogger<SearchIndexOnPublishHandler> _logger;
 
-    public ContentPublishHandler(
+    public SearchIndexOnPublishHandler(
         ISearchService searchService,
         ContentTextExtractor extractor,
-        ILogger<ContentPublishHandler> logger)
+        ILogger<SearchIndexOnPublishHandler> logger)
     {
         _searchService = searchService;
         _extractor = extractor;

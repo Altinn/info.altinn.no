@@ -10,5 +10,11 @@
     "enabled": true
   },
   "workers_dev": true,
-  "preview_urls": true
+  "preview_urls": true,
+  // Elasticsearch: ELASTICSEARCH_API_KEY is set per environment via deployment secrets.
+  // ELASTICSEARCH_URL is overridden per environment in deployment config.
+  "vars": {
+    "ELASTICSEARCH_URL": "http://localhost:9200",
+    "ELASTICSEARCH_INDEX_PREFIX": "infoportal"
+  }
 }

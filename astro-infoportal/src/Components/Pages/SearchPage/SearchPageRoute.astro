@@ -1,10 +1,11 @@
 ---
 import AstroSiteLayout from "@layouts/AstroSiteLayout.astro";
-import { UMBRACO_API_URL } from "@api/umbraco/client";
 import { JSONTransformer } from "@transformers/JSONTransformer";
 import { getGlobalData } from "@constants/globalData";
 import { SearchContext, getSearchContextLabels } from "@constants/searchContext";
 import { t, type Locale } from "@i18n/index";
+import { elasticsearchConfig } from "@api/elasticsearch/client";
+import { searchPages } from "../../../Services/Elasticsearch";
 
 interface Props {
   language: string;
@@ -22,12 +23,15 @@ let searchResultViewModel = undefined;
 
 if (query) {
   try {
-    const params = new URLSearchParams({ q: query, pagenumber: String(pageNumber) });
-    if (context) params.set("context", context);
-    const res = await fetch(`${UMBRACO_API_URL}/api/search/${language}/page?${params}`);
-    if (res.ok) {
-      searchResultViewModel = await res.json();
-    }
+    const config = elasticsearchConfig;
+    searchResultViewModel = await searchPages(
+      config,
+      query,
+      language,
+      pageNumber,
+      10,
+      context || undefined,
+    );
   } catch (e) {
     console.error("Failed to pre-fetch search results:", e);
   }

@@ -2,16 +2,16 @@ using Infoportal.Adapters.Elasticsearch.Services;
 using Umbraco.Cms.Core.Events;
 using Umbraco.Cms.Core.Notifications;
 
-namespace umbraco_infoportal.Search.Notifications;
+namespace umbraco_infoportal.Search.EventHandlers;
 
-public class ContentTrashHandler : INotificationHandler<ContentMovedToRecycleBinNotification>
+public class SearchIndexOnTrashHandler : INotificationHandler<ContentMovedToRecycleBinNotification>
 {
     private readonly ISearchService _searchService;
-    private readonly ILogger<ContentTrashHandler> _logger;
+    private readonly ILogger<SearchIndexOnTrashHandler> _logger;
 
-    public ContentTrashHandler(
+    public SearchIndexOnTrashHandler(
         ISearchService searchService,
-        ILogger<ContentTrashHandler> logger)
+        ILogger<SearchIndexOnTrashHandler> logger)
     {
         _searchService = searchService;
         _logger = logger;
