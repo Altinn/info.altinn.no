@@ -1,10 +1,17 @@
+resource "random_string" "keyvault_suffix" {
+  length  = 4
+  upper   = false
+  special = false
+}
+
 resource "azurerm_key_vault" "elasticsearch" {
-  name                      = "infoportal-es-${var.environment}"
+  name                      = "infoportal-es-${var.environment}-${random_string.keyvault_suffix.result}"
   location                  = var.location
   resource_group_name       = var.resource_group_name
   tenant_id                 = var.tenant_id
   sku_name                  = "standard"
   enable_rbac_authorization = true
+  tags                      = var.tags
 }
 
 resource "azurerm_role_assignment" "terraform_keyvault_officer" {
@@ -28,10 +35,12 @@ resource "azurerm_key_vault_secret" "es_endpoint" {
   name         = "elasticsearch-endpoint"
   value        = ec_project_elasticsearch.search.elasticsearch_endpoint
   key_vault_id = azurerm_key_vault.elasticsearch.id
+  tags         = var.tags
 }
 
 resource "azurerm_key_vault_secret" "es_api_key" {
   name         = "elasticsearch-api-key"
   value        = ec_project_elasticsearch.search.credentials[0].api_key
   key_vault_id = azurerm_key_vault.elasticsearch.id
+  tags         = var.tags
 }

@@ -8,3 +8,4 @@ variable "eso_principal_id" {
   description = "Object ID of the ESO workload identity / managed identity that reads Key Vault secrets"
   type        = string
 }
+

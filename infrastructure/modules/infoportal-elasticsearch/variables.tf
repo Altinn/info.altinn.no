@@ -33,3 +33,9 @@ variable "elastic_cloud_api_key" {
   type        = string
   sensitive   = true
 }
+
+variable "tags" {
+  description = "Tags to apply to all taggable resources"
+  type        = map(string)
+  default     = {}
+}
