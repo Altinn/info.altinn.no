@@ -1,0 +1,9 @@
+apiVersion: vault.dis.altinn.cloud/v1alpha1
+kind: Vault
+metadata:
+  name: umbraco
+spec:
+  identityRef:
+    name: umbraco
+  tags:
+    app: infoportal

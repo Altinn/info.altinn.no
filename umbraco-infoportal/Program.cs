@@ -1,4 +1,20 @@
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
+using Azure.Identity;
+
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+string? keyVaultUri = builder.Configuration["AkvUri"];
+string? keyVaultName = builder.Configuration["AkvName"];
+
+if (!string.IsNullOrWhiteSpace(keyVaultUri))
+{
+    if (!Uri.TryCreate(keyVaultUri, UriKind.Absolute, out Uri? keyVaultEndpoint))
+    {
+        throw new InvalidOperationException("Configuration value 'AkvUri' must be an absolute URI.");
+    }
+
+    builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
+}
 
 builder.CreateUmbracoBuilder()
     .AddBackOffice()
