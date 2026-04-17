@@ -1,13 +1,15 @@
 # infoportal-elasticsearch-test
 
-Provisions an Elastic Cloud Serverless project and an Azure Key Vault for the Umbraco search integration.
+Provisions an Azure Native Elastic monitor, an Elastic Cloud Serverless project, and an Azure Key Vault for the Umbraco search integration.
 
 ## What this creates
 
-- **Azure Key Vault** `infoportal-es-test` — stores Elasticsearch credentials
-- **Elastic Cloud Serverless project** `infoportal-search-test` (region: `azure-norwayeast`)
+- **Azure Resource Group** `infoportal-elasticsearch-test`
+- **Azure Native Elastic monitor** `infoportal-search-tt02` — links Azure billing to Elastic Cloud
+- **Elastic Cloud Serverless project** `infoportal-search-tt02` (region: `azure-germanywestcentral`)
+- **Azure Key Vault** `infoportal-es-tt02-<random>` — stores Elasticsearch credentials
 - Two Key Vault secrets: `elasticsearch-endpoint` and `elasticsearch-api-key`
-- RBAC role assignment granting ESO's identity `Key Vault Secrets User` on the vault
+- RBAC role assignment granting ESO's identity `Key Vault Secrets User` on the vault (optional, set `eso_principal_id` to enable)
 
 ## Configuring Umbraco
 
@@ -15,7 +17,7 @@ After applying this Terraform, wire the credentials into the Umbraco deployment 
 
 ### 1. SecretStore
 
-Add a `SecretStore` to the Umbraco syncroot pointing at the Key Vault:
+Add a `SecretStore` to the Umbraco syncroot pointing at the Key Vault. The vault URL can be found in the Terraform output `key_vault_uri`:
 
 ```yaml
 apiVersion: external-secrets.io/v1beta1
@@ -26,7 +28,7 @@ spec:
   provider:
     azurekv:
       authType: WorkloadIdentity
-      vaultUrl: "https://infoportal-es-test.vault.azure.net"
+      vaultUrl: "https://infoportal-es-tt02-<random>.vault.azure.net"
       serviceAccountRef:
         name: umbraco
 ```
@@ -81,12 +83,20 @@ The `umbraco` ServiceAccount must have the workload identity annotation for the 
 
 ## Deploying
 
+Non-sensitive values are configured in `terraform.tfvars`. The Elastic Cloud API key must be provided via environment variable or `-var`:
+
 ```bash
-export EC_API_KEY="<your-elastic-cloud-api-key>"
+export TF_VAR_elastic_cloud_api_key="<your-elastic-cloud-api-key>"
 
 terraform init
-terraform plan -var="eso_principal_id=<object-id>"
+terraform plan
+terraform apply
+```
+
+To enable the ESO Key Vault role assignment, pass the ESO identity object ID:
+
+```bash
 terraform apply -var="eso_principal_id=<object-id>"
 ```
 
-`elastic_cloud_api_key` can also be passed via `-var` or a `terraform.tfvars` file instead of the environment variable.
+Or add it to `terraform.tfvars`.

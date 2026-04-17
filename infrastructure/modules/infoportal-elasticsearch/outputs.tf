@@ -7,6 +7,6 @@ output "key_vault_uri" {
 }
 
 output "elasticsearch_endpoint" {
-  value     = ec_project_elasticsearch.search.elasticsearch_endpoint
+  value     = ec_elasticsearch_project.search.endpoints.elasticsearch
   sensitive = true
 }

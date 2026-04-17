@@ -1,0 +1,127 @@
+name: infoportal-elasticsearch-test deploy
+
+# This workflow uses ARM_ prefixed environment variables as expected by the AzureRM Terraform provider
+# See: https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_oidc#environment-variables
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/infoportal-elasticsearch-test.yml
+      - infrastructure/altinn-portaler-test/infoportal-elasticsearch-test/**
+      - infrastructure/modules/infoportal-elasticsearch/**
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/infoportal-elasticsearch-test.yml
+      - infrastructure/altinn-portaler-test/infoportal-elasticsearch-test/**
+      - infrastructure/modules/infoportal-elasticsearch/**
+  workflow_dispatch:
+    inputs:
+      log_level:
+        required: true
+        description: Terraform Log Level
+        default: ERROR
+        type: choice
+        options:
+          - TRACE
+          - DEBUG
+          - INFO
+          - WARN
+          - ERROR
+
+env:
+  ENVIRONMENT: test
+  TF_BACKEND_STATE_NAME: infoportal-elasticsearch-test.tfstate
+  TF_BACKEND_RESOURCE_GROUP_NAME: terraform-rg
+  TF_BACKEND_STORAGE_ACCOUNT_NAME: altinnterraformstorage02
+  TF_BACKEND_CONTAINER_NAME: tfstates
+  WORKING_DIRECTORY: ./infrastructure/altinn-portaler-test/infoportal-elasticsearch-test
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID_ALTINN_PORTALER_TEST }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID_ALTINN_PORTALER_TEST }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  TF_VAR_elastic_cloud_api_key: ${{ secrets.ELASTIC_CLOUD_API_KEY }}
+  TF_VAR_elasticsearch_api_key: ${{ secrets.ELASTICSEARCH_API_KEY_INFOPORTAL_TEST }}
+  # TF_VAR_elasticsearch_endpoint is in terraform.tfvars
+  # TF_VAR_eso_principal_id: ${{ secrets.ESO_PRINCIPAL_ID_INFOPORTAL_TEST }}
+
+permissions:
+  id-token: write
+  contents: write
+  pull-requests: write
+
+jobs:
+  plan:
+    name: Plan
+    environment: plan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Terraform Plan
+        id: plan
+        uses: dis-way/actions/terraform/plan@87a3c5e6a95eb24448d8bf4884ea2fcd9b9c0ced
+        with:
+          working_directory: ${{ env.WORKING_DIRECTORY }}
+          arm_client_id: ${{ env.ARM_CLIENT_ID }}
+          arm_subscription_id: ${{ env.ARM_SUBSCRIPTION_ID }}
+          tf_backend_resource_group_name: ${{ env.TF_BACKEND_RESOURCE_GROUP_NAME }}
+          tf_backend_storage_account_name: ${{ env.TF_BACKEND_STORAGE_ACCOUNT_NAME }}
+          tf_backend_container_name: ${{ env.TF_BACKEND_CONTAINER_NAME }}
+          tf_backend_state_name: ${{ env.TF_BACKEND_STATE_NAME }}
+          tf_log_level: ${{ github.event.inputs.log_level || 'ERROR' }}
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy:
+    name: Deploy
+    environment: test
+    if: github.ref == 'refs/heads/main'
+    needs: plan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Download Plan Artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: ${{ env.TF_BACKEND_STATE_NAME }}.tfplan
+          path: ${{ env.WORKING_DIRECTORY }}
+
+      - name: Check Plan for Changes
+        id: check_changes
+        shell: bash
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          # Check the plan file for the summary line that shows changes
+          # Example: "Plan: 5 to add, 0 to change, 0 to destroy."
+          if grep -q "No changes. Your infrastructure matches the configuration." tfplan.out; then
+            echo "No changes detected in plan file. Skipping apply."
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          elif grep -q "Plan: 0 to add, 0 to change, 0 to destroy." tfplan.out; then
+            echo "No changes detected in plan file. Skipping apply."
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Changes detected in plan file. Proceeding with apply."
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Terraform Apply
+        if: steps.check_changes.outputs.has_changes == 'true'
+        uses: dis-way/actions/terraform/apply@87a3c5e6a95eb24448d8bf4884ea2fcd9b9c0ced
+        with:
+          working_directory: ${{ env.WORKING_DIRECTORY }}
+          arm_client_id: ${{ env.ARM_CLIENT_ID }}
+          arm_subscription_id: ${{ env.ARM_SUBSCRIPTION_ID }}
+          tf_backend_resource_group_name: ${{ env.TF_BACKEND_RESOURCE_GROUP_NAME }}
+          tf_backend_storage_account_name: ${{ env.TF_BACKEND_STORAGE_ACCOUNT_NAME }}
+          tf_backend_container_name: ${{ env.TF_BACKEND_CONTAINER_NAME }}
+          tf_backend_state_name: ${{ env.TF_BACKEND_STATE_NAME }}
+          tf_log_level: ${{ github.event.inputs.log_level || 'ERROR' }}

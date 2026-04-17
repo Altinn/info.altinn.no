@@ -16,12 +16,7 @@ terraform {
     }
   }
 
-  backend "azurerm" {
-    resource_group_name  = "infoportal-elasticsearch-test"
-    storage_account_name = "infoportaltfstate"
-    container_name       = "tfstate"
-    key                  = "infoportal-elasticsearch-test.tfstate"
-  }
+  backend "azurerm" {}
 }
 
 provider "ec" {
