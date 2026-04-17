@@ -5,15 +5,16 @@ import {
   Heading,
   List,
   ListItemIcon,
-} from "@altinn/altinn-components";
-import type { AvatarProps } from "@altinn/altinn-components";
-import "./ProviderPage.scss";
-import { OperationalMessage } from "/App.Components";
-import { SearchItem } from "/Components/Shared/SearchItem/SearchItem";
-import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
-import ProvidersInline from "../../Shared/ProvidersInline/ProvidersInline";
-import type { ProviderInlineItem } from "../../Shared/ProvidersInline/ProvidersInline";
-import RichTextArea from "../../Shared/RichTextArea/RichTextArea";
+} from '@altinn/altinn-components';
+import type {AvatarProps} from '@altinn/altinn-components';
+import './ProviderPage.scss';
+import {OperationalMessage} from '/App.Components';
+import {SearchItem} from '/Components/Shared/SearchItem/SearchItem';
+import BreadcrumbsView from '../../Layout/Breadcrumbs/BreadcrumbsView';
+import ProviderContactInformationBlock from '../../Blocks/ProviderContactInformationBlock/ProviderContactInformationBlock';
+import ProvidersInline from '../../Shared/ProvidersInline/ProvidersInline';
+import type {ProviderInlineItem} from '../../Shared/ProvidersInline/ProvidersInline';
+import RichTextArea from '../../Shared/RichTextArea/RichTextArea';
 
 const ProviderPage = ({
   pageName,
@@ -22,41 +23,59 @@ const ProviderPage = ({
   operationalMessages,
   providerIcon,
   breadcrumb,
+  contactInfo,
 }: any) => {
-  const providerAvatar: AvatarProps | null =
-    providerIcon?.name
-      ? { name: providerIcon.name, imageUrl: providerIcon.imageUrl || "", type: "company" }
-      : null;
+  const providerAvatar: AvatarProps | null = providerIcon?.name
+    ? {
+        name: providerIcon.name,
+        imageUrl: providerIcon.imageUrl || '',
+        type: 'company',
+      }
+    : null;
 
   return (
     <Article>
       {breadcrumb && <BreadcrumbsView {...breadcrumb} />}
 
       {operationalMessages?.filter(Boolean).map((om: any, idx: number) => (
-        <OperationalMessage {...om} key={idx} />
+        <OperationalMessage
+          {...om}
+          key={idx}
+        />
       ))}
 
-
-
-      <ArticleHeader>
-        <Heading size="xl" as="h1" className="provider-page-heading">
-          {providerAvatar && <ListItemIcon icon={providerAvatar} />}
-          {pageName}
-        </Heading>
-      </ArticleHeader>
+      {contactInfo ? (
+        <ProviderContactInformationBlock {...contactInfo} />
+      ) : (
+        <ArticleHeader>
+          <Heading
+            size="xl"
+            as="h1"
+            className="provider-page-heading"
+          >
+            {providerAvatar && <ListItemIcon icon={providerAvatar} />}
+            {pageName}
+          </Heading>
+        </ArticleHeader>
+      )}
       {mainIntro && <RichTextArea {...mainIntro} />}
 
       {schemas?.length ? (
-        <List className="provider-page" size="sm" color="neutral" spacing={0}>
-          {schemas.map(({ providers, title, url, id }: any, idx: any) => {
+        <List
+          className="provider-page"
+          size="sm"
+          color="neutral"
+          spacing={0}
+        >
+          {schemas.map(({providers, title, url, id}: any, idx: any) => {
             const providerItems: ProviderInlineItem[] = (providers || [])
               .filter(
-                (p: any): p is typeof p & { name: string } =>
-                  p?.name != null && p.name !== "",
+                (p: any): p is typeof p & {name: string} =>
+                  p?.name != null && p.name !== '',
               )
               .map((p: any) => ({
                 name: p.name,
-                imageUrl: p.imageUrl || "",
+                imageUrl: p.imageUrl || '',
                 url: (p as any).url || undefined,
               }));
 
@@ -77,7 +96,10 @@ const ProviderPage = ({
                     ) : undefined
                   }
                 />
-                <Divider as="li" key={`div-${id ?? idx}-div`} />
+                <Divider
+                  as="li"
+                  key={`div-${id ?? idx}-div`}
+                />
               </>
             );
           })}

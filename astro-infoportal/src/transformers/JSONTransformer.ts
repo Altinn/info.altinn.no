@@ -14,6 +14,7 @@ import { SubsidyPageTransformer } from "./SubsidyPageTransformer";
 import { SubsidyOverviewPageTransformer } from "./SubsidyOverviewPageTransformer";
 import { SearchPageTransformer } from "./SearchPageTransformer";
 import { SubCategoryPageTransformer } from "./SubCategoryPageTransformer";
+import { ProviderPageTransformer } from "./ProviderPageTransformer";
 import { NewsArchivePageTransformer } from "./NewsArchivePageTransformer";
 
 export class JSONTransformer implements IJSONTransformer {
@@ -33,6 +34,11 @@ export class JSONTransformer implements IJSONTransformer {
 
     if (bodyDataTransformer != null) {
       data.child = await bodyDataTransformer.Transform(umbracoPageData, globalData);
+    }
+
+    if (data.child?.pageSidebarViewModel) {
+      data.pageSidebarViewModel = data.child.pageSidebarViewModel;
+      delete data.child.pageSidebarViewModel;
     }
 
     return data;
@@ -62,6 +68,8 @@ export class JSONTransformer implements IJSONTransformer {
         return new SearchPageTransformer();
       case "subCategoryPage":
         return new SubCategoryPageTransformer();
+      case "providerPage":
+        return new ProviderPageTransformer();
       case "newsArchivePage":
         return new NewsArchivePageTransformer();        
       case "sectionPage":
