@@ -3,3 +3,22 @@
   padding-bottom: 0.75rem;
   margin-bottom: 0.75rem;
 }
+
+/* Remove light-blue background from sidebar menu icons and selected items */
+aside [data-variant="icon"] {
+  background-color: transparent !important;
+}
+
+aside [data-selected="true"] {
+  background-color: transparent !important;
+}
+
+aside [data-size="lg"],
+aside [data-size="md"] {
+  --dsc-icon-background: transparent;
+}
+
+/* Bold text for current/selected sidebar item instead of blue background */
+.sidebar-current {
+  font-weight: 600;
+}

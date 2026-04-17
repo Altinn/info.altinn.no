@@ -1,6 +1,6 @@
-import type { LayoutProps, MenuItemProps } from "@altinn/altinn-components";
-import * as AkselIcons from "@navikt/aksel-icons";
-import "./PageSidebar.scss";
+import type {LayoutProps, MenuItemProps} from '@altinn/altinn-components';
+import * as AkselIcons from '@navikt/aksel-icons';
+import './PageSidebar.scss';
 
 const resolveAkselIcon = (iconName?: string) => {
   if (!iconName) return undefined;
@@ -10,21 +10,27 @@ const resolveAkselIcon = (iconName?: string) => {
 
 export default function useSidebarConfig(
   vm?: any,
-  opts?: { reserveWhenEmpty?: boolean },
-): LayoutProps["sidebar"] {
+  opts?: {reserveWhenEmpty?: boolean},
+): LayoutProps['sidebar'] {
   const items: MenuItemProps[] = [];
   const hasMainItems = !!vm?.mainItems?.length;
 
   if (vm?.titleItem) {
+    const titleIcon = resolveAkselIcon(vm.titleItem.icon);
     items.push({
-      id: "title",
-      groupId: "title-group",
+      id: 'title',
+      groupId: 'title-group',
       title: vm.titleItem.label,
-      size: "lg",
-      icon: resolveAkselIcon(vm.titleItem.icon),
+      size: 'lg',
+      icon: titleIcon
+        ? ({
+            svgElement: titleIcon,
+            style: {'--dsc-icon-background': 'transparent'} as any,
+          } as any)
+        : undefined,
       href: vm.titleItem.url,
-      as: vm.titleItem.url ? "a" : undefined,
-      className: !hasMainItems ? "sidebar-title-only" : undefined,
+      as: vm.titleItem.url ? 'a' : undefined,
+      className: !hasMainItems ? 'sidebar-title-only' : undefined,
     });
   }
 
@@ -32,28 +38,32 @@ export default function useSidebarConfig(
     vm.mainItems.forEach((mainItem: any, i: number) => {
       items.push({
         id: `main-item-${i}`,
-        groupId: "main-group",
+        groupId: 'main-group',
         icon: resolveAkselIcon(mainItem.icon),
-        size: "md",
-        label: <span className={mainItem.current ? "selected" : ""}>{mainItem.label}</span>,
+        size: 'md',
+        label: (
+          <span className={mainItem.current ? 'sidebar-current' : ''}>
+            {mainItem.label}
+          </span>
+        ),
         href: mainItem.url || undefined,
-        as: mainItem.url ? "a" : undefined,
-        selected: mainItem.current,
-        ...(mainItem.current ? { "aria-current": "page" as const } : {}),
+        as: mainItem.url ? 'a' : undefined,
       } as MenuItemProps);
 
       if (mainItem.subItems?.length) {
         mainItem.subItems.forEach((subItem: any, j: number) => {
           items.push({
             id: `sub-item-${i}-${j}`,
-            groupId: "sub-group",
-            size: "sm",
-            label: <span className={subItem.current ? "selected" : ""}>{subItem.label}</span>,
+            groupId: 'sub-group',
+            size: 'sm',
+            label: (
+              <span className={subItem.current ? 'sidebar-current' : ''}>
+                {subItem.label}
+              </span>
+            ),
             href: subItem.url || undefined,
-            as: subItem.url ? "a" : undefined,
+            as: subItem.url ? 'a' : undefined,
             icon: resolveAkselIcon(subItem.icon),
-            selected: subItem.current,
-            ...(subItem.current ? { "aria-current": "page" as const } : {}),
           } as MenuItemProps);
         });
       }
@@ -66,5 +76,5 @@ export default function useSidebarConfig(
     menu: {
       items,
     },
-  } as LayoutProps["sidebar"];
+  } as LayoutProps['sidebar'];
 }

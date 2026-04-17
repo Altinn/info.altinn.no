@@ -9,7 +9,7 @@ export class BreadcrumbsTransformer {
     }];
     
     ancestors.map((item:any) => {
-      if (item.properties.showInNavigation) {
+      if (item.properties.showInNavigation && item.contentType !== "categoryListPage" && item.contentType !== "startPage") {
         breadcrumbs.push({
             linkItem: {
               text: item.name,
