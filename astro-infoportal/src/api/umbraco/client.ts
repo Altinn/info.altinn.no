@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 
-export const UMBRACO_API_URL = env.UMBRACO_API_URL || 'http://localhost:43450';
+export const UMBRACO_API_URL = env.UMBRACO_API_URL || 'http://localhost:39790';
 
 export async function fetchUmbracoContent(path: string) {
     // Uses Umbraco Content Delivery API pattern
@@ -35,6 +35,19 @@ export async function fetchUmbracoAncestors(path: string) {
 
   if (!response.ok) {
     throw new Error(`Failed to fetch ancestors from Umbraco: ${response.statusText} ${url}`);
+  }
+
+  const data = await response.json();
+  return data.items ?? [];
+}
+
+export async function fetchUmbracoRelated(path: string, contentType: string, relation: string, value: string) {
+  const url = `${UMBRACO_API_URL}/umbraco/delivery/api/v2/content?fetch=descendants:${path}&filter=contentType:${contentType}&filter=${relation}:${value}&fields=`;
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch related content from Umbraco: ${response.statusText} ${url}`);
   }
 
   const data = await response.json();

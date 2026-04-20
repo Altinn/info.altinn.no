@@ -1,6 +1,6 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
 import type { SubCategoryPageProps } from "@components/Pages/SubCategoryPage/SubCategoryPage.types";
-import { fetchUmbracoAncestors, fetchUmbracoChildren } from "../api/umbraco/client";
+import { fetchUmbracoAncestors, fetchUmbracoChildren, fetchUmbracoRelated } from "../api/umbraco/client";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
 import { BlockTransformer } from "./BlockTransformer";
 
@@ -21,10 +21,14 @@ export class SubCategoryPageTransformer implements IJSONTransformer {
       ? BlockTransformer.TransformBlocks(props.promoArea)
       : undefined;
 
-    // Schemas: subcategory pages have no schema children in the CMS content tree.
-    // The old .NET schemaRelationsService mapped schemas to subcategories externally.
-    // For now we pass an empty array; this can be populated once a relations source is available.
-    const schemas: any[] = [];
+    const related = await fetchUmbracoRelated("/skjemaoversikt", "schemaPage", "subCategory", cmsPageData.id);
+
+    const schemas = related.map((s: any) => ({
+          title: s.name,
+          url: s.route?.path,
+          componentName: "SchemaData"
+        }));
+
 
     // Sidebar: "Alle tjenester" title, parent category as selected mainItem,
     // sibling subcategories as subItems with category prefix stripped.
