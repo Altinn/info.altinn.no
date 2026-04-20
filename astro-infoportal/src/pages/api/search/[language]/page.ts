@@ -34,9 +34,8 @@ export const GET: APIRoute = async ({ params, url }) => {
   );
   const context = url.searchParams.get("context") ?? undefined;
 
-  const config = elasticsearchConfig;
   const result = await searchPages(
-    config,
+    elasticsearchConfig,
     query,
     language,
     pageNumber,

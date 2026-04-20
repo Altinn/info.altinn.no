@@ -39,4 +39,12 @@ public class SearchDocument
 
     [JsonPropertyName("titleSuggest")]
     public string[] TitleSuggest { get; set; } = [];
+
+    // Editorial trigger phrases that should surface this page even when the
+    // phrases don't appear in its body/title. Populated by the indexer from
+    // the Best Bets list; usually empty. Indexed with a whitespace+lowercase
+    // analyzer — no stemming, no stopwords — to preserve dialect/inflected
+    // variants exactly.
+    [JsonPropertyName("bestBetTriggers")]
+    public string[] BestBetTriggers { get; set; } = [];
 }

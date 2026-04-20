@@ -12,7 +12,10 @@ import type {
   SearchSuggestionResponse,
 } from "./types";
 
-const SEARCH_FIELDS = ["title^3", "ingress^2", "body"];
+// bestBetTriggers carries editorial trigger phrases (dialect, deprecated terms,
+// synonyms) that may not appear in the page itself. High boost so pages with
+// matching triggers rank above fuzzy hits. See umbraco-infoportal/Search/BestBets/.
+const SEARCH_FIELDS = ["title^3", "ingress^2", "body", "bestBetTriggers^5"];
 const DEFAULT_PAGE_SIZE = 10;
 
 function getIndexName(config: ElasticsearchConfig, culture: string): string {
