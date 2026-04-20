@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using Infoportal.Adapters.Elasticsearch;
 using Infoportal.Adapters.Elasticsearch.Models;
 using Microsoft.Extensions.Options;
+using umbraco_infoportal.Search.BestBets;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Web;
@@ -97,6 +98,7 @@ public class ContentTextExtractor
             ?? "";
 
         var url = GetContentUrl(content, culture) ?? "";
+        var bet = BestBetData.FindByTitle(title);
 
         return new SearchDocument
         {
@@ -111,7 +113,8 @@ public class ContentTextExtractor
             ContentType = content.ContentType.Alias,
             Culture = culture,
             PublishDate = content.PublishDate,
-            UpdateDate = content.UpdateDate
+            UpdateDate = content.UpdateDate,
+            BestBetTriggers = bet?.TriggerPhrases.ToArray() ?? []
         };
     }
 
