@@ -4,11 +4,18 @@ resources:
   - ../base
 
 images:
-- name: umbraco
-  newName: altinncr.azurecr.io/ghcr.io/altinn/umbraco
-  newTag: will-be-replaced
+  - name: umbraco
+    newName: altinncr.azurecr.io/ghcr.io/altinn/umbraco
+    newTag: will-be-replaced
 
 patches:
+  - target:
+      kind: Vault
+      name: umbraco
+    patch: |-
+      - op: add
+        path: /spec/tags/env
+        value: at22
   - target:
       kind: HTTPRoute
       name: umbraco

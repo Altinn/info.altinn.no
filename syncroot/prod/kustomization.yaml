@@ -10,6 +10,13 @@ images:
 
 patches:
   - target:
+      kind: Vault
+      name: umbraco
+    patch: |-
+      - op: add
+        path: /spec/tags/env
+        value: prod
+  - target:
       kind: HTTPRoute
       name: umbraco
     patch: |-
