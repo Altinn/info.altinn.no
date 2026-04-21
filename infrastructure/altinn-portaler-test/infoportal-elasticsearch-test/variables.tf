@@ -25,7 +25,7 @@ variable "elasticsearch_api_key" {
   sensitive   = true
 }
 
-variable "eso_principal_id" {
+variable "eso_object_id" {
   description = "Object ID of the ESO workload identity / managed identity that reads Key Vault secrets. Leave empty to skip the role assignment."
   type        = string
   default     = ""
