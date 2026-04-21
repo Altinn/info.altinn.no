@@ -23,7 +23,7 @@ variable "terraform_object_id" {
   type        = string
 }
 
-variable "eso_principal_id" {
+variable "eso_object_id" {
   description = "Object ID of the ESO workload identity / managed identity that reads Key Vault secrets. Leave empty to skip the role assignment (e.g. before ESO is deployed)."
   type        = string
   default     = ""

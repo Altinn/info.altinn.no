@@ -21,10 +21,10 @@ resource "azurerm_role_assignment" "terraform_keyvault_officer" {
 }
 
 resource "azurerm_role_assignment" "eso_keyvault_reader" {
-  count                = var.eso_principal_id != "" ? 1 : 0
+  count                = var.eso_object_id != "" ? 1 : 0
   scope                = azurerm_key_vault.elasticsearch.id
   role_definition_name = "Key Vault Secrets User"
-  principal_id         = var.eso_principal_id
+  principal_id         = var.eso_object_id
 }
 
 resource "azurerm_elastic_cloud_elasticsearch" "search" {
