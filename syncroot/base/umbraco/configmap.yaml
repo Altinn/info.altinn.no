@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: umbraco-dis-configmap
-data:
-  AkvName: "tobereplaced"
-  AkvUri: "https://tobereplaced"

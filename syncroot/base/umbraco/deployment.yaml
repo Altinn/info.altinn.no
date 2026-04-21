@@ -29,6 +29,11 @@ spec:
               cpu: "1"
               memory: 2Gi
           env:
+            - name: AkvUri
+              valueFrom:
+                configMapKeyRef:
+                  name: umbraco-dis-vault
+                  key: AkvUri
             - name: ConnectionStrings__umbracoDbDSN
               value: "Data Source=|DataDirectory|/Umbraco.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True"
             - name: ConnectionStrings__umbracoDbDSN_ProviderName
