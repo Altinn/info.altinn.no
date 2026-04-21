@@ -4,7 +4,6 @@ using Azure.Identity;
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 string? keyVaultUri = builder.Configuration["AkvUri"];
-string? keyVaultName = builder.Configuration["AkvName"];
 
 if (!string.IsNullOrWhiteSpace(keyVaultUri))
 {
