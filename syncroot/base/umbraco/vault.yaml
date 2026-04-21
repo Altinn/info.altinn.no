@@ -3,7 +3,7 @@ kind: Vault
 metadata:
   name: umbraco
 spec:
-  identityRef:
+  serviceAccountRef:
     name: umbraco
   tags:
     app: infoportal
