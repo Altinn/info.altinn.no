@@ -19,10 +19,6 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
 
     public void Configure(OpenIdConnectOptions options)
     {
-        // var clientId = _configuration["MicrosoftEntraId:ClientId"] ?? "YOUR_CLIENT_ID";
-        // var clientSecret = _configuration["MicrosoftEntraId:ClientSecret"] ?? "YOUR_CLIENT_SECRET";
-        // var authority = _configuration["MicrosoftEntraId:Authority"] ?? "https://login.microsoftonline.com/YOUR_TENANT_ID/v2.0";
-
         var clientId = _configuration["MicrosoftEntraId:ClientId"]
             ?? throw new Exception("Missing MicrosoftEntraId:ClientId");
 

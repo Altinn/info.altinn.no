@@ -1,4 +1,13 @@
+using Azure.Identity;
+
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+// load secrets from Azure Key Vault.
+var keyVaultUri = builder.Configuration["KeyVault:VaultUri"];
+if (!string.IsNullOrWhiteSpace(keyVaultUri))
+{
+    builder.Configuration.AddAzureKeyVault(new Uri(keyVaultUri), new DefaultAzureCredential());
+}
 
 // Load Entra ID configuration from appsettings
 var entraConfig = builder.Configuration.GetSection("MicrosoftEntraId");
