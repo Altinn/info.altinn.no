@@ -5,12 +5,13 @@ resource "random_string" "storage_suffix" {
 }
 
 resource "azurerm_storage_account" "media" {
-  name                     = "${var.storage_account_base_name}${random_string.storage_suffix.result}"
-  resource_group_name      = var.resource_group_name
-  location                 = var.location
-  account_tier             = "Standard"
-  account_replication_type = "ZRS"
-  account_kind             = "StorageV2"
+  name                      = "${var.storage_account_base_name}${random_string.storage_suffix.result}"
+  resource_group_name       = var.resource_group_name
+  location                  = var.location
+  account_tier              = "Standard"
+  account_replication_type  = "ZRS"
+  account_kind              = "StorageV2"
+  shared_access_key_enabled = false
 
   blob_properties {
     versioning_enabled = true
@@ -20,7 +21,7 @@ resource "azurerm_storage_account" "media" {
 }
 
 resource "azurerm_storage_container" "media" {
-  name                  = "media"
+  name                  = "umbraco"
   storage_account_id    = azurerm_storage_account.media.id
   container_access_type = "private"
 }
