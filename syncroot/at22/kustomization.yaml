@@ -2,6 +2,8 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../base
+  - elasticsearch-secretstore.yaml
+  - elasticsearch-secrets.yaml
 
 images:
   - name: umbraco
@@ -28,6 +30,22 @@ patches:
         value:
           name: Umbraco__Storage__AzureBlob__Media__ConnectionString
           value: https://infoportalmediaat224w17.blob.core.windows.net
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Elasticsearch__Endpoint
+          valueFrom:
+            secretKeyRef:
+              name: elasticsearch
+              key: endpoint
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Elasticsearch__ApiKey
+          valueFrom:
+            secretKeyRef:
+              name: elasticsearch
+              key: api-key
   - target:
       kind: HTTPRoute
       name: umbraco
