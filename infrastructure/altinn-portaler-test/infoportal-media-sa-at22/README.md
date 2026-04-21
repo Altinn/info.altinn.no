@@ -23,22 +23,16 @@ Set `umbraco_sp_object_id` in `terraform.tfvars` to the object ID of the Umbraco
 umbraco_sp_object_id = "<object-id>"
 ```
 
-### 2. appsettings.json
+### 2. Kustomization env var
 
-Add the blob service URI and container name. The storage account name is available in the Terraform output `storage_account_name`.
+The blob service URI is injected as an environment variable via the kustomization patch. The storage account name is available in the Terraform output `storage_account_name`.
 
-```json
-"Umbraco": {
-  "Storage": {
-    "AzureBlob": {
-      "Media": {
-        "ConnectionString": "https://<storage-account-name>.blob.core.windows.net",
-        "ContainerName": "umbraco"
-      }
-    }
-  }
-}
+```yaml
+- name: Umbraco__Storage__AzureBlob__Media__ConnectionString
+  value: https://<storage-account-name>.blob.core.windows.net
 ```
+
+The container name defaults to `umbraco` and can be set similarly via `Umbraco__Storage__AzureBlob__Media__ContainerName` if needed.
 
 ### 3. Composer
 
