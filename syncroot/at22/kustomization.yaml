@@ -20,6 +20,15 @@ patches:
         path: /spec/groupObjectId
         value: 42688626-6503-4d1d-8aa4-e1e5fef2b4be
   - target:
+      kind: Deployment
+      name: umbraco
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Umbraco__Storage__AzureBlob__Media__ConnectionString
+          value: https://infoportalmediaat224w17.blob.core.windows.net
+  - target:
       kind: HTTPRoute
       name: umbraco
     patch: |-
