@@ -13,8 +13,14 @@ KeyVaultOptions keyVaultOptions = builder.Configuration
 
 bool keyVaultEnabled = keyVaultOptions.Enabled ?? !builder.Environment.IsDevelopment();
 
-if (keyVaultEnabled && !string.IsNullOrWhiteSpace(keyVaultOptions.AkvUri))
+if (keyVaultEnabled)
 {
+    if (string.IsNullOrWhiteSpace(keyVaultOptions.AkvUri))
+    {
+        throw new InvalidOperationException(
+            $"Configuration value '{KeyVaultOptions.AkvUriKey}' must be configured when Key Vault is enabled.");
+    }
+
     if (!Uri.TryCreate(keyVaultOptions.AkvUri, UriKind.Absolute, out Uri? keyVaultEndpoint))
     {
         throw new InvalidOperationException(
