@@ -1,14 +1,16 @@
 ---
 
 import { fetchUmbracoContent } from '@api/umbraco/client';
+import { fetchFromOldPortal } from '@api/oldportal/client';
+import { shouldFetchFromOldPortal } from '@api/oldportal/client';
 import AstroSiteLayout from '@layouts/AstroSiteLayout.astro';
 import { JSONTransformer } from '@transformers/JSONTransformer';
 import { getGlobalData } from '@constants/globalData';
 import type { Locale } from '@i18n/index';
+import { env } from "cloudflare:workers";
 
 const path = Astro.url.pathname;
 const locale = (Astro.currentLocale || "nb") as Locale;
-
 
 // Ignore internal Vite/framework paths
 if (
@@ -18,6 +20,11 @@ if (
   path.startsWith('/@fs/')
 ) {
   return new Response(null, { status: 404 });
+}
+
+if (shouldFetchFromOldPortal(path)) {
+    const bytes = await fetchFromOldPortal(path);
+    return new Response(bytes);
 }
 
 if (path.startsWith('/api/') || path.match(/\.[a-zA-Z0-9]+$/)) {
