@@ -5,17 +5,18 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Select at22 (test) or prod'
+        description: "Select at22 (test) or prod"
         type: choice
         options:
           - at22
+          - tt02
           - prod
       image-tag:
-        description: 'Umbraco image tag to deploy'
+        description: "Umbraco image tag to deploy"
         required: true
       database:
         type: choice
-        description: 'Select database'
+        description: "Select database"
         options:
           - Sqlite
           - AzureSQL

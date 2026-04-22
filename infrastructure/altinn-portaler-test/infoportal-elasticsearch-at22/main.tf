@@ -1,17 +1,17 @@
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "main" {
-  name     = "infoportal-elasticsearch-test"
+  name     = "infoportal-elasticsearch-at22"
   location = "Germany West Central"
   tags     = local.tags
 }
 
 locals {
   tags = {
-    finops_environment = "tt02"
+    finops_environment = "at22"
     finops_product     = "infoportal"
     repository         = "https://github.com/Altinn/info.altinn.no"
-    env                = "tt02"
+    env                = "at22"
     product            = "infoportal"
   }
 }
@@ -19,7 +19,7 @@ locals {
 module "elasticsearch" {
   source = "../../modules/infoportal-elasticsearch"
 
-  environment                 = "tt02"
+  environment                 = "at22"
   location                    = azurerm_resource_group.main.location
   resource_group_name         = azurerm_resource_group.main.name
   tenant_id                   = data.azurerm_client_config.current.tenant_id

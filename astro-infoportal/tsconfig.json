@@ -7,43 +7,42 @@
     "**/*"
   ],
   "compilerOptions": {
-    "baseUrl": "./src",
     "paths": {
       "/*": [
-        "*"
+        "./src/*"
       ],
       "@components/*": [
-        "Components/*"
+        "./src/Components/*"
       ],
       "@layouts/*": [
-        "layouts/*"
+        "./src/layouts/*"
       ],
       "@pages/*": [
-        "pages/*"
+        "./src/pages/*"
       ],
       "@styles/*": [
-        "styles/*"
+        "./src/styles/*"
       ],
       "@utils/*": [
-        "utils/*"
+        "./src/utils/*"
       ],
       "@api/*": [
-        "api/*"
+        "./src/api/*"
       ],
       "@constants/*": [
-        "Constants/*"
+        "./src/Constants/*"
       ],
       "@services/*": [
-        "Services/*"
+        "./src/Services/*"
       ],
       "@models/*": [
-        "Models/*"
+        "./src/Models/*"
       ],
       "@transformers/*": [
-        "transformers/*"
+        "./src/transformers/*"
       ],
       "@i18n/*": [
-        "i18n/*"
+        "./src/i18n/*"
       ]
     },
     "lib": [
@@ -55,8 +54,7 @@
     "useDefineForClassFields": true,
     "allowJs": false,
     "skipLibCheck": true,
-    "esModuleInterop": false,
-    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,

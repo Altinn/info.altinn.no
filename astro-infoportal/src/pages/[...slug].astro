@@ -6,11 +6,13 @@ import { shouldFetchFromOldPortal } from '@api/oldportal/client';
 import AstroSiteLayout from '@layouts/AstroSiteLayout.astro';
 import { JSONTransformer } from '@transformers/JSONTransformer';
 import { getGlobalData } from '@constants/globalData';
+import { resolveEnvironment } from '@api/altinn/environments';
 import type { Locale } from '@i18n/index';
 import { env } from "cloudflare:workers";
 
 const path = Astro.url.pathname;
 const locale = (Astro.currentLocale || "nb") as Locale;
+const altinnEndpoints = resolveEnvironment(Astro.url.hostname);
 
 // Ignore internal Vite/framework paths
 if (
@@ -33,7 +35,7 @@ if (path.startsWith('/api/') || path.match(/\.[a-zA-Z0-9]+$/)) {
 
 let umbracoPageData: any = null;
 
-let globalData: any = getGlobalData(locale);
+let globalData: any = getGlobalData(locale, "/sok/", altinnEndpoints);
 
 const [pageResult] = await Promise.allSettled([
   fetchUmbracoContent(path),
