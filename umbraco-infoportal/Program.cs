@@ -3,13 +3,15 @@ using Azure.Identity;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-string? keyVaultUri = builder.Configuration["AkvUri"];
+string? keyVaultUri = builder.Configuration["KeyVault:AkvUri"];
+bool keyVaultEnabled = builder.Configuration.GetValue<bool?>("KeyVault:Enabled")
+    ?? !builder.Environment.IsDevelopment();
 
-if (!string.IsNullOrWhiteSpace(keyVaultUri))
+if (keyVaultEnabled && !string.IsNullOrWhiteSpace(keyVaultUri))
 {
     if (!Uri.TryCreate(keyVaultUri, UriKind.Absolute, out Uri? keyVaultEndpoint))
     {
-        throw new InvalidOperationException("Configuration value 'AkvUri' must be an absolute URI.");
+        throw new InvalidOperationException("Configuration value 'KeyVault:VaultUri' must be an absolute URI.");
     }
 
     builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
