@@ -5,6 +5,7 @@ import { getGlobalData } from "@constants/globalData";
 import { SearchContext, getSearchContextLabels } from "@constants/searchContext";
 import { t, type Locale } from "@i18n/index";
 import { elasticsearchConfig } from "@api/elasticsearch/client";
+import { resolveEnvironment } from "@api/altinn/environments";
 import { searchPages } from "../../../Services/Elasticsearch";
 
 interface Props {
@@ -67,7 +68,8 @@ const searchPageData = {
   },
 };
 
-const globalData = getGlobalData(locale, searchPageUrl);
+const altinnEndpoints = resolveEnvironment(Astro.url.hostname);
+const globalData = getGlobalData(locale, searchPageUrl, altinnEndpoints);
 const pageData = await new JSONTransformer().Transform(searchPageData, globalData);
 ---
 
