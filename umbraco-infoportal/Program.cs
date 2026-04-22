@@ -1,12 +1,18 @@
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Identity;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-// load secrets from Azure Key Vault.
-var keyVaultUri = builder.Configuration["KeyVault:VaultUri"];
+string? keyVaultUri = builder.Configuration["KeyVault:VaultUri"];
+
 if (!string.IsNullOrWhiteSpace(keyVaultUri))
 {
-    builder.Configuration.AddAzureKeyVault(new Uri(keyVaultUri), new DefaultAzureCredential());
+    if (!Uri.TryCreate(keyVaultUri, UriKind.Absolute, out Uri? keyVaultEndpoint))
+    {
+        throw new InvalidOperationException("Configuration value 'AkvUri' must be an absolute URI.");
+    }
+
+    builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
 }
 
 builder.CreateUmbracoBuilder()
