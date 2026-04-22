@@ -4,12 +4,19 @@ run-name: Deploy ${{ inputs.image-tag }}
 on:
   workflow_dispatch:
     inputs:
+      environment:
+        description: "Select at22 (test) or prod"
+        type: choice
+        options:
+          - at22
+          - tt02
+          - prod
       image-tag:
-        description: 'Umbraco image tag to deploy'
+        description: "Umbraco image tag to deploy"
         required: true
       database:
         type: choice
-        description: 'Which database to use?'
+        description: "Select database"
         options:
           - Sqlite
           - AzureSQL
@@ -36,7 +43,7 @@ jobs:
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
 
       - name: Update image tag
-        run: yq -i '(.images[] | select(.name == "umbraco")).newTag = "${{ inputs.image-tag }}"' ./syncroot/at22/kustomization.yaml
+        run: yq -i '(.images[] | select(.name == "umbraco")).newTag = "${{ inputs.image-tag }}"' ./syncroot/${{ inputs.environment }}/kustomization.yaml
 
       - name: Update db connection string
         if: inputs.database == 'AzureSQL'
@@ -50,7 +57,7 @@ jobs:
         uses: Altinn/altinn-platform/actions/flux/build-push-image@8d4e42eae11efbc3a159aa62fe15ed49954d9df9 # main
         with:
           image_name: ${{ env.SYNCROOT_ARTIFACT_NAME }}
-          tag: at22
+          tag: ${{ inputs.environment }}
           workdir: ./syncroot
           azure_subscription_id: ${{ secrets.DIS_SYNCROOT_AZURE_SUBSCRIPTION_ID }}
           azure_app_id: ${{ secrets.DIS_SYNCROOT_AZURE_CLIENT_ID }}

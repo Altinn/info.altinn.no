@@ -1,4 +1,5 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
+import { t } from "@i18n/index";
 import { SectionPageTransformer } from "./SectionPageTransformer";
 import { HeroArticlePageBaseTransformer } from "./HeroArticlePageBaseTransformer";
 import { ThemePageTransformer } from "./ThemePageTransformer";
@@ -13,6 +14,7 @@ import { SubsidyPageTransformer } from "./SubsidyPageTransformer";
 import { SubsidyOverviewPageTransformer } from "./SubsidyOverviewPageTransformer";
 import { SearchPageTransformer } from "./SearchPageTransformer";
 import { SubCategoryPageTransformer } from "./SubCategoryPageTransformer";
+import { ProviderPageTransformer } from "./ProviderPageTransformer";
 import { NewsArchivePageTransformer } from "./NewsArchivePageTransformer";
 
 export class JSONTransformer implements IJSONTransformer {
@@ -21,7 +23,7 @@ export class JSONTransformer implements IJSONTransformer {
       headerViewModel: globalData?.properties?.headerViewModel || globalData?.headerViewModel || null,
       footerViewModel: globalData?.properties?.footerViewModel || globalData?.footerViewModel || null,
       pageSidebarViewModel: globalData?.properties?.pageSidebarViewModel || globalData?.pageSidebarViewModel || null,
-      skipLinkText: globalData?.properties?.skipLinkText || globalData?.skipLinkText || "Hopp til hovedinnhold",
+      skipLinkText: globalData?.properties?.skipLinkText || globalData?.skipLinkText || t("common.skipToContent", globalData?.locale),
       componentName: "SiteLayout",
       child: null
     };
@@ -32,6 +34,11 @@ export class JSONTransformer implements IJSONTransformer {
 
     if (bodyDataTransformer != null) {
       data.child = await bodyDataTransformer.Transform(umbracoPageData, globalData);
+    }
+
+    if (data.child?.pageSidebarViewModel) {
+      data.pageSidebarViewModel = data.child.pageSidebarViewModel;
+      delete data.child.pageSidebarViewModel;
     }
 
     return data;
@@ -61,6 +68,8 @@ export class JSONTransformer implements IJSONTransformer {
         return new SearchPageTransformer();
       case "subCategoryPage":
         return new SubCategoryPageTransformer();
+      case "providerPage":
+        return new ProviderPageTransformer();
       case "newsArchivePage":
         return new NewsArchivePageTransformer();        
       case "sectionPage":

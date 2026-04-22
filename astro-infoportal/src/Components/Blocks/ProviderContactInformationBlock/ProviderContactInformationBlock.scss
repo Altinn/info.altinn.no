@@ -1,0 +1,19 @@
+.provider-contact-info {
+  max-width: 960px;
+  margin-top: 1rem;
+}
+
+.provider-contact-info__heading {
+  display: flex;
+  align-items: center;
+  column-gap: 0.5em;
+}
+
+.provider-contact-info__body {
+  margin-top: 1.5rem;
+}
+
+.provider-contact-info__subtle {
+  color: var(--fds-semantic-text-neutral-subtle, #68707c);
+  font-size: var(--fds-typography-paragraph-small-font-size, 0.875rem);
+}

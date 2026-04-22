@@ -1,6 +1,32 @@
 import {defineConfig} from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 import react from '@astrojs/react';
+import {createRequire} from 'node:module';
+import path from 'node:path';
+
+// Workaround: Vite 7 does not serve /@vite/client in Astro 6 dev mode,
+// which blocks React hydration. This plugin fixes it.
+function viteClientFix() {
+  let clientEntry;
+  return {
+    name: 'vite-client-fix',
+    configResolved(config) {
+      const require = createRequire(import.meta.url);
+      clientEntry = path.resolve(
+        path.dirname(require.resolve('vite/package.json')),
+        'dist/client/client.mjs',
+      );
+    },
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (req.url === '/@vite/client') {
+          req.url = `/@fs/${clientEntry}`;
+        }
+        next();
+      });
+    },
+  };
+}
 
 export default defineConfig({
   output: 'server',
@@ -31,4 +57,7 @@ export default defineConfig({
   },
 
   integrations: [react({experimentalReactChildren: true})],
+  vite: {
+    plugins: [viteClientFix()],
+  },
 });

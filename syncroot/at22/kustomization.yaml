@@ -2,13 +2,50 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../base
+  - elasticsearch-secretstore.yaml
+  - elasticsearch-secrets.yaml
 
 images:
-- name: umbraco
-  newName: ghcr.io/altinn/umbraco
-  newTag: test1
+  - name: umbraco
+    newName: altinncr.azurecr.io/ghcr.io/altinn/umbraco
+    newTag: will-be-replaced
 
 patches:
+  - target:
+      kind: Vault
+      name: umbraco
+    patch: |-
+      - op: add
+        path: /spec/tags/env
+        value: at22
+      - op: add
+        path: /spec/groupObjectId
+        value: 42688626-6503-4d1d-8aa4-e1e5fef2b4be
+  - target:
+      kind: Deployment
+      name: umbraco
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Umbraco__Storage__AzureBlob__Media__ConnectionString
+          value: https://infoportalmediaat224w17.blob.core.windows.net
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Elasticsearch__Endpoint
+          valueFrom:
+            secretKeyRef:
+              name: elasticsearch
+              key: endpoint
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Elasticsearch__ApiKey
+          valueFrom:
+            secretKeyRef:
+              name: elasticsearch
+              key: api-key
   - target:
       kind: HTTPRoute
       name: umbraco

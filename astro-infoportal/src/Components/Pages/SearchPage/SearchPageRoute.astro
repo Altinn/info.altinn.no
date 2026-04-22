@@ -1,18 +1,20 @@
 ---
 import AstroSiteLayout from "@layouts/AstroSiteLayout.astro";
-import { UMBRACO_API_URL } from "@api/umbraco/client";
 import { JSONTransformer } from "@transformers/JSONTransformer";
 import { getGlobalData } from "@constants/globalData";
-import { SearchContext, SearchContextLabels } from "@constants/searchContext";
-import { SearchPageLabels } from "@constants/searchPageLabels";
+import { SearchContext, getSearchContextLabels } from "@constants/searchContext";
+import { t, type Locale } from "@i18n/index";
+import { elasticsearchConfig } from "@api/elasticsearch/client";
+import { resolveEnvironment } from "@api/altinn/environments";
+import { searchPages } from "../../../Services/Elasticsearch";
 
 interface Props {
   language: string;
 }
 
 const { language } = Astro.props;
-const contextLabels = SearchContextLabels[language];
-const pageLabels = SearchPageLabels[language];
+const locale = language as Locale;
+const contextLabels = getSearchContextLabels(locale);
 
 const query = Astro.url.searchParams.get("q") || "";
 const pageNumber = parseInt(Astro.url.searchParams.get("pagenumber") || "1", 10);
@@ -22,16 +24,21 @@ let searchResultViewModel = undefined;
 
 if (query) {
   try {
-    const params = new URLSearchParams({ q: query, pagenumber: String(pageNumber) });
-    if (context) params.set("context", context);
-    const res = await fetch(`${UMBRACO_API_URL}/api/search/${language}/page?${params}`);
-    if (res.ok) {
-      searchResultViewModel = await res.json();
-    }
+    const config = elasticsearchConfig;
+    searchResultViewModel = await searchPages(
+      config,
+      query,
+      language,
+      pageNumber,
+      10,
+      context || undefined,
+    );
   } catch (e) {
     console.error("Failed to pre-fetch search results:", e);
   }
 }
+
+const searchPageUrl = t("search.pageUrl", locale);
 
 const searchPageData = {
   contentType: "searchPage",
@@ -47,12 +54,23 @@ const searchPageData = {
       { name: contextLabels[SearchContext.Help], value: SearchContext.Help },
     ],
     providerFacets: [],
-    ...pageLabels,
+    categoriesText: t("search.categories", locale),
+    providersText: t("search.providers", locale),
+    noResultsText: t("search.noResults", locale),
+    errorText: t("search.error", locale),
+    lastPageText: t("search.previous", locale),
+    nextPageText: t("search.next", locale),
+    loadingText: t("search.loading", locale),
+    providerFilterText: t("search.providerFilter", locale),
+    searchPlaceholder: t("search.placeholder", locale),
+    searchAriaLabel: t("search.ariaLabel", locale),
+    searchHeading: t("search.heading", locale),
   },
 };
 
-const globalData = getGlobalData(pageLabels.searchPageUrl);
+const altinnEndpoints = resolveEnvironment(Astro.url.hostname);
+const globalData = getGlobalData(locale, searchPageUrl, altinnEndpoints);
 const pageData = await new JSONTransformer().Transform(searchPageData, globalData);
 ---
 
-<AstroSiteLayout pageData={pageData} htmlLanguage={pageLabels.htmlLanguage} title={pageLabels.title} />
+<AstroSiteLayout pageData={pageData} htmlLanguage={t("search.htmlLanguage", locale)} title={t("search.title", locale)} />

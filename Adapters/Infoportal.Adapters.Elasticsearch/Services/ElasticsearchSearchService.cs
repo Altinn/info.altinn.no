@@ -1,6 +1,7 @@
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Analysis;
 using Elastic.Clients.Elasticsearch.Core.Search;
+using Elastic.Clients.Elasticsearch.IndexManagement;
 using Elastic.Clients.Elasticsearch.Mapping;
 using Elastic.Clients.Elasticsearch.QueryDsl;
 using Infoportal.Adapters.Elasticsearch.Models;
@@ -21,6 +22,28 @@ public class ElasticsearchSearchService : ISearchService
     // with per-field weights for title, ingress, body, metaKeywords, metaDescription.
     // Consider moving to appsettings.json or a separate config when fine-tuning is needed.
     private static readonly Fields SearchFields = new[] { "title^3", "ingress^2", "body" };
+
+    // Ported from Optimizely Find synonym export. Solr format, unidirectional (=>).
+    // Applied at search time via a custom search_analyzer, so changes don't require reindex.
+    private static readonly string[] NorwegianSynonyms =
+    [
+        "aksjebok => aksjeeierbok",
+        "bakgrunnsjekk => søknad om bakgrunnssjekk",
+        "frikort => skattekort",
+        "fylkesmann => statsforvalter, statsforvalteren",
+        "samordnet registermelding => samordnet registreringsmelding",
+        "vergeregnskap => fullstendighetserklæring",
+    ];
+
+    private const string NorwegianSynonymAnalyzer = "norwegian_synonym";
+    private const string NorwegianSynonymFilter = "norwegian_synonym_filter";
+
+    // Whitespace + lowercase only — preserves dialect/inflected variants exactly
+    // (e.g. "sjølmeldinga" does not stem to "sjølmeld"). Applied to the
+    // bestBetTriggers field so editorial trigger phrases match as typed.
+    private const string BestBetTriggersAnalyzer = "bestbet_triggers";
+
+    private static bool IsNorwegian(string culture) => culture is "nb" or "nn";
 
     public ElasticsearchSearchService(
         ElasticsearchClientFactory clientFactory,
@@ -58,16 +81,22 @@ public class ElasticsearchSearchService : ISearchService
             }
 
             var analyzerName = GetAnalyzerName(culture);
+            var isNorwegian = IsNorwegian(culture);
+            var searchAnalyzerName = isNorwegian ? NorwegianSynonymAnalyzer : analyzerName;
 
-            var createResponse = await _client.Indices.CreateAsync(indexName, c => c
-                .Mappings(m => m
+            var createResponse = await _client.Indices.CreateAsync(indexName, c =>
+            {
+                c.Settings(s => s.Analysis(BuildAnalysis(isNorwegian)));
+
+                c.Mappings(m => m
                     .Properties(p => p
                         .Keyword("id")
                         .IntegerNumber("contentId")
                         .Keyword("contentGuid")
-                        .Text("title", t => t.Analyzer(analyzerName))
-                        .Text("ingress", t => t.Analyzer(analyzerName))
-                        .Text("body", t => t.Analyzer(analyzerName))
+                        .Text("title", t => t.Analyzer(analyzerName).SearchAnalyzer(searchAnalyzerName))
+                        .Text("ingress", t => t.Analyzer(analyzerName).SearchAnalyzer(searchAnalyzerName))
+                        .Text("body", t => t.Analyzer(analyzerName).SearchAnalyzer(searchAnalyzerName))
+                        .Text("bestBetTriggers", t => t.Analyzer(BestBetTriggersAnalyzer).SearchAnalyzer(BestBetTriggersAnalyzer))
                         .Keyword("url")
                         .Keyword("contentType")
                         .Keyword("culture")
@@ -75,7 +104,8 @@ public class ElasticsearchSearchService : ISearchService
                         .Date("updateDate")
                         .Completion("titleSuggest")
                     )
-                ), ct);
+                );
+            }, ct);
 
             if (createResponse.IsValidResponse)
             {
@@ -111,6 +141,58 @@ public class ElasticsearchSearchService : ISearchService
         {
             _logger.LogWarning(ex, "Failed to delete index {IndexName}", indexName);
         }
+    }
+
+    // Builds the index-level analysis config. Always includes the bestbet_triggers
+    // analyzer (whitespace + lowercase, no stemming) so editorial trigger phrases
+    // match as typed. For Norwegian cultures, also adds a custom analyzer that
+    // mirrors the built-in "norwegian" analyzer with a synonym_graph filter
+    // inserted before stemming, so synonyms are expanded at query time.
+    private static IndexSettingsAnalysis BuildAnalysis(bool isNorwegian)
+    {
+        var tokenFilters = new TokenFilters();
+        var analyzers = new Analyzers
+        {
+            [BestBetTriggersAnalyzer] = new CustomAnalyzer
+            {
+                Tokenizer = "whitespace",
+                Filter = ["lowercase"],
+            },
+        };
+
+        if (isNorwegian)
+        {
+            tokenFilters[NorwegianSynonymFilter] = new SynonymGraphTokenFilter
+            {
+                Synonyms = NorwegianSynonyms,
+            };
+            tokenFilters["norwegian_stop_filter"] = new StopTokenFilter
+            {
+                Stopwords = new Union<StopWordLanguage, ICollection<string>>(StopWordLanguage.Norwegian),
+            };
+            tokenFilters["norwegian_stemmer_filter"] = new StemmerTokenFilter
+            {
+                Language = "norwegian",
+            };
+
+            analyzers[NorwegianSynonymAnalyzer] = new CustomAnalyzer
+            {
+                Tokenizer = "standard",
+                Filter =
+                [
+                    "lowercase",
+                    NorwegianSynonymFilter,
+                    "norwegian_stop_filter",
+                    "norwegian_stemmer_filter",
+                ],
+            };
+        }
+
+        return new IndexSettingsAnalysis
+        {
+            TokenFilters = tokenFilters,
+            Analyzers = analyzers,
+        };
     }
 
     public async Task IndexDocumentAsync(SearchDocument document, CancellationToken ct = default)
