@@ -61,11 +61,11 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
                 if (roles.Contains("umbraco-admin"))
                     mappedGroups.Add("admin");
 
-                if (roles.Contains("umbraco-editor"))
-                    mappedGroups.Add("editor");
+                if (roles.Contains("umbraco-editor-startogdrive"))
+                    mappedGroups.Add("editorStarteOgDrive");
 
-                if (roles.Contains("node-test-role"))
-                    mappedGroups.Add("nodeTest");
+                if (roles.Contains("umbraco-editor-nyheter"))
+                    mappedGroups.Add("editorNyheter");
 
                 // Writer rolle om ingen andre er spesifisert
                 if (!mappedGroups.Any())
