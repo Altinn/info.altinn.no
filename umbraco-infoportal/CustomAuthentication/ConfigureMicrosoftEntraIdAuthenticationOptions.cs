@@ -30,12 +30,12 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
 
         var callbackPath = _configuration["MicrosoftEntraId:CallbackPath"]
             ?? throw new Exception("Missing MicrosoftEntraId:CallbackPath");
-
-        //options.CallbackPath = "/signin-entra";
+            
         options.CallbackPath = callbackPath;
         options.ClientId = clientId;
         options.ClientSecret = clientSecret;
         options.Authority = authority;
+        options.RequireHttpsMetadata = false;
 
         options.ResponseType = "code";
 
