@@ -31,7 +31,7 @@ spec:
           env:
             - name: ASPNETCORE_FORWARDEDHEADERS_ENABLED
               value: "true"
-            - name: AkvUri
+            - name: KeyVault__AkvUri
               valueFrom:
                 configMapKeyRef:
                   name: umbraco-dis-vault

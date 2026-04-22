@@ -1,17 +1,30 @@
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Identity;
+using umbraco_infoportal.Options;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-string? keyVaultUri = builder.Configuration["KeyVault:AkvUri"];
-bool keyVaultEnabled = builder.Configuration.GetValue<bool?>("KeyVault:Enabled")
-    ?? !builder.Environment.IsDevelopment();
+builder.Services.Configure<KeyVaultOptions>(
+    builder.Configuration.GetSection(KeyVaultOptions.SectionName));
 
-if (keyVaultEnabled && !string.IsNullOrWhiteSpace(keyVaultUri))
+KeyVaultOptions keyVaultOptions = builder.Configuration
+    .GetSection(KeyVaultOptions.SectionName)
+    .Get<KeyVaultOptions>() ?? new();
+
+bool keyVaultEnabled = keyVaultOptions.Enabled ?? !builder.Environment.IsDevelopment();
+
+if (keyVaultEnabled)
 {
-    if (!Uri.TryCreate(keyVaultUri, UriKind.Absolute, out Uri? keyVaultEndpoint))
+    if (string.IsNullOrWhiteSpace(keyVaultOptions.AkvUri))
     {
-        throw new InvalidOperationException("Configuration value 'KeyVault:VaultUri' must be an absolute URI.");
+        throw new InvalidOperationException(
+            $"Configuration value '{KeyVaultOptions.AkvUriKey}' must be configured when Key Vault is enabled.");
+    }
+
+    if (!Uri.TryCreate(keyVaultOptions.AkvUri, UriKind.Absolute, out Uri? keyVaultEndpoint))
+    {
+        throw new InvalidOperationException(
+            $"Configuration value '{KeyVaultOptions.AkvUriKey}' must be an absolute URI.");
     }
 
     builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
