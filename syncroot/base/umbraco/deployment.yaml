@@ -29,6 +29,8 @@ spec:
               cpu: "1"
               memory: 2Gi
           env:
+            - name: ASPNETCORE_FORWARDEDHEADERS_ENABLED
+              value: "true"
             - name: AkvUri
               valueFrom:
                 configMapKeyRef:
