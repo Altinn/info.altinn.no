@@ -1,8 +1,14 @@
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Identity;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using umbraco_infoportal.Options;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestHeadersTotalSize = 65536; 
+});
 
 builder.Services.Configure<KeyVaultOptions>(
     builder.Configuration.GetSection(KeyVaultOptions.SectionName));
