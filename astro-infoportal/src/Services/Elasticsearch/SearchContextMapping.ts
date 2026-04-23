@@ -5,13 +5,15 @@ const SearchContext = {
   Help: "Help",
 } as const;
 
+// Entries for content types that do not yet exist in Umbraco are harmless:
+// they simply never match until the content type is created and content is published.
+// Keep this list in sync with SearchContextMapping.cs on the backend.
 const contentTypeToContext: Record<string, string> = {
   sectionArticlePage: SearchContext.StartCompany,
   subsidyPage: SearchContext.StartCompany,
   schemaPage: SearchContext.Schema,
-  schemaOverviewPage: SearchContext.Schema,
-  schemaAttachmentPage: SearchContext.Schema,
   schemaCollectionPage: SearchContext.Schema,
+  schemaAttachmentPage: SearchContext.Schema,
   helpQuestionPage: SearchContext.Help,
   helpProcessArticlePage: SearchContext.Help,
 };

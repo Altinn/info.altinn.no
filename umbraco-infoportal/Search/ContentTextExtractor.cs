@@ -25,14 +25,20 @@ public class ContentTextExtractor
         @"<umb-rte-block data-content-key=""(?<guid>[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})""></umb-rte-block>",
         RegexOptions.Compiled);
 
-    // Content types to index. Add new page types here as they are created.
-    // TODO: Add helpQuestionPage, etc. when those content types exist.
+    // Content types to index. Aliases for content types that do not yet exist in Umbraco
+    // are harmless: publish events only fire for types that exist, so unmatched entries are ignored.
+    // Keep aligned with SearchContextMapping so every indexed type has a filter context.
     // TODO: Consider moving this to a backoffice setting or a "hideFromSearch" composition
     // property so admins can control which pages are indexed without code changes.
     private static readonly HashSet<string> IndexableContentTypes =
     [
         "sectionArticlePage",
-        "schemaPage"
+        "subsidyPage",
+        "schemaPage",
+        "schemaCollectionPage",
+        "schemaAttachmentPage",
+        "helpQuestionPage",
+        "helpProcessArticlePage"
     ];
 
     private static readonly HashSet<string> TextEditors =

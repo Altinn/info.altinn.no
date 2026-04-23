@@ -1,11 +1,12 @@
 ---
 
-import { fetchUmbracoContent } from '@api/umbraco/client';
+import { fetchUmbracoContent, fetchUmbracoStartPage } from '@api/umbraco/client';
 import { fetchFromOldPortal } from '@api/oldportal/client';
 import { shouldFetchFromOldPortal } from '@api/oldportal/client';
 import AstroSiteLayout from '@layouts/AstroSiteLayout.astro';
 import { JSONTransformer } from '@transformers/JSONTransformer';
 import { getGlobalData } from '@constants/globalData';
+import { buildMetadata } from '@constants/metadata';
 import { resolveEnvironment } from '@api/altinn/environments';
 import type { Locale } from '@i18n/index';
 import { env } from "cloudflare:workers";
@@ -35,10 +36,14 @@ if (path.startsWith('/api/') || path.match(/\.[a-zA-Z0-9]+$/)) {
 
 let umbracoPageData: any = null;
 
-let globalData: any = getGlobalData(locale, "/sok/", altinnEndpoints);
+// On a locale-root URL the requested page IS the startPage — reuse the fetch.
+const isLocaleRoot = /^\/(nn\/?|en\/?)?$/.test(path);
+const pagePromise = fetchUmbracoContent(path);
+const startPagePromise = isLocaleRoot ? pagePromise : fetchUmbracoStartPage(locale);
 
-const [pageResult] = await Promise.allSettled([
-  fetchUmbracoContent(path),
+const [pageResult, startPageResult] = await Promise.allSettled([
+  pagePromise,
+  startPagePromise,
 ]);
 
 if (pageResult.status === 'rejected') {
@@ -47,9 +52,14 @@ if (pageResult.status === 'rejected') {
 }
 umbracoPageData = pageResult.value;
 
+const startPageData = startPageResult.status === 'fulfilled' ? startPageResult.value : null;
+
+let globalData: any = getGlobalData(locale, "/sok/", altinnEndpoints, umbracoPageData?.cultures, startPageData, umbracoPageData?.contentType);
+
 const pageData = await new JSONTransformer().Transform(umbracoPageData, globalData);
+const metadata = buildMetadata(umbracoPageData, locale);
 
 Astro.response.headers.set("Cache-Control", "public, max-age=0, s-maxage=86400");
 ---
 
-<AstroSiteLayout pageData={pageData} />
+<AstroSiteLayout pageData={pageData} {...metadata} />

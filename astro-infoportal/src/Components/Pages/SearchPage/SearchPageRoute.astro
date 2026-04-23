@@ -6,6 +6,7 @@ import { SearchContext, getSearchContextLabels } from "@constants/searchContext"
 import { t, type Locale } from "@i18n/index";
 import { elasticsearchConfig } from "@api/elasticsearch/client";
 import { resolveEnvironment } from "@api/altinn/environments";
+import { fetchUmbracoStartPage } from "@api/umbraco/client";
 import { searchPages } from "../../../Services/Elasticsearch";
 
 interface Props {
@@ -69,7 +70,13 @@ const searchPageData = {
 };
 
 const altinnEndpoints = resolveEnvironment(Astro.url.hostname);
-const globalData = getGlobalData(locale, searchPageUrl, altinnEndpoints);
+const searchCultures = {
+  nb: { path: "/sok/" },
+  nn: { path: "/nn/sok/" },
+  en: { path: "/en/search/" },
+};
+const startPageData = await fetchUmbracoStartPage(locale);
+const globalData = getGlobalData(locale, searchPageUrl, altinnEndpoints, searchCultures, startPageData, "searchPage");
 const pageData = await new JSONTransformer().Transform(searchPageData, globalData);
 ---
 
