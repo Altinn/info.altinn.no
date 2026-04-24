@@ -2,6 +2,8 @@ using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Identity;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using umbraco_infoportal.Options;
+using Umbraco.Cms.Core.Composing;
+
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -41,6 +43,8 @@ builder.CreateUmbracoBuilder()
     .AddWebsite()
     .AddDeliveryApi()
     .AddComposers()
+    .AddAzureBlobMediaFileSystem()
+    .AddAzureBlobImageSharpCache()     
     .Build();
 
 WebApplication app = builder.Build();
