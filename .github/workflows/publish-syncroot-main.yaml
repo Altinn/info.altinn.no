@@ -5,10 +5,11 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: "Select at22 (test) or prod"
+        description: "Select environment"
         type: choice
         options:
           - at22
+          - at23
           - tt02
           - prod
       image-tag:
