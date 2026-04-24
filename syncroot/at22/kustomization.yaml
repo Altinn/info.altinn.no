@@ -31,6 +31,11 @@ patches:
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
+          name: Umbraco__Storage__AzureBlob__Media__ContainerName
+          value: umbraco
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
           name: Elasticsearch__Endpoint
           valueFrom:
             secretKeyRef:
