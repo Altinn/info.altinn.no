@@ -3,3 +3,15 @@ variable "umbraco_sp_object_id" {
   type        = string
   default     = ""
 }
+
+variable "blob_reader_group_object_ids" {
+  description = "List of Azure AD group object IDs granted Storage Blob Data Reader on the storage account."
+  type        = list(string)
+  default     = []
+}
+
+variable "blob_contributor_group_object_ids" {
+  description = "List of Azure AD group object IDs granted Storage Blob Data Contributor on the storage account."
+  type        = list(string)
+  default     = []
+}

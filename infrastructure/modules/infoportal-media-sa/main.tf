@@ -32,3 +32,17 @@ resource "azurerm_role_assignment" "umbraco_blob_contributor" {
   role_definition_name = "Storage Blob Data Contributor"
   principal_id         = var.umbraco_sp_object_id
 }
+
+resource "azurerm_role_assignment" "developer_blob_reader" {
+  for_each             = toset(var.blob_reader_group_object_ids)
+  scope                = azurerm_storage_account.media.id
+  role_definition_name = "Storage Blob Data Reader"
+  principal_id         = each.value
+}
+
+resource "azurerm_role_assignment" "developer_blob_contributor" {
+  for_each             = toset(var.blob_contributor_group_object_ids)
+  scope                = azurerm_storage_account.media.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = each.value
+}
