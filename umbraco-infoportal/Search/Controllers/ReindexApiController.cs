@@ -21,8 +21,7 @@ public class ReindexApiController : ControllerBase
     }
 
     [HttpPost]
-    // TODO: Re-enable [ValidateAntiForgeryToken] when called from Umbraco backoffice UI. 
-    // This needs to be disabled for now to allow trigger locally.
+    [ValidateAntiForgeryToken]
     public IActionResult TriggerReindex()
     {
         if (!IsAuthorized())
