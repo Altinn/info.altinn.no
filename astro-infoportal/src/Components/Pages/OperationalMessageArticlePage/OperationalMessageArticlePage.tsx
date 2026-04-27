@@ -4,18 +4,21 @@ import "./OperationalMessageArticlePage.scss";
 const OperationalMessageArticlePage = ({
   pageName,
   isCritical,
+  colorVariant,
   mainBody,
-  // linkUrl,
-  // linkText,
+  linkUrl,
+  linkText,
 }: any) => {
-
+  const variant = colorVariant || (isCritical ? "danger" : "warning");
 
   return (
     <Alert
-      variant={isCritical ? "danger" : "warning"}
+      variant={variant}
       heading={pageName || ""}
       message={mainBody}
-    />
+    >
+      {linkUrl && linkText && <a href={linkUrl}>{linkText}</a>}
+    </Alert>
   );
 };
 

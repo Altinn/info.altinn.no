@@ -2,6 +2,7 @@ import type { IJSONTransformer } from "./IJSONTransformer";
 import { t, type Locale } from "@i18n/index";
 import { fetchUmbracoContent, fetchUmbracoChildren } from "@api/umbraco/client";
 import { buildOrgLookup, normalizeName, resolveProviderIcon } from "./providerUtils";
+import { transformOperationalMessageArticle } from "./OperationalMessageArticlePageTransformer";
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
@@ -58,6 +59,29 @@ export class StartPageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
     const locale: Locale = globalData?.locale || "nb";
     const p = cmsPageData.properties ?? {};
+
+    // --- Operational messages from AlertArea ---
+    const alertRefs: any[] = p.alertArea ?? [];
+    const alertMessages = (
+      await Promise.all(
+        alertRefs.map(async (ref: any) => {
+          const route = ref.route?.path;
+          if (!route) return null;
+          try {
+            const full = await fetchUmbracoContent(route, locale);
+            return transformOperationalMessageArticle(full);
+          } catch {
+            return null;
+          }
+        }),
+      )
+    ).filter(Boolean);
+    const criticalOperationalMessages = alertMessages.filter(
+      (message: any) => message.isCritical || message.colorVariant === "danger",
+    );
+    const operationalMessages = alertMessages.filter(
+      (message: any) => !message.isCritical && message.colorVariant !== "danger",
+    );
 
     // --- Link buttons (built from inboxUrl, profilUrl, schemaReference) ---
     const linkButtons: any[] = [];
@@ -250,8 +274,8 @@ export class StartPageTransformer implements IJSONTransformer {
       isUserLoggedIn: false,
       login: null,
       alternateLogin: null,
-      criticalOperationalMessages: [],
-      operationalMessages: [],
+      criticalOperationalMessages,
+      operationalMessages,
 
       // Relevant schemas
       relevantSchemas,
