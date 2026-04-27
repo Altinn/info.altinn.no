@@ -9,7 +9,7 @@ import { getGlobalData } from '@constants/globalData';
 import { buildMetadata } from '@constants/metadata';
 import { resolveEnvironment } from '@api/altinn/environments';
 import type { Locale } from '@i18n/index';
-import { env } from "cloudflare:workers";
+
 
 const path = Astro.url.pathname;
 const locale = (Astro.currentLocale || "nb") as Locale;
@@ -34,11 +34,12 @@ if (path.startsWith('/api/') || path.match(/\.[a-zA-Z0-9]+$/)) {
   return new Response(null, { status: 404 });
 }
 
-let umbracoPageData: any = null;
+
 
 // On a locale-root URL the requested page IS the startPage — reuse the fetch.
 const isLocaleRoot = /^\/(nn\/?|en\/?)?$/.test(path);
-const pagePromise = fetchUmbracoContent(path);
+
+const pagePromise = fetchUmbracoContent(path, locale);
 const startPagePromise = isLocaleRoot ? pagePromise : fetchUmbracoStartPage(locale);
 
 const [pageResult, startPageResult] = await Promise.allSettled([
@@ -46,11 +47,12 @@ const [pageResult, startPageResult] = await Promise.allSettled([
   startPagePromise,
 ]);
 
+
 if (pageResult.status === 'rejected') {
   console.error("Error fetching page data from Umbraco:", pageResult.reason);
   return Astro.redirect("/404");
 }
-umbracoPageData = pageResult.value;
+let umbracoPageData = pageResult.value;
 
 const startPageData = startPageResult.status === 'fulfilled' ? startPageResult.value : null;
 
