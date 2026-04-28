@@ -11,12 +11,14 @@
   },
   "workers_dev": true,
   "preview_urls": true,
-  // Elasticsearch: ELASTICSEARCH_API_KEY is set per environment via deployment secrets.
-  // ELASTICSEARCH_URL is overridden per environment in deployment config.
+  // Elasticsearch: points at the at22 Elastic Cloud project. The API key
+  // is set as a Cloudflare secret on this Worker (currently named
+  // ELASTICSEARCH_API_KEY_INFOPORTAL_AT22). For local dev override, create
+  // astro-infoportal/.dev.vars (gitignored).
   // Altinn platform: endpoints resolve from the request hostname (see src/api/altinn/environments.ts).
   // ALTINN_SUBSCRIPTION_KEY is an optional secret (empty unless APIM gating is enabled).
   "vars": {
-    "ELASTICSEARCH_URL": "http://localhost:9200",
+    "ELASTICSEARCH_URL": "https://infoportal-search-at22-f6bd85.es.germanywestcentral.azure.elastic.cloud",
     "ELASTICSEARCH_INDEX_PREFIX": "infoportal"
   }
 }

@@ -13,7 +13,7 @@ public class ElasticsearchClientFactory
         IOptions<ElasticsearchOptions> options,
         ILogger<ElasticsearchClientFactory> logger)
     {
-        var settings = new ElasticsearchClientSettings(new Uri(options.Value.Url));
+        var settings = new ElasticsearchClientSettings(new Uri(options.Value.Endpoint));
 
         if (!string.IsNullOrEmpty(options.Value.ApiKey))
         {
@@ -23,7 +23,7 @@ public class ElasticsearchClientFactory
         settings = settings.RequestTimeout(TimeSpan.FromSeconds(30));
 
         _client = new ElasticsearchClient(settings);
-        logger.LogInformation("Elasticsearch client created for {Url}", options.Value.Url);
+        logger.LogInformation("Elasticsearch client created for {Endpoint}", options.Value.Endpoint);
     }
 
     public ElasticsearchClient GetClient() => _client;

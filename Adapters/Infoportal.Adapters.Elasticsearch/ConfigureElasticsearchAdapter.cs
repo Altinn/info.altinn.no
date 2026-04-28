@@ -10,7 +10,7 @@ public static class ConfigureElasticsearchAdapter
         this IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<ElasticsearchOptions>(
-            configuration.GetSection(nameof(ElasticsearchOptions)));
+            configuration.GetSection("Elasticsearch"));
         services.AddSingleton<ElasticsearchClientFactory>();
         services.AddScoped<ISearchService, ElasticsearchSearchService>();
         return services;
