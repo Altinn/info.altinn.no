@@ -56,24 +56,33 @@ public class ContentPickerPropertyConverter : IPropertyValueConverter
     {
         if (inter != null)
         {
-            string[] uriStrings = inter.ToString().Split(",");
+            string raw = inter.ToString() ?? string.Empty;
+            if (string.IsNullOrEmpty(raw))
+            {
+                return null;
+            }
+            string[] uriStrings = raw.Split(",");
             JsonArray items = [];
 
 
             foreach (string uriString in uriStrings)
             {
-                IPublishedContent content = _publishedContentCache.GetById(new GuidUdi(new Uri(uriString)).Guid);
+                IPublishedContent? content = _publishedContentCache.GetById(new GuidUdi(new Uri(uriString)).Guid);
                 if (content != null)
                 {
                     JsonObject item = new JsonObject()
                     {
                         { "contentType", content.ContentType.Alias},
                         { "name", content.Name }
-                    }; 
+                    };
 
                     foreach (IPublishedProperty property in content.Properties)
                     {
-                        object value = property.GetDeliveryApiValue(true);
+                        object? value = property.GetDeliveryApiValue(true);
+                        if (value is null)
+                        {
+                            continue;
+                        }
                         item.Add(property.Alias, value.ConvertToJsonNode());
                     }
                     items.Add(item);

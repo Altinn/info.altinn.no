@@ -64,8 +64,17 @@ public class RichTextPropertyConverter : IPropertyValueConverter
     {
         if (inter != null)
         {
-            RichTextEditorValue rteValue = _json.Deserialize<RichTextEditorValue>(inter.ToString());
-            return new JsonObject{{"items", ParseRichText(rteValue)}};
+            string raw = inter.ToString() ?? string.Empty;
+            if (string.IsNullOrEmpty(raw))
+            {
+                return null;
+            }
+            RichTextEditorValue? rteValue = _json.Deserialize<RichTextEditorValue>(raw);
+            if (rteValue is null || rteValue.Markup is null)
+            {
+                return null;
+            }
+            return new JsonObject { { "items", ParseRichText(rteValue) } };
         }
         else
         {
@@ -115,7 +124,11 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
     private JsonObject ConvertBlock(Guid guid, RichTextEditorValue rteValue)
     {
-        RichTextBlockValue rteBlockValue = rteValue.Blocks;
+        RichTextBlockValue? rteBlockValue = rteValue.Blocks;
+        if (rteBlockValue is null)
+        {
+            return new JsonObject();
+        }
         foreach (BlockItemData blockItemData in rteBlockValue.ContentData)
         {
             if (blockItemData.Key == guid)
@@ -124,22 +137,30 @@ public class RichTextPropertyConverter : IPropertyValueConverter
                 string pickerName = blockItemData.Values[0].Alias;
                 string blockName = Capitalize(pickerName.Replace("Picker", ""));
                 item.Add("componentName", blockName);
-                
-                Uri uri = new Uri(blockItemData.Values[0].Value.ToString());
 
-                IPublishedContent content = _publishedContentCache.GetById(new GuidUdi(uri).Guid);
-                
+                string? uriString = blockItemData.Values[0].Value?.ToString();
+                if (string.IsNullOrEmpty(uriString))
+                {
+                    return item;
+                }
+                Uri uri = new Uri(uriString);
+
+                IPublishedContent? content = _publishedContentCache.GetById(new GuidUdi(uri).Guid);
+
                 if (content != null)
                 {
                     foreach (IPublishedProperty property in content.Properties)
                     {
-                        object value = property.GetDeliveryApiValue(true);
+                        object? value = property.GetDeliveryApiValue(true);
+                        if (value is null)
+                        {
+                            continue;
+                        }
 
                         if (value is bool v) {
-                            item.Add(property.Alias, v);    
+                            item.Add(property.Alias, v);
                         } else {
-                            
-                            item.Add(property.Alias, JsonSerializer.SerializeToNode(value));    
+                            item.Add(property.Alias, value.ConvertToJsonNode());
                         }
                     }
                 }
