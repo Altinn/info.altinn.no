@@ -3,16 +3,23 @@ import { Alert } from "@altinn/altinn-components";
 const OperationalMessage = ({
   pageName,
   message,
-  // url,
-  // urlText,
-  isCritical
+  mainBody,
+  url,
+  urlText,
+  isCritical,
+  colorVariant,
 }: any) => {
+  const variant = colorVariant || (isCritical ? "danger" : "warning");
+  const body = message ?? mainBody ?? "";
+
   return (
     <Alert
-      variant={isCritical ? "danger" : "warning"}
+      variant={variant}
       heading={pageName || ""}
-      message={message}
-    />
+      message={body}
+    >
+      {url && urlText && <a href={url}>{urlText}</a>}
+    </Alert>
   );
 };
 
