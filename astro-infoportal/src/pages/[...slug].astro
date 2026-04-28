@@ -6,6 +6,7 @@ import { shouldFetchFromOldPortal } from '@api/oldportal/client';
 import AstroSiteLayout from '@layouts/AstroSiteLayout.astro';
 import { JSONTransformer } from '@transformers/JSONTransformer';
 import { getGlobalData } from '@constants/globalData';
+import { pageCacheControl } from '@constants/cache';
 import { buildMetadata } from '@constants/metadata';
 import { resolveEnvironment } from '@api/altinn/environments';
 import type { Locale } from '@i18n/index';
@@ -61,7 +62,7 @@ let globalData: any = getGlobalData(locale, "/sok/", altinnEndpoints, umbracoPag
 const pageData = await new JSONTransformer().Transform(umbracoPageData, globalData);
 const metadata = buildMetadata(umbracoPageData, locale);
 
-Astro.response.headers.set("Cache-Control", "public, max-age=0, s-maxage=86400");
+Astro.response.headers.set("Cache-Control", pageCacheControl(Astro.url.hostname));
 ---
 
 <AstroSiteLayout pageData={pageData} {...metadata} />
