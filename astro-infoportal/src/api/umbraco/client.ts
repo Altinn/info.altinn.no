@@ -51,11 +51,19 @@ export async function fetchUmbracoContent(path: string, culture?: string) {
   return await response.json();
 }
 
-export async function fetchUmbracoChildren(path: string, take = 100, culture?: string) {
+export async function fetchUmbracoChildren(
+  path: string,
+  take = 100,
+  culture?: string,
+  sort?: string,
+) {
   const params = new URLSearchParams({
     fetch: `children:${path}`,
     take: String(take),
   });
+  if (sort) {
+    params.append("sort", sort);
+  }
   const url = deliveryUrl("/umbraco/delivery/api/v2/content", params.toString());
 
   const response = await fetch(url, { headers: cultureHeader(culture) });
@@ -68,6 +76,14 @@ export async function fetchUmbracoChildren(path: string, take = 100, culture?: s
 
   const data = await response.json();
   return data.items ?? [];
+}
+
+export async function fetchUmbracoChildrenInEditorOrder(
+  path: string,
+  take = 100,
+  culture?: string,
+) {
+  return fetchUmbracoChildren(path, take, culture, "sortOrder:asc");
 }
 
 export async function fetchUmbracoAncestors(path: string, culture?: string) {

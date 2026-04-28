@@ -1,5 +1,5 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
-import { fetchUmbracoAncestors, fetchUmbracoChildren, fetchUmbracoContent } from "../api/umbraco/client";
+import { fetchUmbracoAncestors, fetchUmbracoChildrenInEditorOrder, fetchUmbracoContent } from "../api/umbraco/client";
 import { BlockTransformer } from "./BlockTransformer";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
 import type { Locale } from "@i18n/index";
@@ -13,6 +13,16 @@ const articleContentTypes = new Set([
   "schemaPage",
 ]);
 
+const childLinkContentTypes = new Set([
+  "articlePage",
+  "sectionArticlePage",
+]);
+
+const contentTypesWithChildLinks = new Set([
+  "sectionArticlePage",
+  "themeContainerPage",
+]);
+
 export class ThemePageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
     const props = cmsPageData.properties ?? {};
@@ -21,7 +31,7 @@ export class ThemePageTransformer implements IJSONTransformer {
     const ancestors = await fetchUmbracoAncestors(cmsPageData.route.path, locale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
-    const allChildren = await fetchUmbracoChildren(cmsPageData.route.path, 100, locale);
+    const allChildren = await fetchUmbracoChildrenInEditorOrder(cmsPageData.route.path, 100, locale);
     const children = allChildren.filter(
       (c: any) => c.properties?.showInNavigation !== false,
     );
@@ -29,6 +39,7 @@ export class ThemePageTransformer implements IJSONTransformer {
     const themeGroups = await Promise.all(
       children.map(async (child: any) => {
         const isArticle = articleContentTypes.has(child.contentType);
+        const shouldFetchChildLinks = contentTypesWithChildLinks.has(child.contentType);
         let intro = child.properties?.mainIntro ?? null;
         let childPages: any[] = [];
 
@@ -41,10 +52,12 @@ export class ThemePageTransformer implements IJSONTransformer {
           }
         }
 
-        if (!isArticle) {
-          const allChildPages = await fetchUmbracoChildren(child.route.path, 100, locale);
+        if (shouldFetchChildLinks && child.route?.path) {
+          const allChildPages = await fetchUmbracoChildrenInEditorOrder(child.route.path, 100, locale);
           childPages = allChildPages.filter(
-            (c: any) => c.properties?.showInNavigation !== false,
+            (c: any) =>
+              childLinkContentTypes.has(c.contentType) &&
+              c.properties?.showInNavigation !== false,
           );
         }
 
