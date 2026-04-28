@@ -80,6 +80,7 @@ export class JSONTransformer implements IJSONTransformer {
         return new OperationalMessageArchivePageTransformer();
       case "sectionPage":
         return new SectionPageTransformer();
+      case "articlePage":
       case "sectionArticlePage":
       case "newsArticlePage":
         return new HeroArticlePageBaseTransformer();
