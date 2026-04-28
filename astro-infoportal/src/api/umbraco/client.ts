@@ -3,11 +3,44 @@ import { env } from "cloudflare:workers";
 export const UMBRACO_API_URL =
   env.UMBRACO_API_URL || "https://infoportal.at22.dis-core.altinn.cloud/";
 
-export async function fetchUmbracoContent(path: string) {
-  // Uses Umbraco Content Delivery API pattern
-  const url = `${UMBRACO_API_URL}/umbraco/delivery/api/v2/content/item/${path}`;
+console.log("UMBRACO_API_URL in runtime:", UMBRACO_API_URL);
 
-  const response = await fetch(url);
+const CULTURE_MAP: Record<string, string> = {
+  nb: "nb",
+  nn: "nn",
+  en: "en",
+};
+
+function cultureHeader(culture?: string): HeadersInit {
+  const mapped = culture ? CULTURE_MAP[culture] ?? culture : "nb";
+  return { "Accept-Language": mapped };
+}
+
+function trimTrailingSlash(value: string): string {
+  return value.replace(/\/+$/, "");
+}
+
+function normalizeItemPath(path: string): string {
+  const trimmed = path.replace(/^\/+|\/+$/g, "");
+  return trimmed ? `/${trimmed}/` : "/";
+}
+
+function deliveryUrl(pathname: string, search?: string): string {
+  const url = new URL(
+    `${trimTrailingSlash(UMBRACO_API_URL)}${pathname}`,
+  );
+  if (search) {
+    url.search = search;
+  }
+  return url.toString();
+}
+
+export async function fetchUmbracoContent(path: string, culture?: string) {
+  const url = deliveryUrl(
+    `/umbraco/delivery/api/v2/content/item${normalizeItemPath(path)}`,
+  );
+
+  const response = await fetch(url, { headers: cultureHeader(culture) });
 
   if (!response.ok) {
     throw new Error(
@@ -18,10 +51,22 @@ export async function fetchUmbracoContent(path: string) {
   return await response.json();
 }
 
-export async function fetchUmbracoChildren(path: string, take = 100) {
-  const url = `${UMBRACO_API_URL}/umbraco/delivery/api/v2/content?fetch=children:${path}&take=${take}`;
+export async function fetchUmbracoChildren(
+  path: string,
+  take = 100,
+  culture?: string,
+  sort?: string,
+) {
+  const params = new URLSearchParams({
+    fetch: `children:${path}`,
+    take: String(take),
+  });
+  if (sort) {
+    params.append("sort", sort);
+  }
+  const url = deliveryUrl("/umbraco/delivery/api/v2/content", params.toString());
 
-  const response = await fetch(url);
+  const response = await fetch(url, { headers: cultureHeader(culture) });
 
   if (!response.ok) {
     throw new Error(
@@ -33,10 +78,19 @@ export async function fetchUmbracoChildren(path: string, take = 100) {
   return data.items ?? [];
 }
 
-export async function fetchUmbracoAncestors(path: string) {
-  const url = `${UMBRACO_API_URL}/umbraco/delivery/api/v2/content?fetch=ancestors:${path}`;
+export async function fetchUmbracoChildrenInEditorOrder(
+  path: string,
+  take = 100,
+  culture?: string,
+) {
+  return fetchUmbracoChildren(path, take, culture, "sortOrder:asc");
+}
 
-  const response = await fetch(url);
+export async function fetchUmbracoAncestors(path: string, culture?: string) {
+  const params = new URLSearchParams({ fetch: `ancestors:${path}` });
+  const url = deliveryUrl("/umbraco/delivery/api/v2/content", params.toString());
+
+  const response = await fetch(url, { headers: cultureHeader(culture) });
 
   if (!response.ok) {
     throw new Error(
@@ -49,7 +103,11 @@ export async function fetchUmbracoAncestors(path: string) {
 }
 
 export async function fetchUmbracoStartPage(locale?: string) {
-  const url = `${UMBRACO_API_URL}/umbraco/delivery/api/v2/content?filter=contentType:startPage&take=1`;
+  const params = new URLSearchParams({
+    filter: "contentType:startPage",
+    take: "1",
+  });
+  const url = deliveryUrl("/umbraco/delivery/api/v2/content", params.toString());
 
   const headers: Record<string, string> = {};
   if (locale) headers["Accept-Language"] = locale;
@@ -67,10 +125,15 @@ export async function fetchUmbracoRelated(
   contentType: string,
   relation: string,
   value: string,
-) {
-  const url = `${UMBRACO_API_URL}/umbraco/delivery/api/v2/content?fetch=descendants:${path}&filter=contentType:${contentType}&filter=${relation}:${value}&fields=`;
+  culture?: string) {
+  const params = new URLSearchParams();
+  params.append("fetch", `descendants:${path}`);
+  params.append("filter", `contentType:${contentType}`);
+  params.append("filter", `${relation}:${value}`);
+  params.append("fields", "");
+  const url = deliveryUrl("/umbraco/delivery/api/v2/content", params.toString());
 
-  const response = await fetch(url);
+  const response = await fetch(url, { headers: cultureHeader(culture) });
 
   if (!response.ok) {
     throw new Error(

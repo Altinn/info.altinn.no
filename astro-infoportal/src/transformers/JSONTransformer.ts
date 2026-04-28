@@ -16,6 +16,8 @@ import { SearchPageTransformer } from "./SearchPageTransformer";
 import { SubCategoryPageTransformer } from "./SubCategoryPageTransformer";
 import { ProviderPageTransformer } from "./ProviderPageTransformer";
 import { NewsArchivePageTransformer } from "./NewsArchivePageTransformer";
+import { OperationalMessageArticlePageTransformer } from "./OperationalMessageArticlePageTransformer";
+import { OperationalMessageArchivePageTransformer } from "./OperationalMessageArchivePageTransformer";
 
 export class JSONTransformer implements IJSONTransformer {
   public async Transform(umbracoPageData: any, globalData?: any): Promise<any> {
@@ -72,8 +74,13 @@ export class JSONTransformer implements IJSONTransformer {
         return new ProviderPageTransformer();
       case "newsArchivePage":
         return new NewsArchivePageTransformer();        
+      case "operationalMessageArticlePage":
+        return new OperationalMessageArticlePageTransformer();
+      case "operationalMessageArchivePage":
+        return new OperationalMessageArchivePageTransformer();
       case "sectionPage":
         return new SectionPageTransformer();
+      case "articlePage":
       case "sectionArticlePage":
       case "newsArticlePage":
         return new HeroArticlePageBaseTransformer();

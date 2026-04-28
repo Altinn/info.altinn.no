@@ -6,7 +6,7 @@ using Umbraco.Cms.Core.PublishedCache;
 using Umbraco.Cms.Core.Serialization;
 using Umbraco.Cms.Core.Models.Blocks;
 using System.Text.RegularExpressions;
-using uSync.Core.Extensions;
+using System.Text.Json;
 
 // Injecting the IPublishedContentCache for fetching content from the Umbraco cache
 public class RichTextPropertyConverter : IPropertyValueConverter
