@@ -36,7 +36,7 @@ public class ReindexBackgroundJob : IHostedService
     {
         if (Interlocked.CompareExchange(ref _isRunning, 1, 0) != 0)
             return;
-        _status = "running";
+        _status = "starting";
         _processedItems = 0;
         _totalItems = 0;
 
@@ -49,14 +49,23 @@ public class ReindexBackgroundJob : IHostedService
             var searchService = scope.ServiceProvider.GetRequiredService<ISearchService>();
             var extractor = scope.ServiceProvider.GetRequiredService<ContentTextExtractor>();
 
+            _status = "deleting indices";
             foreach (var culture in Cultures)
             {
                 await searchService.DeleteIndexAsync(culture, ct);
+            }
+
+            _status = "creating indices";
+            foreach (var culture in Cultures)
+            {
                 await searchService.EnsureIndexExistsAsync(culture, ct);
             }
 
+            _status = "collecting content";
             var allContent = CollectAllPublishedContent(contentService);
             _totalItems = allContent.Count;
+
+            _status = "indexing";
 
             _logger.LogInformation("Reindexing {TotalItems} content items", _totalItems);
 
