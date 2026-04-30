@@ -34,6 +34,12 @@ resource "azurerm_elastic_cloud_elasticsearch" "search" {
   sku_name                    = var.sku_name
   elastic_cloud_email_address = var.elastic_cloud_email_address
   tags                        = var.tags
+
+  logs {
+    send_activity_logs     = false
+    send_azuread_logs      = false
+    send_subscription_logs = false
+  }
 }
 
 resource "ec_elasticsearch_project" "search" {
