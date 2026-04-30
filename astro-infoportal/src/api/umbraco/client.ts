@@ -3,8 +3,6 @@ import { env } from "cloudflare:workers";
 export const UMBRACO_API_URL =
   env.UMBRACO_API_URL || "https://infoportal.at22.dis-core.altinn.cloud/";
 
-console.log("UMBRACO_API_URL in runtime:", UMBRACO_API_URL);
-
 const CULTURE_MAP: Record<string, string> = {
   nb: "nb",
   nn: "nn",
