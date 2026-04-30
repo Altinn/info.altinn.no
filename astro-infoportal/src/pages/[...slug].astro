@@ -15,6 +15,7 @@ import type { Locale } from '@i18n/index';
 const path = Astro.url.pathname;
 const locale = (Astro.currentLocale || "nb") as Locale;
 const altinnEndpoints = resolveEnvironment(Astro.url.hostname);
+const isLegacyNorwegianRoot = /^\/no\/?$/.test(path);
 
 // Ignore internal Vite/framework paths
 if (
@@ -38,9 +39,10 @@ if (path.startsWith('/api/') || path.match(/\.[a-zA-Z0-9]+$/)) {
 
 
 // On a locale-root URL the requested page IS the startPage — reuse the fetch.
-const isLocaleRoot = /^\/(nn\/?|en\/?)?$/.test(path);
+const isLocaleRoot = isLegacyNorwegianRoot || /^\/(nn\/?|en\/?)?$/.test(path);
+const umbracoPath = isLegacyNorwegianRoot ? "/" : path;
 
-const pagePromise = fetchUmbracoContent(path, locale);
+const pagePromise = fetchUmbracoContent(umbracoPath, locale);
 const startPagePromise = isLocaleRoot ? pagePromise : fetchUmbracoStartPage(locale);
 
 const [pageResult, startPageResult] = await Promise.allSettled([
