@@ -9,16 +9,69 @@
   "observability": {
     "enabled": true
   },
-  "workers_dev": true,
   "preview_urls": true,
-  // Elasticsearch: points at the at22 Elastic Cloud project. The API key
-  // is set as a Cloudflare secret on this Worker (currently named
-  // ELASTICSEARCH_API_KEY_INFOPORTAL_AT22). For local dev override, create
-  // astro-infoportal/.dev.vars (gitignored).
-  // Altinn platform: endpoints resolve from the request hostname (see src/api/altinn/environments.ts).
-  // ALTINN_SUBSCRIPTION_KEY is an optional secret (empty unless APIM gating is enabled).
-  "vars": {
-    "ELASTICSEARCH_URL": "https://infoportal-search-at22-f6bd85.es.germanywestcentral.azure.elastic.cloud",
-    "ELASTICSEARCH_INDEX_PREFIX": "infoportal"
+  "env": {
+    "at22": {
+      "name": "astro-infoportal-at22",
+      "workers_dev": false,
+      "routes": [
+        "info.at22.altinn.cloud/*",
+        {
+          "pattern": "info.at22.altinn.info",
+          "custom_domain": true
+        }
+      ],
+      "vars": {
+        "UMBRACO_API_URL": "https://info.at22.altinn.cloud/",
+        "ELASTICSEARCH_URL": "https://infoportal-search-at22-f6bd85.es.germanywestcentral.azure.elastic.cloud",
+        "ELASTICSEARCH_INDEX_PREFIX": "infoportal"
+      }
+    },
+    "at23": {
+      "name": "astro-infoportal-at23",
+      "workers_dev": false,
+      "routes": [
+        "info.at23.altinn.cloud/*",
+        {
+          "pattern": "info.at23.altinn.info",
+          "custom_domain": true
+        }
+      ],
+      "vars": {
+        "UMBRACO_API_URL": "https://infoportal.at23.dis-core.altinn.cloud/",
+        "ELASTICSEARCH_URL": "https://infoportal-search-at22-f6bd85.es.germanywestcentral.azure.elastic.cloud",
+        "ELASTICSEARCH_INDEX_PREFIX": "infoportal"
+      }
+    },
+    "tt02": {
+      "name": "astro-infoportal-tt02",
+      "workers_dev": false,
+      "routes": [
+        "info.tt02.altinn.no/*",
+        {
+          "pattern": "info.tt02.altinn.info",
+          "custom_domain": true
+        }
+      ],
+      "vars": {
+        "UMBRACO_API_URL": "https://info.tt02.altinn.no/",
+        "ELASTICSEARCH_URL": "https://infoportal-search-tt02-b375ed.es.germanywestcentral.azure.elastic.cloud",
+        "ELASTICSEARCH_INDEX_PREFIX": "infoportal"
+      }
+    },
+    "prod": {
+      "name": "astro-infoportal-prod",
+      "workers_dev": false,
+      "routes": [
+        {
+          "pattern": "infoportal.prod.dis-core.altinn.cloud",
+          "custom_domain": true
+        }
+      ],
+      "vars": {
+        "UMBRACO_API_URL": "https://infoportal.prod.dis-core.altinn.cloud/",
+        "ELASTICSEARCH_INDEX_PREFIX": "infoportal"
+      }
+    }
   }
 }
