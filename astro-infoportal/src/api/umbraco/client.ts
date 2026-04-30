@@ -86,6 +86,33 @@ export async function fetchUmbracoChildrenInEditorOrder(
   return fetchUmbracoChildren(path, take, culture, "sortOrder:asc");
 }
 
+export async function fetchUmbracoContentList(
+  filters: string[],
+  take = 100,
+  culture?: string,
+  sort?: string,
+) {
+  const params = new URLSearchParams({
+    take: String(take),
+  });
+  filters.forEach((filter) => params.append("filter", filter));
+  if (sort) {
+    params.append("sort", sort);
+  }
+  const url = deliveryUrl("/umbraco/delivery/api/v2/content", params.toString());
+
+  const response = await fetch(url, { headers: cultureHeader(culture) });
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch content list from Umbraco: ${response.statusText} ${url}`,
+    );
+  }
+
+  const data = await response.json();
+  return data.items ?? [];
+}
+
 export async function fetchUmbracoAncestors(path: string, culture?: string) {
   const params = new URLSearchParams({ fetch: `ancestors:${path}` });
   const url = deliveryUrl("/umbraco/delivery/api/v2/content", params.toString());
