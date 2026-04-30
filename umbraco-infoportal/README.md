@@ -32,8 +32,11 @@ Search is powered by Elasticsearch. For local development, run Elasticsearch in 
 docker run -d --name elasticsearch -p 9200:9200 -e "discovery.type=single-node" -e "xpack.security.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:9.0.1
 ```
 
-After starting Umbraco, trigger a full reindex to populate the search index:
+After starting Umbraco, trigger a full reindex to populate the search index. The endpoint is part of the Umbraco Management API and requires a backoffice admin user (bearer JWT):
 
 ```
-POST http://localhost:43450/api/search/reindex
+POST http://localhost:43450/umbraco/management/api/v1/search/reindex
+GET  http://localhost:43450/umbraco/management/api/v1/search/reindex/status
 ```
+
+Visible under the "Search" group in `/umbraco/swagger`. To call from Postman, copy the `Authorization: Bearer ...` header from a logged-in backoffice session (DevTools → Network → any management API request).

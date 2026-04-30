@@ -1,0 +1,23 @@
+{
+  "$schema": "../../umbraco-package-schema.json",
+  "name": "Altinn.SearchReindex",
+  "version": "0.1.0",
+  "extensions": [
+    {
+      "type": "dashboard",
+      "alias": "Altinn.Dashboard.SearchReindex",
+      "name": "Search Reindex",
+      "element": "/App_Plugins/SearchReindex/dashboard.js",
+      "elementName": "altinn-search-reindex",
+      "weight": 30,
+      "meta": {
+        "label": "Search Reindex",
+        "pathname": "search-reindex"
+      },
+      "conditions": [
+        { "alias": "Umb.Condition.SectionAlias", "match": "Umb.Section.Settings" },
+        { "alias": "Umb.Condition.CurrentUser.IsAdmin" }
+      ]
+    }
+  ]
+}
