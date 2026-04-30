@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.14.0, < 1.15.0"
+  required_version = ">= 1.14.0"
 
   required_providers {
     azurerm = {
@@ -13,7 +13,10 @@ terraform {
   }
 
   backend "azurerm" {
-    use_azuread_auth = true
+    use_azuread_auth     = true
+    storage_account_name = ""
+    container_name       = ""
+    key                  = ""
   }
 }
 
