@@ -1,5 +1,6 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+namespace: product-infoportal
 resources:
   - ../base
 
@@ -16,6 +17,20 @@ patches:
       - op: add
         path: /spec/tags/env
         value: prod
+  - target:
+      kind: Deployment
+      name: umbraco
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Umbraco__Storage__AzureBlob__Media__ConnectionString
+          value: https://infoportalmediaprodl08r.blob.core.windows.net
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Umbraco__Storage__AzureBlob__Media__ContainerName
+          value: umbraco
   - target:
       kind: HTTPRoute
       name: umbraco
