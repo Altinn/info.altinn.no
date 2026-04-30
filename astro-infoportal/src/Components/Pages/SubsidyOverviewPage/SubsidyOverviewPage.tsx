@@ -65,7 +65,7 @@ const SubsidyOverviewPage = ({
       const purposes: string[] = [];
       const industries: string[] = [];
       tokens.forEach((tok: any) => {
-        const m = /^d(\d+)-(\d+)$/.exec(tok);
+        const m = /^d([12])-(.+)$/.exec(tok);
         if (m) {
           const dim = m[1];
           const id = m[2];
