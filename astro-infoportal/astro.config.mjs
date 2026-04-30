@@ -59,5 +59,18 @@ export default defineConfig({
   integrations: [react({experimentalReactChildren: true})],
   vite: {
     plugins: [viteClientFix()],
+    build: {
+      minify: 'esbuild',
+      cssMinify: 'esbuild',
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              return 'vendor';
+            }
+          },
+        },
+      },
+    },
   },
 });
