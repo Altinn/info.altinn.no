@@ -1,4 +1,4 @@
-name: infoportal-media-sa-at22 deploy
+name: infoportal-media-sa-prod deploy
 
 concurrency:
   group: ${{ github.workflow }}
@@ -9,15 +9,15 @@ on:
     branches:
       - main
     paths:
-      - .github/workflows/infoportal-media-sa-at22.yml
-      - infrastructure/altinn-portaler-test/infoportal-media-sa-at22/**
+      - .github/workflows/infoportal-media-sa-prod.yml
+      - infrastructure/altinn-portaler-prod/infoportal-media-sa-prod/**
       - infrastructure/modules/infoportal-media-sa/**
   pull_request:
     branches:
       - main
     paths:
-      - .github/workflows/infoportal-media-sa-at22.yml
-      - infrastructure/altinn-portaler-test/infoportal-media-sa-at22/**
+      - .github/workflows/infoportal-media-sa-prod.yml
+      - infrastructure/altinn-portaler-prod/infoportal-media-sa-prod/**
       - infrastructure/modules/infoportal-media-sa/**
   workflow_dispatch:
     inputs:
@@ -34,10 +34,10 @@ on:
           - ERROR
 
 env:
-  TF_STATE_NAME: infoportal-media-sa-at22.tfstate
-  WORKING_DIRECTORY: ./infrastructure/altinn-portaler-test/infoportal-media-sa-at22
-  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID_ALTINN_PORTALER_TEST }}
-  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID_ALTINN_PORTALER_TEST }}
+  TF_STATE_NAME: infoportal-media-sa-prod.tfstate
+  WORKING_DIRECTORY: ./infrastructure/altinn-portaler-prod/infoportal-media-sa-prod
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID_ALTINN_PORTALER_PROD }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID_ALTINN_PORTALER_PROD }}
 
 permissions:
   id-token: write
@@ -47,7 +47,7 @@ permissions:
 jobs:
   plan:
     name: Plan
-    environment: test
+    environment: prod
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -58,7 +58,7 @@ jobs:
         with:
           working_directory: ${{ env.WORKING_DIRECTORY }}
           oidc_type: environment
-          oidc_value: test
+          oidc_value: prod
           arm_client_id: ${{ env.ARM_CLIENT_ID }}
           arm_subscription_id: ${{ env.ARM_SUBSCRIPTION_ID }}
           tf_state_name: ${{ env.TF_STATE_NAME }}
@@ -67,7 +67,7 @@ jobs:
 
   deploy:
     name: Deploy
-    environment: test
+    environment: prod
     if: github.ref == 'refs/heads/main'
     needs: plan
     runs-on: ubuntu-latest
@@ -80,7 +80,7 @@ jobs:
         with:
           working_directory: ${{ env.WORKING_DIRECTORY }}
           oidc_type: environment
-          oidc_value: test
+          oidc_value: prod
           arm_client_id: ${{ env.ARM_CLIENT_ID }}
           arm_subscription_id: ${{ env.ARM_SUBSCRIPTION_ID }}
           tf_state_name: ${{ env.TF_STATE_NAME }}
