@@ -24,7 +24,8 @@ public abstract class AbstractRelationFilter : IFilterHandler, IContentIndexHand
         return new FilterOption
         {
             FieldName = FieldName,
-            Values = [filter[(FilterName.Length + 1)..]],
+            Values = filter[(FilterName.Length + 1)..]
+                .Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
             Operator = FilterOperation.Contains
         };
     }
