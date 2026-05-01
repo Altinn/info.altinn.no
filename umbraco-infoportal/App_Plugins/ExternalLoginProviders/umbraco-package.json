@@ -15,7 +15,7 @@
           "color": "default"
         },
         "behavior": {
-          "autoRedirect": false
+          "autoRedirect": true
         },
         "linking": {
           "allowManualLinking": true
