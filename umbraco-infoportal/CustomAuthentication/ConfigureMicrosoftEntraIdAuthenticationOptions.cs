@@ -54,7 +54,7 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
         options.TokenValidationParameters.RoleClaimType =
             "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
 
-        options.SaveTokens = true;
+        options.SaveTokens = false;
 
         options.NonceCookie.SecurePolicy = CookieSecurePolicy.Always;
         options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
