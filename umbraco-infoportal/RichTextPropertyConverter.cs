@@ -92,35 +92,51 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
         while (match.Success)
         {
-            items.Add(new JsonObject
+            string before = markup[0..match.Index];
+            if (!IsEmptyHtml(before))
             {
-                { "html", markup[0..match.Index] },
-                { "componentName", "RichText" }
-            }); 
+                items.Add(new JsonObject
+                {
+                    { "html", before },
+                    { "componentName", "RichText" }
+                });
+            }
 
             Guid blockGuid = Guid.Parse(match.Groups["contentguid"].Value);
             items.Add(ConvertBlock(blockGuid, rteValue));
 
             if (markup.Length > match.Length)
             {
-                markup = markup[(match.Index + match.Length)..];    
+                markup = markup[(match.Index + match.Length)..];
             } else
             {
                 markup = "";
             }
-            
+
             match = Regex.Match(markup, pattern);
         }
 
-        if (markup.Length > 0)
+        if (!IsEmptyHtml(markup))
         {
             items.Add(new JsonObject
             {
                 { "html", markup },
                 { "componentName", "RichText" }
-            }); 
+            });
         }
         return items;
+    }
+
+    private static bool IsEmptyHtml(string? html)
+    {
+        if (string.IsNullOrWhiteSpace(html)) return true;
+        if (Regex.IsMatch(html, "<(img|iframe|video|audio|svg|picture)\\b", RegexOptions.IgnoreCase))
+        {
+            return false;
+        }
+        string stripped = Regex.Replace(html, "<[^>]+>", string.Empty);
+        stripped = stripped.Replace("&nbsp;", " ").Replace("&#160;", " ");
+        return string.IsNullOrWhiteSpace(stripped);
     }
 
     private JsonObject ConvertBlock(Guid guid, RichTextEditorValue rteValue)
