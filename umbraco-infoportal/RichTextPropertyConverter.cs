@@ -8,6 +8,10 @@ using Umbraco.Cms.Core.Models.Blocks;
 using System.Text.RegularExpressions;
 using System.Text.Json;
 using uSync.Core.Extensions;
+using Umbraco.Cms.Core.Models.DeliveryApi;
+using Umbraco.Cms.Core.Models.ContentEditing;
+using Umbraco.Cms.Infrastructure.Migrations.Upgrade.V_15_0_0;
+using Umbraco.Cms.Core.Models;
 
 // Injecting the IPublishedContentCache for fetching content from the Umbraco cache
 public class RichTextPropertyConverter : IPropertyValueConverter
@@ -81,7 +85,6 @@ public class RichTextPropertyConverter : IPropertyValueConverter
                 };
             }
 
-
             RichTextEditorValue? rteValue = _json.Deserialize<RichTextEditorValue>(raw);
 
             if (rteValue is null || rteValue.Markup is null)
@@ -116,7 +119,11 @@ public class RichTextPropertyConverter : IPropertyValueConverter
             }
 
             Guid blockGuid = Guid.Parse(match.Groups["contentguid"].Value);
-            items.Add(ConvertBlock(blockGuid, rteValue));
+            BlockItemData blockItemData = GetBlockItemData(blockGuid, rteValue);
+            BlockPropertyValue blockPropertyValue = blockItemData.Values[0];
+
+            JsonObject jsonObject = ConvertPickerBlock(blockPropertyValue);
+            items.Add(jsonObject);
 
             if (markup.Length > match.Length)
             {
@@ -152,52 +159,84 @@ public class RichTextPropertyConverter : IPropertyValueConverter
         return string.IsNullOrWhiteSpace(stripped);
     }
 
-    private JsonObject ConvertBlock(Guid guid, RichTextEditorValue rteValue)
+    private BlockItemData? GetBlockItemData(Guid guid, RichTextEditorValue rteValue)
     {
         RichTextBlockValue? rteBlockValue = rteValue.Blocks;
         if (rteBlockValue is null)
         {
-            return new JsonObject();
+            return null;
         }
         foreach (BlockItemData blockItemData in rteBlockValue.ContentData)
         {
             if (blockItemData.Key == guid)
             {
-                JsonObject item = new JsonObject();
-                string pickerName = blockItemData.Values[0].Alias;
-                string blockName = Capitalize(pickerName.Replace("Picker", ""));
-                item.Add("componentName", blockName);
-
-                string? uriString = blockItemData.Values[0].Value?.ToString();
-                if (string.IsNullOrEmpty(uriString))
-                {
-                    return item;
-                }
-                Uri uri = new Uri(uriString);
-
-                IPublishedContent? content = _publishedContentCache.GetById(new GuidUdi(uri).Guid);
-
-                if (content != null)
-                {
-                    foreach (IPublishedProperty property in content.Properties)
-                    {
-                        object? value = property.GetDeliveryApiValue(true);
-                        if (value is null)
-                        {
-                            continue;
-                        }
-
-                        if (value is bool v) {
-                            item.Add(property.Alias, v);
-                        } else {
-                            item.Add(property.Alias, value.ConvertToJsonNode());
-                        }
-                    }
-                }
-                return item;
+                return blockItemData;
             }
         }
-        return new JsonObject();
+
+        return null;
+    }
+
+    private JsonObject ConvertPickerBlock(ValueModelBase blockPropertyValue)
+    {
+
+        JsonObject item = new JsonObject();
+        string pickerName = blockPropertyValue.Alias;
+        string blockName = Capitalize(pickerName.Replace("Picker", ""));
+        item.Add("componentName", blockName);
+
+        string? uriString = blockPropertyValue.Value?.ToString();
+        if (string.IsNullOrEmpty(uriString))
+        {
+            return item;
+        }
+        Uri uri = new Uri(uriString);
+
+        IPublishedContent? content = _publishedContentCache.GetById(new GuidUdi(uri).Guid);
+
+        item = AddContentProperties(item, content);
+        return item;
+    }
+
+    private JsonObject AddContentProperties(JsonObject jsonObject, IPublishedContent content)
+    {
+        if (content != null)
+        {
+            foreach (IPublishedProperty property in content.Properties)
+            {
+                object? value = property.GetDeliveryApiValue(true);
+                if (value is null)
+                {
+                    continue;
+                }
+
+                if (value is bool v) {
+                    jsonObject.Add(property.Alias, v);
+                } else if (value is IApiContent[] a)
+                {
+                    JsonArray jsonArray = [];
+                    foreach (IApiContent apiContent in a)
+                    {
+                        jsonArray.Add(ConvertBlock(apiContent));
+                    }
+                    
+                    jsonObject.Add(property.Alias, jsonArray);
+                } else {
+                    jsonObject.Add(property.Alias, value.ConvertToJsonNode());
+                }
+            }
+        }
+
+        return jsonObject;
+    }
+
+    private JsonObject ConvertBlock(IApiContent apiContent)
+    {
+        JsonObject jsonObject = [];
+        jsonObject.Add("componentName", Capitalize(apiContent.ContentType));
+        IPublishedContent? content = _publishedContentCache.GetById(apiContent.Id);
+        jsonObject = AddContentProperties(jsonObject, content);
+        return jsonObject;
     }
 
     private string Capitalize(string value)

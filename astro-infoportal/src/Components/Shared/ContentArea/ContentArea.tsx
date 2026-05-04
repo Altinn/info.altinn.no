@@ -11,6 +11,9 @@ interface GroupedItems {
 
 const ContentArea = ({ items }: ContentAreaProps) => {
   const itemListOfLists: GroupedItems[] = [];
+  if (!items) {
+    return itemListOfLists;
+  }
   for (let i = 0; i < items.length; i++) {
     const currentItem = items[i];
     const newItems: ContentAreaItem[] = [];
