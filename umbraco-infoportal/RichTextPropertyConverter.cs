@@ -26,8 +26,7 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
     // Make sure the Property Value Converter only applies to the RichText property editor
     public bool IsConverter(IPublishedPropertyType propertyType)
-        => false;
-        //=> propertyType.EditorAlias.Equals(Constants.PropertyEditors.Aliases.RichText);
+        => propertyType.EditorAlias.Equals(Constants.PropertyEditors.Aliases.RichText);
 
 
     // We consider the value to be a value only when we have the actual IPublishedContent object,
