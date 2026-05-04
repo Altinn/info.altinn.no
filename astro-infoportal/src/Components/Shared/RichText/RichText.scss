@@ -6,6 +6,10 @@
     margin-bottom: 1.5rem;
   }
 
+  a:not(.heading-anchor) {
+    color: #272F7A;
+  }
+
   h2,
   h3 {
     position: relative;
