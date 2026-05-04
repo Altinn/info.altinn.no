@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Adapters\Infoportal.Adapters.Elasticsearch\Infoportal.Adapters.Elasticsearch.csproj" />
+    <ProjectReference Include="..\..\Adapters\Infoportal.Adapters.Elasticsearch\Infoportal.Adapters.Elasticsearch.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -80,7 +80,7 @@ jobs:
         uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f
         with:
           context: .
-          file: ./umbraco-infoportal/Dockerfile
+          file: ./apps/umbraco-infoportal/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}

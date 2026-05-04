@@ -2,7 +2,7 @@ services:
   umbraco:
     build:
       context: .
-      dockerfile: umbraco-infoportal/Dockerfile
+      dockerfile: apps/umbraco-infoportal/Dockerfile
     container_name: umbraco-infoportal
     restart: unless-stopped
 #    environment:

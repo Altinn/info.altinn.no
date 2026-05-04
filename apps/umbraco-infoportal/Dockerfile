@@ -5,11 +5,11 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["umbraco-infoportal/umbraco-infoportal.csproj", "umbraco-infoportal/"]
+COPY ["apps/umbraco-infoportal/umbraco-infoportal.csproj", "apps/umbraco-infoportal/"]
 COPY ["Adapters/Infoportal.Adapters.Elasticsearch/Infoportal.Adapters.Elasticsearch.csproj", "Adapters/Infoportal.Adapters.Elasticsearch/"]
-RUN dotnet restore "umbraco-infoportal/umbraco-infoportal.csproj"
+RUN dotnet restore "apps/umbraco-infoportal/umbraco-infoportal.csproj"
 COPY . .
-WORKDIR "/src/umbraco-infoportal"
+WORKDIR "/src/apps/umbraco-infoportal"
 RUN dotnet build "umbraco-infoportal.csproj" -c  $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish

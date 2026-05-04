@@ -10,7 +10,7 @@ This is the Umbraco CMS backend for the Altinn infoportal, built with .NET.
 To run the application locally from this folder:
 
 ```bash
-cd umbraco-infoportal
+cd apps/altinn-cms
 dotnet add package SQLitePCLRaw.bundle_e_sqlite3
 dotnet restore
 dotnet build

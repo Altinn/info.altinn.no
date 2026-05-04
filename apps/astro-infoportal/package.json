@@ -19,6 +19,7 @@
     "@digdir/designsystemet-theme": "^1.11.0",
     "@navikt/aksel-icons": "^8.10.2",
     "astro": "^6.1.9",
+    "classnames": "^2.5.1",
     "lodash.debounce": "^4.0.8",
     "message-channel": "^2.0.0",
     "node-html-parser": "^7.1.0",

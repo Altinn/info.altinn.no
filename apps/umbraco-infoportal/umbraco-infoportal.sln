@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "umbraco-infoportal", "umbra
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Adapters", "Adapters", "{09DF2EE5-5FE7-3EC7-59CB-CAD7E0928979}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infoportal.Adapters.Elasticsearch", "..\Adapters\Infoportal.Adapters.Elasticsearch\Infoportal.Adapters.Elasticsearch.csproj", "{78237625-338F-43EC-97A5-40BCA4AE7259}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infoportal.Adapters.Elasticsearch", "..\..\Adapters\Infoportal.Adapters.Elasticsearch\Infoportal.Adapters.Elasticsearch.csproj", "{78237625-338F-43EC-97A5-40BCA4AE7259}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
