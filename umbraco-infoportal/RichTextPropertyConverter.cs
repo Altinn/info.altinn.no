@@ -66,11 +66,23 @@ public class RichTextPropertyConverter : IPropertyValueConverter
         if (inter != null)
         {
             string raw = inter.ToString() ?? string.Empty;
+
             if (string.IsNullOrEmpty(raw))
             {
                 return null;
             }
-            RichTextEditorValue? rteValue = JsonSerializer.Deserialize<RichTextEditorValue>(raw);
+
+
+            if (!raw.StartsWith('{'))
+            {
+                return new RichTextEditorValue()
+                {
+                    Markup = raw
+                };
+            }
+
+
+            RichTextEditorValue? rteValue = _json.Deserialize<RichTextEditorValue>(raw);
 
             if (rteValue is null || rteValue.Markup is null)
             {
