@@ -15,7 +15,7 @@ import type { Locale } from '@i18n/index';
 const path = Astro.url.pathname;
 const locale = (Astro.currentLocale || "nb") as Locale;
 const altinnEndpoints = resolveEnvironment(Astro.url.hostname);
-const isLegacyNorwegianRoot = /^\/no\/?$/.test(path);
+const isNorwegianStartRoot = /^\/(no|nb)\/?$/.test(path);
 
 // Ignore internal Vite/framework paths
 if (
@@ -39,8 +39,8 @@ if (path.startsWith('/api/') || path.match(/\.[a-zA-Z0-9]+$/)) {
 
 
 // On a locale-root URL the requested page IS the startPage — reuse the fetch.
-const isLocaleRoot = isLegacyNorwegianRoot || /^\/(nn\/?|en\/?)?$/.test(path);
-const umbracoPath = isLegacyNorwegianRoot ? "/" : path;
+const isLocaleRoot = isNorwegianStartRoot || /^\/(nn|en)\/?$/.test(path);
+const umbracoPath = isNorwegianStartRoot ? "/" : path;
 
 const pagePromise = fetchUmbracoContent(umbracoPath, locale);
 const startPagePromise = isLocaleRoot ? pagePromise : fetchUmbracoStartPage(locale);
@@ -62,7 +62,10 @@ const startPageData = startPageResult.status === 'fulfilled' ? startPageResult.v
 let globalData: any = getGlobalData(locale, "/sok/", altinnEndpoints, umbracoPageData?.cultures, startPageData, umbracoPageData?.contentType);
 
 const pageData = await new JSONTransformer().Transform(umbracoPageData, globalData);
-const metadata = buildMetadata(umbracoPageData, locale);
+const metadata = {
+  ...buildMetadata(umbracoPageData, locale),
+  ...(isLocaleRoot ? { title: "Altinn - Start" } : {}),
+};
 
 Astro.response.headers.set("Cache-Control", pageCacheControl(Astro.url.hostname));
 ---
