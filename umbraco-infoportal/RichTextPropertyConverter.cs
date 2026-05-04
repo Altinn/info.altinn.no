@@ -26,7 +26,8 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
     // Make sure the Property Value Converter only applies to the RichText property editor
     public bool IsConverter(IPublishedPropertyType propertyType)
-        => propertyType.EditorAlias.Equals(Constants.PropertyEditors.Aliases.RichText);
+        => false;
+        //=> propertyType.EditorAlias.Equals(Constants.PropertyEditors.Aliases.RichText);
 
 
     // We consider the value to be a value only when we have the actual IPublishedContent object,
@@ -70,7 +71,8 @@ public class RichTextPropertyConverter : IPropertyValueConverter
             {
                 return null;
             }
-            RichTextEditorValue? rteValue = _json.Deserialize<RichTextEditorValue>(raw);
+            RichTextEditorValue? rteValue = JsonSerializer.Deserialize<RichTextEditorValue>(raw);
+
             if (rteValue is null || rteValue.Markup is null)
             {
                 return null;
