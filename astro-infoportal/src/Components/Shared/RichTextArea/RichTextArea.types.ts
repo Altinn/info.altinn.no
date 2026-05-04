@@ -5,4 +5,5 @@ export interface RichTextAreaItem {
 
 export interface RichTextAreaProps {
   items: RichTextAreaItem[];
+  addAnchors?: boolean;
 }
