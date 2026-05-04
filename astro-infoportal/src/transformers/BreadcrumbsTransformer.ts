@@ -1,15 +1,20 @@
 export class BreadcrumbsTransformer {
   static Transform(ancestors: any, cmsPageData: any): any {
-    var breadcrumbs = [{
+    const breadcrumbs = [{
       linkItem: {
         text: "Start",
         url: "/",
         componentName: "LinkItem"
       }
     }];
-    
-    ancestors.map((item:any) => {
-      if (item.properties.showInNavigation && item.contentType !== "categoryListPage" && item.contentType !== "startPage") {
+
+    ancestors.forEach((item:any) => {
+      const isBreadcrumbVisible =
+        item.contentType !== "startPage" &&
+        item.contentType !== "themeContainerPage" &&
+        (item.properties?.showInNavigation !== false || item.contentType === "themePage");
+
+      if (isBreadcrumbVisible) {
         breadcrumbs.push({
             linkItem: {
               text: item.name,
