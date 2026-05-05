@@ -8,7 +8,10 @@
     "build": "npm run clean && astro build",
     "dev": "astro dev",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "test:e2e": "playwright test --config=playwright.config.cjs --project=chromium",
+    "test:e2e:ui": "playwright test --config=playwright.config.cjs --ui",
+    "test:e2e:update": "playwright test --config=playwright.config.cjs --project=chromium --update-snapshots"
   },
   "dependencies": {
     "@altinn/altinn-components": "^0.61.2",
@@ -27,14 +30,17 @@
     "react-dom": "^19.2.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.0",
     "@babel/preset-env": "^7.29.2",
     "@babel/preset-react": "^7.28.5",
     "@babel/preset-typescript": "^7.28.5",
     "@biomejs/biome": "^2.4.13",
     "@chromatic-com/storybook": "^5.1.2",
+    "@playwright/test": "1.44.0",
     "@storybook/addon-docs": "^10.3.5",
     "@storybook/addon-onboarding": "^10.3.5",
     "@storybook/react-vite": "^10.3.5",
+    "@types/node": "^22.10.7",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "lint-staged": "^16.4.0",
