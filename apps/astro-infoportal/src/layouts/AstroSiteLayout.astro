@@ -1,8 +1,10 @@
 ---
 import SiteLayout from "../Components/Layout/SiteLayout/SiteLayout";
 import ApplicationInsightsFilterJS from "../bundles/ApplicationInsightsFilterJS.astro";
+import PreviewBanner from "../Components/Shared/PreviewBanner/PreviewBanner.astro";
 
 const { pageData, htmlLanguage, title, canonicalUrl, metaNoIndex, metaDescription, metaKeywords, seoScript, enableAppInsightsFiltering } = Astro.props;
+const isPreview = Astro.url.searchParams.has('preview') || Astro.cookies.has('preview');
 ---
 <!doctype html>
 <html class="ap-profile" lang={htmlLanguage || "nb"}>
@@ -31,5 +33,6 @@ const { pageData, htmlLanguage, title, canonicalUrl, metaNoIndex, metaDescriptio
 </head>
 <body>
     <SiteLayout client:load {...pageData} />
+    {isPreview && <PreviewBanner />}
 </body>
 </html>

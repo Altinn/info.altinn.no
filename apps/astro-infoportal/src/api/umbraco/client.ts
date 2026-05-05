@@ -12,6 +12,7 @@ const CULTURE_MAP: Record<string, string> = {
 
 const client = createDeliveryApiClient({
   baseUrl: UMBRACO_API_URL,
+  apiKey: env.UMBRACO_API_KEY,
   defaultCulture: "nb",
 });
 
@@ -20,8 +21,12 @@ function mapCulture(culture?: string): string | undefined {
   return CULTURE_MAP[culture] ?? culture;
 }
 
-export async function fetchUmbracoContent(path: string, culture?: string) {
-  return client.fetchItem(path, { culture: mapCulture(culture) });
+export async function fetchUmbracoContent(
+  path: string,
+  culture?: string,
+  preview?: boolean,
+) {
+  return client.fetchItem(path, { culture: mapCulture(culture), preview });
 }
 
 export async function fetchUmbracoChildren(
@@ -29,12 +34,14 @@ export async function fetchUmbracoChildren(
   take = 100,
   culture?: string,
   sort?: string,
+  preview?: boolean,
 ) {
   const data = await client.fetchCollection({
     fetch: `children:${path}`,
     take,
     sort,
     culture: mapCulture(culture),
+    preview,
   });
   return data.items ?? [];
 }
@@ -43,8 +50,9 @@ export async function fetchUmbracoChildrenInEditorOrder(
   path: string,
   take = 100,
   culture?: string,
+  preview?: boolean,
 ) {
-  return fetchUmbracoChildren(path, take, culture, "sortOrder:asc");
+  return fetchUmbracoChildren(path, take, culture, "sortOrder:asc", preview);
 }
 
 export async function fetchUmbracoContentList(
@@ -52,30 +60,38 @@ export async function fetchUmbracoContentList(
   take = 100,
   culture?: string,
   sort?: string,
+  preview?: boolean,
 ) {
   const data = await client.fetchCollection({
     filter: filters,
     take,
     sort,
     culture: mapCulture(culture),
+    preview,
   });
   return data.items ?? [];
 }
 
-export async function fetchUmbracoAncestors(path: string, culture?: string) {
+export async function fetchUmbracoAncestors(
+  path: string,
+  culture?: string,
+  preview?: boolean,
+) {
   const data = await client.fetchCollection({
     fetch: `ancestors:${path}`,
     culture: mapCulture(culture),
+    preview,
   });
   return data.items ?? [];
 }
 
-export async function fetchUmbracoStartPage(locale?: string) {
+export async function fetchUmbracoStartPage(locale?: string, preview?: boolean) {
   try {
     const data = await client.fetchCollection({
       filter: "contentType:startPage",
       take: 1,
       culture: locale,
+      preview,
     });
     return data.items?.[0] ?? null;
   } catch {
@@ -89,12 +105,14 @@ export async function fetchUmbracoRelated(
   relation: string,
   value: string,
   culture?: string,
+  preview?: boolean,
 ) {
   const data = await client.fetchCollection({
     fetch: `descendants:${path}`,
     filter: [`contentType:${contentType}`, `${relation}:${value}`],
     fields: "",
     culture: mapCulture(culture),
+    preview,
   });
   return data.items ?? [];
 }

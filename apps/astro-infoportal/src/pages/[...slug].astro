@@ -6,7 +6,6 @@ import { shouldFetchFromOldPortal } from '@api/oldportal/client';
 import AstroSiteLayout from '@layouts/AstroSiteLayout.astro';
 import { JSONTransformer } from '@transformers/JSONTransformer';
 import { getGlobalData } from '@constants/globalData';
-import { pageCacheControl } from '@constants/cache';
 import { buildMetadata } from '@constants/metadata';
 import { resolveEnvironment } from '@api/altinn/environments';
 import type { Locale } from '@i18n/index';
@@ -16,6 +15,7 @@ const path = Astro.url.pathname;
 const locale = (Astro.currentLocale || "nb") as Locale;
 const altinnEndpoints = resolveEnvironment(Astro.url.hostname);
 const isNorwegianStartRoot = /^\/(no|nb)\/?$/.test(path);
+const isPreview = Astro.url.searchParams.has('preview') || Astro.cookies.has('preview');
 
 // Ignore internal Vite/framework paths
 if (
@@ -42,8 +42,8 @@ if (path.startsWith('/api/') || path.match(/\.[a-zA-Z0-9]+$/)) {
 const isLocaleRoot = isNorwegianStartRoot || /^\/(nn|en)\/?$/.test(path);
 const umbracoPath = isNorwegianStartRoot ? "/" : path;
 
-const pagePromise = fetchUmbracoContent(umbracoPath, locale);
-const startPagePromise = isLocaleRoot ? pagePromise : fetchUmbracoStartPage(locale);
+const pagePromise = fetchUmbracoContent(umbracoPath, locale, isPreview);
+const startPagePromise = isLocaleRoot ? pagePromise : fetchUmbracoStartPage(locale, isPreview);
 
 const [pageResult, startPageResult] = await Promise.allSettled([
   pagePromise,
@@ -66,8 +66,6 @@ const metadata = {
   ...buildMetadata(umbracoPageData, locale),
   ...(isLocaleRoot ? { title: "Altinn - Start" } : {}),
 };
-
-Astro.response.headers.set("Cache-Control", pageCacheControl(Astro.url.hostname));
 ---
 
 <AstroSiteLayout pageData={pageData} {...metadata} />

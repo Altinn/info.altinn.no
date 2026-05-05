@@ -1,0 +1,42 @@
+---
+const currentPath = Astro.url.pathname + Astro.url.search;
+const exitHref = `/api/exit-preview?redirect=${encodeURIComponent(currentPath)}`;
+---
+
+<div class="preview-banner" role="status" aria-live="polite">
+  <span class="preview-banner__text">
+    Du ser på en forhåndsvisning av upublisert innhold
+  </span>
+  <a class="preview-banner__exit" href={exitHref}>Avslutt forhåndsvisning</a>
+</div>
+
+<style>
+  .preview-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background-color: #fff4d4;
+    border-top: 2px solid #d9a300;
+    color: #4a3a00;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+
+  .preview-banner__exit {
+    color: #1f4e9c;
+    font-weight: 600;
+    text-decoration: underline;
+  }
+
+  .preview-banner__exit:hover {
+    text-decoration: none;
+  }
+</style>

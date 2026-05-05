@@ -3,19 +3,19 @@ import { fetchUmbracoContent } from '@api/umbraco/client';
 import AstroSiteLayout from '@layouts/AstroSiteLayout.astro';
 import { JSONTransformer } from '@transformers/JSONTransformer';
 import { getGlobalData } from '@constants/globalData';
-import { pageCacheControl } from '@constants/cache';
 import { resolveEnvironment } from '@api/altinn/environments';
 import type { Locale } from '@i18n/index';
 
 const locale = (Astro.currentLocale || "nb") as Locale;
 const altinnEndpoints = resolveEnvironment(Astro.url.hostname);
+const isPreview = Astro.url.searchParams.has('preview') || Astro.cookies.has('preview');
 
 let umbracoPageData: any = null;
 
 // Fetch the correct Umbraco path for the locale
 const umbracoPath = locale === "en" ? "/en/" : "/";
 const [pageResult] = await Promise.allSettled([
-  fetchUmbracoContent(umbracoPath, locale),
+  fetchUmbracoContent(umbracoPath, locale, isPreview),
 ]);
 
 if (pageResult.status === 'rejected') {
@@ -39,8 +39,6 @@ const globalData: any = getGlobalData(
 );
 
 const pageData = await new JSONTransformer().Transform(umbracoPageData, globalData);
-
-Astro.response.headers.set("Cache-Control", pageCacheControl(Astro.url.hostname));
 ---
 
 <AstroSiteLayout pageData={pageData} />
