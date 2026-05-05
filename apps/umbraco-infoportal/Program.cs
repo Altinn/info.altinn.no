@@ -43,8 +43,6 @@ builder.CreateUmbracoBuilder()
     .AddWebsite()
     .AddDeliveryApi()
     .AddComposers()
-    .AddAzureBlobMediaFileSystem()
-    .AddAzureBlobImageSharpCache()     
     .Build();
 
 WebApplication app = builder.Build();
