@@ -5,6 +5,7 @@ using Elastic.Clients.Elasticsearch.IndexManagement;
 using Elastic.Clients.Elasticsearch.Mapping;
 using Elastic.Clients.Elasticsearch.QueryDsl;
 using Infoportal.Adapters.Elasticsearch.Models;
+using Infoportal.Adapters.Elasticsearch.Resources;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -23,20 +24,27 @@ public class ElasticsearchSearchService : ISearchService
     // Consider moving to appsettings.json or a separate config when fine-tuning is needed.
     private static readonly Fields SearchFields = new[] { "title^3", "ingress^2", "body" };
 
-    // Ported from Optimizely Find synonym export. Solr format, unidirectional (=>).
-    // Applied at search time via a custom search_analyzer, so changes don't require reindex.
+    // Solr-format synonyms loaded from an embedded text resource.
+    // Includes one-way entries (a => b) ported from Optimizely Find,
+    // plus bidirectional Bokmål⇄Nynorsk pairs (a, b) that replicate
+    // the cross-variant equivalence Optimizely Search & Navigation
+    // does internally in its bundled Norwegian analyzer.
+    // Applied at search time via a custom search_analyzer, so changes
+    // don't require reindex (only an index settings update or recreate).
     private static readonly string[] NorwegianSynonyms =
-    [
-        "aksjebok => aksjeeierbok",
-        "bakgrunnsjekk => søknad om bakgrunnssjekk",
-        "frikort => skattekort",
-        "fylkesmann => statsforvalter, statsforvalteren",
-        "samordnet registermelding => samordnet registreringsmelding",
-        "vergeregnskap => fullstendighetserklæring",
-    ];
+        EmbeddedResource.LoadLines("norwegian_synonyms.txt");
+
+    // Norwegian compound-word components for the dictionary_decompounder filter.
+    // Applied at index time so "rånestasjon" is indexed as
+    // [rånestasjon, råne, stasjon] when both "råne" and "stasjon" are listed.
+    // Iterate by adding entries when search misses are observed.
+    private static readonly string[] NorwegianWordList =
+        EmbeddedResource.LoadLines("norwegian_words.txt");
 
     private const string NorwegianSynonymAnalyzer = "norwegian_synonym";
     private const string NorwegianSynonymFilter = "norwegian_synonym_filter";
+    private const string NorwegianIndexAnalyzer = "norwegian_index";
+    private const string NorwegianDecompounderFilter = "norwegian_decompounder";
 
     // Whitespace + lowercase only — preserves dialect/inflected variants exactly
     // (e.g. "sjølmeldinga" does not stem to "sjølmeld"). Applied to the
@@ -83,6 +91,8 @@ public class ElasticsearchSearchService : ISearchService
             var analyzerName = GetAnalyzerName(culture);
             var isNorwegian = IsNorwegian(culture);
             var searchAnalyzerName = isNorwegian ? NorwegianSynonymAnalyzer : analyzerName;
+            // For Norwegian, index time uses the decompounder analyzer so compound
+            var indexAnalyzerName = isNorwegian ? NorwegianIndexAnalyzer : analyzerName;
 
             var createResponse = await _client.Indices.CreateAsync(indexName, c =>
             {
@@ -93,9 +103,9 @@ public class ElasticsearchSearchService : ISearchService
                         .Keyword("id")
                         .IntegerNumber("contentId")
                         .Keyword("contentGuid")
-                        .Text("title", t => t.Analyzer(analyzerName).SearchAnalyzer(searchAnalyzerName))
-                        .Text("ingress", t => t.Analyzer(analyzerName).SearchAnalyzer(searchAnalyzerName))
-                        .Text("body", t => t.Analyzer(analyzerName).SearchAnalyzer(searchAnalyzerName))
+                        .Text("title", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
+                        .Text("ingress", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
+                        .Text("body", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
                         .Text("bestBetTriggers", t => t.Analyzer(BestBetTriggersAnalyzer).SearchAnalyzer(BestBetTriggersAnalyzer))
                         .Keyword("url")
                         .Keyword("contentType")
@@ -174,6 +184,13 @@ public class ElasticsearchSearchService : ISearchService
             {
                 Language = "norwegian",
             };
+            tokenFilters[NorwegianDecompounderFilter] = new DictionaryDecompounderTokenFilter
+            {
+                WordList = NorwegianWordList,
+                MinSubwordSize = 4,
+                MinWordSize = 6,
+                OnlyLongestMatch = true,
+            };
 
             analyzers[NorwegianSynonymAnalyzer] = new CustomAnalyzer
             {
@@ -182,6 +199,18 @@ public class ElasticsearchSearchService : ISearchService
                 [
                     "lowercase",
                     NorwegianSynonymFilter,
+                    "norwegian_stop_filter",
+                    "norwegian_stemmer_filter",
+                ],
+            };
+
+            analyzers[NorwegianIndexAnalyzer] = new CustomAnalyzer
+            {
+                Tokenizer = "standard",
+                Filter =
+                [
+                    "lowercase",
+                    NorwegianDecompounderFilter,
                     "norwegian_stop_filter",
                     "norwegian_stemmer_filter",
                 ],
@@ -277,12 +306,26 @@ public class ElasticsearchSearchService : ISearchService
 
                 // TODO: Freshness decay — ES function_score with decay functions on publishDate.
 
-                // Base query: full-text match (aggregations run on this, unfiltered by context)
+                // Base query: full-text match (aggregations run on this, unfiltered by context).
+                //
+                // Operator AND — matches legacy Optimizely Find behavior
+                // (FindExtensions.cs called .WithAndAsDefaultOperator()). With the ES
+                // default OR, "råne stasjon" would match any doc containing either
+                // term, letting loan pages that mention e.g. "tankstasjon" surface
+                // incorrectly.
+                //
+                // No fuzziness — also matches legacy. Fuzziness("AUTO") let the r→l
+                // substitution match "råne" against "låne" → stems to "lån" → matched
+                // pages like "boliglån" via the decompounder. Re-enable only with care
+                // (e.g. AUTO:5,8 plus PrefixLength=1) if typo tolerance is needed later.
+                //
+                // Note: user-facing search runs through the Astro frontend's
+                // SearchService.ts. Keep these two query bodies in sync.
                 s.Query(q => q.MultiMatch(mm => mm
                     .Query(query)
                     .Fields(SearchFields)
                     .Type(TextQueryType.BestFields)
-                    .Fuzziness(new Fuzziness("AUTO"))
+                    .Operator(Operator.And)
                 ));
 
                 // Context filter applied via post_filter so aggregations count across ALL contexts
