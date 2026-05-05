@@ -27,7 +27,8 @@
     "message-channel": "^2.0.0",
     "node-html-parser": "^7.1.0",
     "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "react-dom": "^19.2.5",
+    "@portals/umbraco-client": "workspace:*"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",
