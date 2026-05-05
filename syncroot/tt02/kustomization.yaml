@@ -24,6 +24,16 @@ patches:
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
+          name: Umbraco__Storage__AzureBlob__Media__ConnectionString
+          value: https://infoportalmediatt02q9ew.blob.core.windows.net
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Umbraco__Storage__AzureBlob__Media__ContainerName
+          value: umbraco
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
           name: Elasticsearch__Endpoint
           valueFrom:
             secretKeyRef:
