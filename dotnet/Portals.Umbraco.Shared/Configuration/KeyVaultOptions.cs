@@ -1,4 +1,4 @@
-namespace umbraco_infoportal.Options;
+namespace Portals.Shared.Configuration;
 
 public class KeyVaultOptions
 {
