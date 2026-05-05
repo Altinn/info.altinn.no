@@ -1,13 +1,11 @@
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using Umbraco.Cms.Api.Management.Security;
 
-namespace umbraco_infoportal.CustomAuthentication;
+namespace Portals.Shared.CustomAuthentication;
 
-/// <summary>
-/// Configures OpenID Connect options for Microsoft Entra ID authentication.
-/// </summary>
 public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOptions<OpenIdConnectOptions>
 {
     private readonly IConfiguration _configuration;
@@ -30,7 +28,7 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
 
         var callbackPath = _configuration["MicrosoftEntraId:CallbackPath"]
             ?? throw new Exception("Missing MicrosoftEntraId:CallbackPath");
-            
+
         options.CallbackPath = callbackPath;
         options.ClientId = clientId;
         options.ClientSecret = clientSecret;
@@ -46,10 +44,6 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
 
         options.GetClaimsFromUserInfoEndpoint = true;
 
-        // map groups 
-        //options.ClaimActions.MapJsonKey("groups", "groups");
-
-        // Set claim types to match what Entra ID provides
         options.TokenValidationParameters.NameClaimType = "name";
         options.TokenValidationParameters.RoleClaimType =
             "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
@@ -62,7 +56,7 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
 
     public void Configure(string? name, OpenIdConnectOptions options)
     {
-        if (name == Umbraco.Cms.Api.Management.Security.BackOfficeAuthenticationBuilder.SchemeForBackOffice(
+        if (name == BackOfficeAuthenticationBuilder.SchemeForBackOffice(
                 MicrosoftEntraIdBackOfficeExternalLoginProviderOptions.SchemeName))
         {
             Configure(options);

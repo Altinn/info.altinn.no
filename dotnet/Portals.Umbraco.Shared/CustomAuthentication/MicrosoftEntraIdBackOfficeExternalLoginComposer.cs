@@ -1,13 +1,12 @@
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Umbraco.Cms.Api.Management.Security;
 using Umbraco.Cms.Core.Composing;
+using Umbraco.Cms.Core.DependencyInjection;
+using Umbraco.Extensions;
 
-namespace umbraco_infoportal.CustomAuthentication;
+namespace Portals.Shared.CustomAuthentication;
 
-/// <summary>
-/// Composer for registering Microsoft Entra ID authentication in Umbraco backoffice.
-/// </summary>
 public class MicrosoftEntraIdBackOfficeExternalLoginComposer : IComposer
 {
     public void Compose(IUmbracoBuilder builder)
@@ -55,7 +54,7 @@ public class MicrosoftEntraIdBackOfficeExternalLoginComposer : IComposer
                         schemeName,
                         options =>
                         {
-                            // Config handled elsewhere
+                            // Config handled in ConfigureMicrosoftEntraIdAuthenticationOptions.
                         });
                 });
         });

@@ -5,9 +5,11 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "umbraco-infoportal", "umbraco-infoportal.csproj", "{85D47CFC-FA93-D03F-A3C2-816B53EC1A24}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Adapters", "Adapters", "{09DF2EE5-5FE7-3EC7-59CB-CAD7E0928979}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "dotnet", "dotnet", "{09DF2EE5-5FE7-3EC7-59CB-CAD7E0928979}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infoportal.Adapters.Elasticsearch", "..\..\Adapters\Infoportal.Adapters.Elasticsearch\Infoportal.Adapters.Elasticsearch.csproj", "{78237625-338F-43EC-97A5-40BCA4AE7259}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infoportal.Adapters.Elasticsearch", "..\..\dotnet\Infoportal.Adapters.Elasticsearch\Infoportal.Adapters.Elasticsearch.csproj", "{78237625-338F-43EC-97A5-40BCA4AE7259}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Portals.Umbraco.Shared", "..\..\dotnet\Portals.Umbraco.Shared\Portals.Umbraco.Shared.csproj", "{C2D7E0A1-9B4F-4E62-AB12-B3C4D5E6F7A8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,12 +45,25 @@ Global
 		{78237625-338F-43EC-97A5-40BCA4AE7259}.Release|x64.Build.0 = Release|Any CPU
 		{78237625-338F-43EC-97A5-40BCA4AE7259}.Release|x86.ActiveCfg = Release|Any CPU
 		{78237625-338F-43EC-97A5-40BCA4AE7259}.Release|x86.Build.0 = Release|Any CPU
+		{C2D7E0A1-9B4F-4E62-AB12-B3C4D5E6F7A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2D7E0A1-9B4F-4E62-AB12-B3C4D5E6F7A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2D7E0A1-9B4F-4E62-AB12-B3C4D5E6F7A8}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C2D7E0A1-9B4F-4E62-AB12-B3C4D5E6F7A8}.Debug|x64.Build.0 = Debug|Any CPU
+		{C2D7E0A1-9B4F-4E62-AB12-B3C4D5E6F7A8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C2D7E0A1-9B4F-4E62-AB12-B3C4D5E6F7A8}.Debug|x86.Build.0 = Debug|Any CPU
+		{C2D7E0A1-9B4F-4E62-AB12-B3C4D5E6F7A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2D7E0A1-9B4F-4E62-AB12-B3C4D5E6F7A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2D7E0A1-9B4F-4E62-AB12-B3C4D5E6F7A8}.Release|x64.ActiveCfg = Release|Any CPU
+		{C2D7E0A1-9B4F-4E62-AB12-B3C4D5E6F7A8}.Release|x64.Build.0 = Release|Any CPU
+		{C2D7E0A1-9B4F-4E62-AB12-B3C4D5E6F7A8}.Release|x86.ActiveCfg = Release|Any CPU
+		{C2D7E0A1-9B4F-4E62-AB12-B3C4D5E6F7A8}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{78237625-338F-43EC-97A5-40BCA4AE7259} = {09DF2EE5-5FE7-3EC7-59CB-CAD7E0928979}
+		{C2D7E0A1-9B4F-4E62-AB12-B3C4D5E6F7A8} = {09DF2EE5-5FE7-3EC7-59CB-CAD7E0928979}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0846C578-5E14-455C-8781-4E397A28697E}

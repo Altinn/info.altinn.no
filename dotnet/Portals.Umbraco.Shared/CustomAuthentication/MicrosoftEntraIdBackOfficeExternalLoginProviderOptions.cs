@@ -1,16 +1,21 @@
+using System.Security.Claims;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Umbraco.Cms.Api.Management.Security;
 using Umbraco.Cms.Core;
-using System.Security.Claims;
 
-namespace umbraco_infoportal.CustomAuthentication;
+namespace Portals.Shared.CustomAuthentication;
 
-/// <summary>
-/// Configuration options for Microsoft Entra ID (Azure AD) backoffice external login provider.
-/// </summary>
 public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigureNamedOptions<BackOfficeExternalLoginProviderOptions>
 {
     public const string SchemeName = "MicrosoftEntraId";
+
+    private readonly IConfiguration _configuration;
+
+    public MicrosoftEntraIdBackOfficeExternalLoginProviderOptions(IConfiguration configuration)
+    {
+        _configuration = configuration;
+    }
 
     public void Configure(string? name, BackOfficeExternalLoginProviderOptions options)
     {
@@ -24,6 +29,12 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
 
     public void Configure(BackOfficeExternalLoginProviderOptions options)
     {
+        var roleMappings = _configuration
+            .GetSection("MicrosoftEntraId:RoleMappings")
+            .Get<List<EntraRoleMapping>>() ?? new List<EntraRoleMapping>();
+
+        var defaultGroup = _configuration["MicrosoftEntraId:DefaultUmbracoGroup"];
+
         options.AutoLinkOptions = new ExternalSignInAutoLinkOptions(
             autoLinkExternalAccount: true,
             defaultUserGroups: Array.Empty<string>(),
@@ -42,38 +53,30 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
 
             OnExternalLogin = (user, loginInfo) =>
             {
-                // Sync navn
                 var nameClaim = loginInfo.Principal.FindFirst("name");
                 if (nameClaim != null)
                 {
                     user.Name = nameClaim.Value;
                 }
 
-                // Hent App Roles fra Entra
                 var roles = loginInfo.Principal
                     .FindAll(ClaimTypes.Role)
                     .Select(r => r.Value)
+                    .ToHashSet();
+
+                var mappedGroups = roleMappings
+                    .Where(m => !string.IsNullOrWhiteSpace(m.EntraRole)
+                        && !string.IsNullOrWhiteSpace(m.UmbracoGroup)
+                        && roles.Contains(m.EntraRole!))
+                    .Select(m => m.UmbracoGroup!)
+                    .Distinct()
                     .ToList();
 
-                var mappedGroups = new List<string>();
-
-                //  Mapping: App Role til Umbraco gruppe
-                if (roles.Contains("umbraco-admin"))
-                    mappedGroups.Add("admin");
-
-                if (roles.Contains("umbraco-editor-startogdrive"))
-                    mappedGroups.Add("editorStarteOgDrive");
-
-                if (roles.Contains("umbraco-editor-nyheter"))
-                    mappedGroups.Add("editorNyheter");
-
-                // Writer rolle om ingen andre er spesifisert
-                if (!mappedGroups.Any())
+                if (mappedGroups.Count == 0 && !string.IsNullOrWhiteSpace(defaultGroup))
                 {
-                    mappedGroups.Add("writer");
+                    mappedGroups.Add(defaultGroup);
                 }
 
-                // Sett roller i Umbraco
                 user.Roles.Clear();
                 foreach (var group in mappedGroups)
                 {
@@ -85,5 +88,11 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
         };
 
         options.DenyLocalLogin = false;
+    }
+
+    public sealed class EntraRoleMapping
+    {
+        public string? EntraRole { get; set; }
+        public string? UmbracoGroup { get; set; }
     }
 }
