@@ -16,16 +16,6 @@ export class SchemaPageTransformer implements IJSONTransformer {
     const ancestors = await fetchUmbracoAncestors(cmsPageData.route.path);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
-    const accordianList = props.accordianList?.length
-      ? {
-          items: props.accordianList.map((item: any) => ({
-            translatedHeading: item.name,
-            description: item.description,
-            componentName: "SchemaAccordianBlock",
-          })),
-        }
-      : undefined;
-
     const mainBody = props.mainIntro?.items?.length
       ? {
           items: props.mainIntro.items.map((item: any) => ({
@@ -50,6 +40,10 @@ export class SchemaPageTransformer implements IJSONTransformer {
         shallowLinkText = t("schema.shallowLink", locale);
       }
     }
+    
+    props.accordianList.items.forEach(item => {
+       item.translatedHeading = t(item.translatedHeading, locale)
+    });
 
     const isCounty = !!props.areThereCounties;
     const hasMunicipalityOrCounty = props.areThereMunicipalities || isCounty;
@@ -63,7 +57,7 @@ export class SchemaPageTransformer implements IJSONTransformer {
       startSchemaLink: props.deeplink || undefined,
       startSchemaLinkText: t("schema.startSchema", locale),
       buttonInboxText: t("schema.buttonInbox", locale),
-      accordianList,
+      accordianList: props.accordianList,
       providerPages: props.providerPages || [],
       preInstansiated: props.preInstansiated || false,
       schemaNotInUse: props.schemaNotInUse || false,
