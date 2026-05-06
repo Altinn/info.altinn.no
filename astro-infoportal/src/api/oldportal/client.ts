@@ -1,7 +1,7 @@
 import { env } from "cloudflare:workers";
 
 export async function fetchFromOldPortal(path: string) {
-  const url = `https://prod.info.altinn.no${path}`;
+  const url = `${env.OLD_PORTAL}${path}`;
   const response = await fetch(url);
 
   if (!response.ok) {

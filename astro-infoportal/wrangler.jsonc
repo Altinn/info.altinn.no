@@ -1,77 +1,66 @@
 {
-  "name": "astro-infoportal",
-  "compatibility_date": "2026-02-24",
-  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
-  "assets": {
-    "binding": "ASSETS",
-    "directory": "./dist"
+	"name": "astro-infoportal",
+	"compatibility_date": "2026-05-01",
+	"compatibility_flags": [
+		"nodejs_compat",
+		"global_fetch_strictly_public"
+	],
+	"observability": {
+		"enabled": true
+	},
+	"assets": {
+		"binding": "ASSETS",
+		"directory": "./dist"
+	},
+	"preview_urls": false,
+	"workers_dev": false,
+  "vars": {
+    "UMBRACO_API_URL": "https://infoportal.tt02.dis-core.altinn.cloud/",
+    "ELASTICSEARCH_URL": "https://infoportal-search-tt02-ec939c.es.germanywestcentral.azure.elastic.cloud",
+    "ELASTICSEARCH_INDEX_PREFIX": "infoportal",
+    "PAGES_FROM_OLD_PORTAL": "/hjelp,/nn/hjelp,/en/help,/om-altinn,/en/about-altinn,/nn/om-altinn,/inforportalapi/,/ui,/starte-og-drive/starte/guider,/skjemaoversikt,/en/forms-overview/,/nn/skjemaoversikt",
+    "OLD_PORTAL": "https://prep.info.altinn.no"
   },
-  "observability": {
-    "enabled": true
-  },
-  "preview_urls": true,
   "env": {
-    "at22": {
-      "name": "astro-infoportal-at22",
-      "workers_dev": false,
-      "routes": [
-        "info.at22.altinn.cloud/*",
-        {
-          "pattern": "info.at22.altinn.info",
-          "custom_domain": true
-        }
-      ],
-      "vars": {
-        "UMBRACO_API_URL": "https://info.at22.altinn.cloud/",
-        "ELASTICSEARCH_URL": "https://infoportal-search-at22-f6bd85.es.germanywestcentral.azure.elastic.cloud",
-        "ELASTICSEARCH_INDEX_PREFIX": "infoportal"
+		"prod": {
+			"name": "astro-infoportal-prod",
+			"vars": {
+				"UMBRACO_API_URL": "https://infoportal.prod.dis-core.altinn.cloud/",
+				"ELASTICSEARCH_URL": "https://infoportal-search-at22-f6bd85.es.germanywestcentral.azure.elastic.cloud",
+				"ELASTICSEARCH_INDEX_PREFIX": "infoportal",
+				"PAGES_FROM_OLD_PORTAL": "/hjelp,/nn/hjelp,/en/help,/om-altinn,/en/about-altinn,/nn/om-altinn,/inforportalapi/,/ui,/starte-og-drive/starte/guider",
+        "OLD_PORTAL": "https://prod.info.altinn.no"
       }
-    },
-    "at23": {
-      "name": "astro-infoportal-at23",
-      "workers_dev": false,
-      "routes": [
-        "info.at23.altinn.cloud/*",
-        {
-          "pattern": "info.at23.altinn.info",
-          "custom_domain": true
-        }
-      ],
-      "vars": {
-        "UMBRACO_API_URL": "https://infoportal.at23.dis-core.altinn.cloud/",
-        "ELASTICSEARCH_URL": "https://infoportal-search-at22-f6bd85.es.germanywestcentral.azure.elastic.cloud",
-        "ELASTICSEARCH_INDEX_PREFIX": "infoportal"
+		},
+		"at22": {
+			"name": "astro-infoportal-at22",
+			"vars": {
+				"UMBRACO_API_URL": "https://infoportal.at22.dis-core.altinn.cloud/",
+				"ELASTICSEARCH_URL": "https://infoportal-search-at22-f6bd85.es.germanywestcentral.azure.elastic.cloud",
+				"ELASTICSEARCH_INDEX_PREFIX": "infoportal",
+				"PAGES_FROM_OLD_PORTAL": "/hjelp,/nn/hjelp,/en/help,/om-altinn,/en/about-altinn,/nn/om-altinn,/inforportalapi/,/ui,/starte-og-drive/starte/guider",
+        "OLD_PORTAL": "https://inte.info.altinn.no"
       }
-    },
-    "tt02": {
-      "name": "astro-infoportal-tt02",
-      "workers_dev": false,
-      "routes": [
-        "info.tt02.altinn.no/*",
-        {
-          "pattern": "info.tt02.altinn.info",
-          "custom_domain": true
-        }
-      ],
-      "vars": {
-        "UMBRACO_API_URL": "https://info.tt02.altinn.no/",
-        "ELASTICSEARCH_URL": "https://infoportal-search-tt02-b375ed.es.germanywestcentral.azure.elastic.cloud",
-        "ELASTICSEARCH_INDEX_PREFIX": "infoportal"
-      }
-    },
-    "prod": {
-      "name": "astro-infoportal-prod",
-      "workers_dev": false,
-      "routes": [
-        {
-          "pattern": "infoportal.prod.dis-core.altinn.cloud",
-          "custom_domain": true
-        }
-      ],
-      "vars": {
-        "UMBRACO_API_URL": "https://infoportal.prod.dis-core.altinn.cloud/",
-        "ELASTICSEARCH_INDEX_PREFIX": "infoportal"
-      }
-    }
-  }
+		},
+		"at23": {
+			"name": "astro-infoportal-at23",
+			"vars": {
+				"UMBRACO_API_URL": "https://infoportal.at23.dis-core.altinn.cloud/",
+				"ELASTICSEARCH_URL": "https://infoportal-search-at22-f6bd85.es.germanywestcentral.azure.elastic.cloud",
+				"ELASTICSEARCH_INDEX_PREFIX": "infoportal",
+				"PAGES_FROM_OLD_PORTAL": "/hjelp,/nn/hjelp,/en/help,/om-altinn,/en/about-altinn,/nn/om-altinn,/inforportalapi/,/ui,/starte-og-drive/starte/guider",
+        "OLD_PORTAL": "https://inte.info.altinn.no"
+			}
+		},
+		"tt02": {
+			"name": "astro-infoportal-tt02",
+			"vars": {
+				"UMBRACO_API_URL": "https://infoportal.tt02.dis-core.altinn.cloud/",
+				"ELASTICSEARCH_URL": "https://infoportal-search-tt02-ec939c.es.germanywestcentral.azure.elastic.cloud",
+				"ELASTICSEARCH_INDEX_PREFIX": "infoportal",
+				"PAGES_FROM_OLD_PORTAL": "/hjelp,/nn/hjelp,/en/help,/om-altinn,/en/about-altinn,/nn/om-altinn,/inforportalapi/,/ui,/starte-og-drive/starte/guider,/skjemaoversikt,/en/forms-overview/,/nn/skjemaoversikt",
+        "OLD_PORTAL": "https://prep.info.altinn.no"
+			}
+		}
+	}
 }
