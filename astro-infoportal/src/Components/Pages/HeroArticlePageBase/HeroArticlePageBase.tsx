@@ -45,7 +45,11 @@ const HeroArticlePageBase = ({
         {lastUpdateText && <Divider />}
       </ArticleHeader>
 
-      {mainBody && <RichTextArea {...mainBody} />}
+      {mainBody && (
+        <Typography as="div">
+          <RichTextArea {...mainBody} />
+        </Typography>
+      )}
 
       {hasTimeline && (
         <Section align="start" spacing={4}>
@@ -59,7 +63,10 @@ const HeroArticlePageBase = ({
                   </DsLink>
                 );
                 return (
-                  <div className="timeline-header-custom" key={`timeline-nav-${i}`}>
+                  <div
+                    className="timeline-header-custom"
+                    key={`timeline-nav-${i}`}
+                  >
                     {i !== timeline.length - 1 ? (
                       <TimelineSegment
                         border="solid"
@@ -96,9 +103,7 @@ const HeroArticlePageBase = ({
                 >
                   <div className="timeline-item__title">
                     <span className="timeline-item__circle">{i + 1}</span>
-                    <h3 className="timeline-item__heading">
-                      {item.heading}
-                    </h3>
+                    <h3 className="timeline-item__heading">{item.heading}</h3>
                   </div>
                   {item.content && <ContentArea {...item.content} />}
                 </Section>
