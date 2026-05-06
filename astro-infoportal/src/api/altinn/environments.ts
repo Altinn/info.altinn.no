@@ -52,6 +52,14 @@ export const ENVIRONMENTS: EnvironmentDefinition[] = [
     hostBaseUrl: "https://at23.altinn.cloud/",
   },
   {
+    key: "prep",
+    hostnamePattern: "prep.info",
+    platformBaseUrl: "https://platform.tt02.altinn.no",
+    afBaseUrl: "https://af.tt02.altinn.no",
+    amUiBaseUrl: "https://am.ui.tt02.altinn.no",
+    hostBaseUrl: "https://tt02.altinn.no/",
+  },
+  {
     key: "at24",
     hostnamePattern: "at24",
     platformBaseUrl: "https://platform.at24.altinn.cloud",
