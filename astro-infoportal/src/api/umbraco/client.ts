@@ -18,6 +18,23 @@ function trimTrailingSlash(value: string): string {
   return value.replace(/\/+$/, "");
 }
 
+export function resolveUmbracoPublicUrl(baseUrl = UMBRACO_API_URL): string {
+  const normalizedBaseUrl = trimTrailingSlash(baseUrl);
+  const url = new URL(normalizedBaseUrl);
+  const host = url.hostname.toLowerCase();
+  const envMatch = host.match(/^infoportal\.(at\d+)\.dis-core\.altinn\.cloud$/);
+
+  if (envMatch) {
+    return `https://info.${envMatch[1]}.altinn.cloud/`;
+  }
+
+  if (host === "infoportal.prod.dis-core.altinn.cloud") {
+    return "https://info.altinn.no/";
+  }
+
+  return `${url.origin}/`;
+}
+
 function normalizeItemPath(path: string): string {
   const trimmed = path.replace(/^\/+|\/+$/g, "");
   return trimmed ? `/${trimmed}/` : "/";
