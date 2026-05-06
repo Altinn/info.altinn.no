@@ -92,6 +92,7 @@ export class SubCategoryPageTransformer implements IJSONTransformer {
       promoArea,
       timelineHeading: props.timelineHeading || undefined,
       timeline: props.timeline || [],
+      accordionsHeading: props.accordionsHeading || undefined,
       pageSidebarViewModel,
     };
   }

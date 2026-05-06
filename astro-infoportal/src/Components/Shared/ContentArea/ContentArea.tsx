@@ -53,23 +53,21 @@ const ContentArea = ({ items }: ContentAreaProps) => {
         if (type === "SchemaAccordianBlock" || type === "AccordionBlock") {
           const cssDisplayOption = resolveDisplayClass(items[0]);
           return (
-            <Card
-              data-color="neutral"
-              key={`group-${idx1}`}
-              className={cssDisplayOption}
-            >
-              {items.map((item: any, idx2: number) => {
-                const Comp = (Components as any)[item.componentName];
-                if (!Comp) {
-                  console.error(
-                    `Component "${item.componentName}" not found in Components registry`,
-                  );
-                  return null;
-                }
-                const itemKey = `${type}:${startIndex}:${idx2}`;
-                return <Comp {...item} key={itemKey} />;
-              })}
-            </Card>
+            <div className={cssDisplayOption} key={`group-${idx1}`}>
+              <Card data-color="neutral">
+                {items.map((item: any, idx2: number) => {
+                  const Comp = (Components as any)[item.componentName];
+                  if (!Comp) {
+                    console.error(
+                      `Component "${item.componentName}" not found in Components registry`,
+                    );
+                    return null;
+                  }
+                  const itemKey = `${type}:${startIndex}:${idx2}`;
+                  return <Comp {...item} key={itemKey} />;
+                })}
+              </Card>
+            </div>
           );
         }
         return items.map((item: any, idx2: number) => {
@@ -82,7 +80,11 @@ const ContentArea = ({ items }: ContentAreaProps) => {
             return null;
           }
           const itemKey = `${type}:${startIndex}:${idx2}`;
-          return <Comp {...item} className={cssDisplayOption} key={itemKey} />;
+          return (
+            <div className={cssDisplayOption} key={itemKey}>
+              <Comp {...item} />
+            </div>
+          );
         });
       })}
     </>

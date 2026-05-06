@@ -193,7 +193,10 @@ export class SchemaOverviewPageTransformer implements IJSONTransformer {
       providersText: t("schemaOverview.allProviders", locale),
       recommendedSchemasHeaderText: t("schemaOverview.recommendedSchemas", locale),
       recommendedSchemas: recommendedSchemas,
-      initialTab: cmsPageData.properties.initialTab || undefined
+      initialTab: cmsPageData.properties.initialTab || undefined,
+      searchPageUrl: t("search.pageUrl", locale),
+      searchPlaceholder: t("search.searchAfterSchemaContent", locale),
+      searchAriaLabel: t("search.ariaLabel", locale),
     };
   }
 }

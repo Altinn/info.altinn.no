@@ -59,10 +59,10 @@ const HelpStartPage = ({
 
               return (
                 <ListItem
+                  className="help-start-page__drilldown-item"
                   id={idx.toString()}
                   as="a"
                   href={page.url || "#"}
-                  size="lg"
                   key={idx}
                   title={page.pageName}
                   variant="subtle"
@@ -88,10 +88,10 @@ const HelpStartPage = ({
 
               return (
                 <ListItem
+                  className="help-start-page__drilldown-item"
                   id={idx.toString()}
                   as="a"
                   href={page.url || "#"}
-                  size="lg"
                   key={idx}
                   title={page.pageName}
                   variant="subtle"

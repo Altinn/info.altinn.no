@@ -1,4 +1,10 @@
 .schema-overview {
+  &__search {
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto 1.5rem;
+  }
+
   &__recommended {
     row-gap: 0;
   }
@@ -32,8 +38,8 @@
     gap: 0.25rem;
   }
 
-  &__provider-letter {
-    margin-bottom: var(--ds-size-1) !important;
+  &__provider-letter.schema-overview__provider-letter {
+    margin-bottom: var(--ds-size-1);
   }
 
   &__tab {
@@ -48,8 +54,12 @@
     }
   }
 
-  &__category-label {
-    font-size: 1rem !important;
+  &__category-item {
+    --dsc-item-height: 3.5em;
+  }
+
+  &__category-label.schema-overview__category-label {
+    font-size: 1rem;
     font-weight: 500;
     line-height: 1.25;
   }
@@ -59,8 +69,8 @@
     padding: var(--ds-size-4) 0 var(--ds-size-4) 0;
   }
 
-  &__provider-item {
-    font-size: 1rem !important;
+  &__provider-item.schema-overview__provider-item {
+    font-size: 1rem;
     font-weight: 500;
     line-height: 1.25;
   }

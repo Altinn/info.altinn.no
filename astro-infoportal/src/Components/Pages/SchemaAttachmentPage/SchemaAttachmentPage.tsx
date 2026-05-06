@@ -72,7 +72,7 @@ const SchemaAttachmentPage = ({
       </ArticleHeader>
 
       {mainIntro && (
-        <Typography>
+        <Typography as="div">
           <RichTextArea {...mainIntro} />
         </Typography>
       )}

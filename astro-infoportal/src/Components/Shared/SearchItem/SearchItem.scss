@@ -5,24 +5,24 @@
     height: 100%;
 
     a {
-      color: black !important;
+      color: black;
       display: flex;
       flex-direction: column;
       gap: 0rem;
       text-decoration: none;
       &:hover .search-item__link {
-        text-decoration: underline !important;
+        text-decoration: underline;
       }
       &:focus {
         outline: 3px solid black;
         outline-offset: 8px;
         border-radius: 2px;
       }
-      .search-item__link {
+      .search-item__link.search-item__link {
         font-weight: 500;
-        font-size: 1.2rem !important;
+        font-size: 1.2rem;
         line-height: 1.3;
-        color: black !important;
+        color: black;
       }
     }
   }
