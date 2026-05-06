@@ -45,7 +45,11 @@ const SubsidyPage = ({
         {lastUpdateText && <Divider />}
       </ArticleHeader>
 
-      {mainBody && <RichTextArea {...mainBody} />}
+      {mainBody && (
+        <Typography as="div">
+          <RichTextArea {...mainBody} />
+        </Typography>
+      )}
 
       {hasTimeline && (
         <Section align="start" spacing={4}>
@@ -59,7 +63,10 @@ const SubsidyPage = ({
                   </DsLink>
                 );
                 return (
-                  <div className="timeline-header-custom" key={`timeline-nav-${i}`}>
+                  <div
+                    className="timeline-header-custom"
+                    key={`timeline-nav-${i}`}
+                  >
                     {i !== timeline!.length - 1 ? (
                       <TimelineSegment
                         border="solid"
