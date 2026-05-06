@@ -50,7 +50,17 @@ function buildSearchBody(
         query,
         fields: SEARCH_FIELDS,
         type: "best_fields",
-        fuzziness: "AUTO",
+        // AND operator — matches legacy Optimizely Find behavior
+        // (FindExtensions.cs called .WithAndAsDefaultOperator()). With OR (the
+        // ES default), a query like "råne stasjon" would match any doc with
+        // either "råne" OR "stasjon", letting loan pages that mention e.g.
+        // "tankstasjon" or "togstasjon" surface incorrectly.
+        operator: "and",
+        // No fuzziness — also matches legacy. Fuzziness "AUTO" let the r→l
+        // substitution match "råne" against "låne" → stems to "lån" → matched
+        // pages like "Boliglån..." via the indexed "lån" token. Re-enable only
+        // with care (e.g. "AUTO:5,8" with prefix_length: 1) if typo tolerance
+        // is needed later. Backend C# search has the same fixes.
       },
     },
     highlight: {

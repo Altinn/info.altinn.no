@@ -1,0 +1,166 @@
+# Norwegian compound-word components for the dictionary_decompounder filter.
+# One root per line. Lines starting with # and blank lines are ignored.
+#
+# Used at INDEX time to split Norwegian compound words into their parts so
+# that searching for a part finds documents that use the whole compound.
+# Example: "rånestasjon" is indexed as ["rånestasjon", "råne", "stasjon"]
+# when both "råne" and "stasjon" appear in this file.
+#
+# Iterate by adding entries when search misses are observed in test/prod.
+
+# === Reported bug ===
+råne
+stasjon
+
+# === Government / forms / administration ===
+skatt
+lån
+tilskudd
+søknad
+godkjenning
+register
+melding
+registrering
+forsikring
+attest
+fritak
+dispensasjon
+klage
+vedtak
+bekreftelse
+erklæring
+oppgave
+avgift
+gebyr
+skjema
+rapport
+opplysning
+varsel
+
+# === Family / personal / health ===
+barn
+foreldre
+ektefelle
+samboer
+verge
+arv
+trygd
+pensjon
+permisjon
+sykmelding
+dagpenger
+helse
+omsorg
+elev
+student
+lærer
+ungdom
+
+# === Housing / property ===
+bolig
+bustad
+eiendom
+eigedom
+hus
+hage
+bygg
+bygning
+leilighet
+tomt
+
+# === Business / employment / finance ===
+firma
+aksje
+regnskap
+lønn
+merverdi
+omsetning
+fakturering
+oppstart
+nedlegg
+eier
+leder
+styre
+ansatt
+arbeid
+arbeidsgiver
+arbeidstaker
+verksemd
+bedrift
+moms
+faktura
+inntekt
+utgift
+budsjett
+
+# === Vehicles / transport ===
+bil
+motor
+kjøretøy
+transport
+båt
+buss
+
+# === Animal husbandry (råne = boar; rånestasjon = boar/AI station) ===
+gris
+ku
+sau
+hund
+katt
+hest
+dyr
+fôr
+foring
+avl
+oppdrett
+kjøtt
+melk
+egg
+
+# === Time / periods ===
+år
+måned
+uke
+dag
+time
+minutt
+periode
+frist
+termin
+
+# === Roles / positions ===
+ansvarlig
+bruker
+brukar
+medlem
+deltaker
+deltakar
+sjef
+direktør
+koordinator
+
+# === Generic high-frequency compound parts ===
+kort
+bok
+nummer
+dato
+tid
+tjeneste
+informasjon
+system
+etat
+kommune
+fylke
+stat
+norsk
+norge
+sentral
+plass
+sted
+del
+gruppe
+liste
+protokoll
+punkt
+kontroll
+plan
