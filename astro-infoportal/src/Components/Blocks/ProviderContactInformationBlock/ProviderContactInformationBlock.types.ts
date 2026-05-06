@@ -1,6 +1,8 @@
+import type { RichTextAreaProps } from "@components/Shared/RichTextArea/RichTextArea.types";
+
 export interface ProviderContactInformationBlockProps {
-  body?: Record<string, unknown>;
-  bottomText?: Record<string, unknown>;
+  body?: RichTextAreaProps;
+  bottomText?: RichTextAreaProps;
   webpageLink?: {
     text?: string;
     url?: string;

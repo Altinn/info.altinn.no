@@ -24,6 +24,7 @@ const SubCategoryPage = ({
   timeline,
   timelineHeading,
   accordions,
+  accordionsHeading,
 }: SubCategoryPageProps) => {
   return (
     <Article>
@@ -84,7 +85,7 @@ const SubCategoryPage = ({
       {timelineHeading && (
         <Heading
           as="h2"
-          data-size="xs"
+          size="lg"
         >
           {timelineHeading}
         </Heading>
@@ -98,6 +99,11 @@ const SubCategoryPage = ({
         <ContentArea {...boxBlocks} />
       )}
 
+      {accordionsHeading && (
+        <Heading as="h2" size="md">
+          {accordionsHeading}
+        </Heading>
+      )}
       {accordions && <ContentArea {...accordions} />}
       {promoArea && <ContentArea {...promoArea} />}
     </Article>

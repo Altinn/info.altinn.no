@@ -14,6 +14,7 @@ import {Fragment, useEffect, useState} from 'react';
 import ProvidersInline, {
   type ProviderInlineItem,
 } from '../../Shared/ProvidersInline/ProvidersInline';
+import SearchInput from '../../Shared/SearchInput/SearchInput';
 import './SchemaOverviewPage.scss';
 import {SearchItem} from '/Components/Shared/SearchItem/SearchItem';
 import type {SchemaOverviewPageProps} from './SchemaOverviewPage.types';
@@ -38,6 +39,9 @@ const SchemaOverviewPage = ({
   servicesText,
   recommendedSchemasHeaderText,
   initialTab,
+  searchPageUrl,
+  searchPlaceholder,
+  searchAriaLabel,
 }: SchemaOverviewPageProps) => {
   const defaultTab = (
     initialTab === 'provider' ? TabsEnum.Provider : TabsEnum.Category
@@ -89,6 +93,15 @@ const SchemaOverviewPage = ({
       margin="page"
       className="schema-overview"
     >
+      {searchPageUrl && (
+        <div className="schema-overview__search">
+          <SearchInput
+            placeholder={searchPlaceholder || ''}
+            searchPageUrl={searchPageUrl}
+            ariaLabel={searchAriaLabel}
+          />
+        </div>
+      )}
       <Tabs value={tabValue}>
         <Tabs.List>
           <Tabs.Tab
@@ -129,7 +142,6 @@ const SchemaOverviewPage = ({
                     id={idx.toString()}
                     as="a"
                     href={item.url || '#'}
-                    size="lg"
                     key={idx}
                     label={
                       <span className="schema-overview__category-label">

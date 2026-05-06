@@ -1,7 +1,9 @@
+import type { RichTextAreaProps } from "../../Shared/RichTextArea/RichTextArea.types";
+
 export interface SubCategoryPageProps {
   componentName?: string;
   pageName?: string;
-  description?: string;
+  description?: RichTextAreaProps;
   schemas?: any[];
   breadcrumb?: any;
   boxBlocks?: any;
@@ -9,4 +11,5 @@ export interface SubCategoryPageProps {
   timeline?: any[];
   timelineHeading?: string;
   accordions?: any;
+  accordionsHeading?: string;
 }

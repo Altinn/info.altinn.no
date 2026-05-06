@@ -5,6 +5,20 @@
   margin-bottom: 2rem;
 }
 
+li > [data-size="lg"] {
+  margin-top: var(--ds-size-2);
+}
+
+.operational-message-archive__date {
+  --ds-color-text-subtle: #272f7a;
+  margin-top: var(--ds-size-2);
+  margin-bottom: var(--ds-size-2);
+}
+
+.operational-message__body {
+  margin-bottom: var(--ds-size-4);
+}
+
 .operational-message-archive__bottom {
   max-width: 800px;
   margin: 0 auto;

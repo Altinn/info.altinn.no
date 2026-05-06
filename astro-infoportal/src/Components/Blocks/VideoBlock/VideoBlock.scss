@@ -13,12 +13,6 @@
       content: "";
     }
 
-    &-16by9 {
-      &::before {
-        padding-top: 56.25%; // 16:9 aspect ratio
-      }
-    }
-
     iframe {
       position: absolute;
       top: 0;
@@ -27,6 +21,12 @@
       width: 100%;
       height: 100%;
       border: 0;
+    }
+  }
+
+  .embed-responsive-16by9 {
+    &::before {
+      padding-top: 56.25%; // 16:9 aspect ratio
     }
   }
 }

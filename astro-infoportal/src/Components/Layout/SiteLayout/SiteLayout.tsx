@@ -1,5 +1,4 @@
 import {Layout, RootProvider} from '@altinn/altinn-components';
-import {useEffect, useState} from 'react';
 import * as Components from '../../../App.Components';
 import '@altinn/altinn-components/dist/global.css';
 import '@digdir/designsystemet-theme';
@@ -22,8 +21,8 @@ const SiteLayout = ({
   const Comp = child ? (Components as any)[child.componentName] : null;
 
   // Only enable GlobalHeader on client side to avoid SSR issues
-  const [isClient, setIsClient] = useState(false);
-  useEffect(() => setIsClient(true), []);
+  // const [isClient, setIsClient] = useState(false);
+  // useEffect(() => setIsClient(true), []);
 
   const currentLanguage = headerViewModel?.menuLanguageList?.find(
     (l: any) => l.selected,
@@ -73,6 +72,7 @@ const SiteLayout = ({
     'SectionPage',
     'ThemePage',
     'SubsidyOverviewPage',
+    'ProviderPage',
   ];
   const shouldConstrainWidth =
     child && !exludedPages.includes(child.componentName);
@@ -91,10 +91,9 @@ const SiteLayout = ({
       {headerViewModel?.banner && <BannerBlock {...headerViewModel.banner} />}
       <Layout
         color={color}
-        header={headerProps}
+        header={headerViewModel ? headerProps : undefined}
         footer={footerProps}
         content={{color: contentColor}}
-        useGlobalHeader={isClient && !!headerViewModel}
         {...(sidebarConfig ? {sidebar: sidebarConfig} : {})}
         theme="default"
       >

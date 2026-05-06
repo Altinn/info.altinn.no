@@ -25,22 +25,22 @@
     height: 100%;
 
     a {
-      color: black !important;
+      color: black;
       display: flex;
       flex-direction: column;
       gap: 0.7rem;
       text-decoration: none;
       &:hover .search-item__link {
-        text-decoration: underline !important;
+        text-decoration: underline;
       }
       &:focus {
         outline: 3px solid black;
         outline-offset: 8px;
         border-radius: 2px;
       }
-      .search-item__link {
-        color: black !important;
-        font-size: 1rem !important;
+      .search-item__link.search-item__link {
+        color: black;
+        font-size: 1rem;
         font-weight: 500;
         line-height: 1.3;
       }

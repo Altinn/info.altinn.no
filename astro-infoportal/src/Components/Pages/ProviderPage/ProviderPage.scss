@@ -1,7 +1,11 @@
 .provider {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem; 
+    gap: 0.5rem;
+}
+
+.provider-page__content {
+  max-width: 730px;
 }
 
 .provider-page-heading {

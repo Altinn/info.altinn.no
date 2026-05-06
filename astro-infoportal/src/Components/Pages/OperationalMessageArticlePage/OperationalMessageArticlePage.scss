@@ -1,11 +1,9 @@
-.operational-message {
-  // Add styles as needed
-
-  &--critical {
-    // Critical message styles
+.operational-message__body {
+  *:first-child {
+    margin-top: 0;
   }
 
-  &--info {
-    // Info message styles
+  *:last-child {
+    margin-bottom: 0;
   }
 }

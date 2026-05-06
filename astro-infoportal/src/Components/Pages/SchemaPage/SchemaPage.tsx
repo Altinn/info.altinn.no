@@ -142,7 +142,11 @@ const SchemaPage = ({
             {securityLevelInfo && <p>{securityLevelInfo}</p>}
           </Typography>
         )}
-        {mainBody && <RichTextArea {...mainBody} />}
+        {mainBody && (
+          <Typography as="div">
+            <RichTextArea {...mainBody} />
+          </Typography>
+        )}
 
         {(metadataItems.length > 0 ||
           shallowLinkButton ||

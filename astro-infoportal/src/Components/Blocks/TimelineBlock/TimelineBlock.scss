@@ -1,25 +1,63 @@
 .timeline-block {
-  // 8px spacing for content items within fragments
-  > [data-spacing] {
-    --dsc-spacing: 0.5rem;
-  }
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
 
-  // 16px gap between fragments - add margin-bottom to TimelineSection
-  // (last element in each fragment, creates space before next header)
-  [class*="_section_"]:not(:last-child) {
-    margin-bottom: 1rem;
+.timeline-header-custom {
+  [class*="_avatar_"][data-shape="circle"][data-shape] {
+    background-color: #E4CCFF;
   }
+}
 
-  .timeline-header-custom {
-    [class*="_avatar_"][data-shape="circle"] {
-      background-color: #E4CCFF !important;
-    }
+.timeline-item {
+  margin-bottom: 1.5rem;
+
+  &:last-child {
+    margin-bottom: 0;
   }
+}
 
-  // Mobile: Full width content, keep icon visible
+.timeline-item-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.timeline-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background-color: #e4ccff;
+  color: #000;
+  font-weight: 700;
+  font-size: 0.875rem;
+  line-height: 1;
+}
+
+.timeline-item-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.timeline-subheading {
+  font-size: 0.875rem;
+  color: #555;
+}
+
+.timeline-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-left: 2.75rem;
+  margin-top: 0.5rem;
+
   @media (max-width: 767px) {
-    div[class*="_content_"] {
-      width: 100%;
-    }
+    padding-left: 0;
   }
 }
