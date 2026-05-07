@@ -39,3 +39,4 @@ patches:
         path: /spec/hostnames
         value:
           - infoportal.at23.dis-core.altinn.cloud
+          - cms.at23.altinn.info
