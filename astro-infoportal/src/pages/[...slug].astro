@@ -1,6 +1,6 @@
 ---
 
-import { fetchUmbracoContent, fetchUmbracoStartPage } from '@api/umbraco/client';
+import { fetchUmbracoContent, fetchUmbracoErrorPage, fetchUmbracoStartPage } from '@api/umbraco/client';
 import { fetchFromOldPortal } from '@api/oldportal/client';
 import { shouldFetchFromOldPortal } from '@api/oldportal/client';
 import AstroSiteLayout from '@layouts/AstroSiteLayout.astro';
@@ -51,11 +51,16 @@ const [pageResult, startPageResult] = await Promise.allSettled([
 ]);
 
 
+let umbracoPageData;
+let isError = false;
+
 if (pageResult.status === 'rejected') {
   console.error("Error fetching page data from Umbraco:", pageResult.reason);
-  return Astro.redirect("/404");
+  umbracoPageData = await fetchUmbracoErrorPage(locale).catch(() => null);
+  isError = true;
+} else {
+  umbracoPageData = pageResult.value;
 }
-let umbracoPageData = pageResult.value;
 
 const startPageData = startPageResult.status === 'fulfilled' ? startPageResult.value : null;
 
@@ -67,6 +72,9 @@ const metadata = {
   ...(isLocaleRoot ? { title: "Altinn - Start" } : {}),
 };
 
+if (isError) {
+  Astro.response.status = 404;
+}
 Astro.response.headers.set("Cache-Control", pageCacheControl(Astro.url.hostname));
 ---
 
