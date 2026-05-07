@@ -58,6 +58,20 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
 
         options.NonceCookie.SecurePolicy = CookieSecurePolicy.Always;
         options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
+
+        var applicationUrl = _configuration["Umbraco:CMS:WebRouting:UmbracoApplicationUrl"];
+        if (!string.IsNullOrEmpty(applicationUrl))
+        {
+            options.Events = new OpenIdConnectEvents
+            {
+                OnRedirectToIdentityProvider = context =>
+                {
+                    context.ProtocolMessage.RedirectUri =
+                        $"{applicationUrl.TrimEnd('/')}{callbackPath}";
+                    return Task.CompletedTask;
+                }
+            };
+        }
     }
 
     public void Configure(string? name, OpenIdConnectOptions options)
