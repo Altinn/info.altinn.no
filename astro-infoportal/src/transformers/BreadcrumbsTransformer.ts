@@ -1,3 +1,34 @@
+const BREADCRUMB_URL_OVERRIDES: Array<{
+  currentPath: string;
+  ancestorPath: string;
+  targetPath: "current" | string;
+}> = [
+  {
+    currentPath: "/starte-og-drive/dokumentmaler/last-ned-dokumentmaler/",
+    ancestorPath: "/starte-og-drive/dokumentmaler/",
+    targetPath: "current",
+  },
+];
+
+function getBreadcrumbUrl(item: any, cmsPageData: any): string {
+  const currentPath = cmsPageData?.route?.path || "";
+  const ancestorPath = item?.route?.path || "";
+
+  const override = BREADCRUMB_URL_OVERRIDES.find(
+    (candidate) =>
+      candidate.currentPath === currentPath &&
+      candidate.ancestorPath === ancestorPath,
+  );
+
+  if (!override) {
+    return ancestorPath;
+  }
+
+  return override.targetPath === "current"
+    ? currentPath
+    : override.targetPath;
+}
+
 export class BreadcrumbsTransformer {
   static Transform(ancestors: any, cmsPageData: any): any {
     const breadcrumbs = [{
@@ -18,7 +49,7 @@ export class BreadcrumbsTransformer {
         breadcrumbs.push({
             linkItem: {
               text: item.name,
-              url: item.route.path,
+              url: getBreadcrumbUrl(item, cmsPageData),
               componentName: "LinkItem"
             }
           });

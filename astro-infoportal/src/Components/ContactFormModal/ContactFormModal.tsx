@@ -44,6 +44,18 @@ const getLabelValue = (
   return labels?.[key] ?? localization(`/contactform/${key.toLowerCase()}`);
 };
 
+const setRecaptchaBadgeVisibility = (isVisible: boolean) => {
+  if (typeof document === 'undefined') return;
+
+  const badges = document.querySelectorAll<HTMLElement>('.grecaptcha-badge');
+
+  badges.forEach((badge) => {
+    badge.style.visibility = isVisible ? 'visible' : 'hidden';
+    badge.style.opacity = isVisible ? '1' : '0';
+    badge.style.pointerEvents = isVisible ? 'auto' : 'none';
+  });
+};
+
 const ContactFormModal = ({
   isOpen,
   onClose,
@@ -80,6 +92,16 @@ const ContactFormModal = ({
       }
     };
   }, [isOpen, useRecaptcha, recaptchaSiteKey]);
+
+  useEffect(() => {
+    if (!useRecaptcha) return;
+
+    setRecaptchaBadgeVisibility(isOpen);
+
+    return () => {
+      setRecaptchaBadgeVisibility(false);
+    };
+  }, [isOpen, useRecaptcha]);
 
   useEffect(() => {
     if (!isOpen || !modalRef.current) return;

@@ -2,10 +2,12 @@ import { DoYouNeedHelpBlockTransformer } from "./DoYouNeedHelpBlockTransformer";
 import { LinkButtonBlockTransformer } from "./LinkButtonBlockTransformer";
 import { PromoBoxBlockTransformer } from "./PromoBoxBlockTransformer";
 import { RelevantSchemasBlockTransformer } from "./RelevantSchemasBlockTransformer";
+import { AdvisorStartBlockTransformer } from "./generatedTransformers/Blocks/AdvisorStartBlockTransformer";
 import type { IJSONTransformer } from "./IJSONTransformer";
 
 /** Registry of block-level transformers keyed by Umbraco contentType alias. */
 const blockTransformers: Record<string, IJSONTransformer> = {
+  advisorStartBlock: new AdvisorStartBlockTransformer(),
   doYouNeedHelpBlock: new DoYouNeedHelpBlockTransformer(),
   linkButtonBlock: new LinkButtonBlockTransformer(),
   promoBoxBlock: new PromoBoxBlockTransformer(),
