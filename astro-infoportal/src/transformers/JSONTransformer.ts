@@ -18,6 +18,7 @@ import { ProviderPageTransformer } from "./ProviderPageTransformer";
 import { NewsArchivePageTransformer } from "./NewsArchivePageTransformer";
 import { OperationalMessageArticlePageTransformer } from "./OperationalMessageArticlePageTransformer";
 import { OperationalMessageArchivePageTransformer } from "./OperationalMessageArchivePageTransformer";
+import { SchemaAttachmentPageTransformer } from "./SchemaAttachmentPageTransformer";
 
 export class JSONTransformer implements IJSONTransformer {
   public async Transform(umbracoPageData: any, globalData?: any): Promise<any> {
@@ -62,6 +63,8 @@ export class JSONTransformer implements IJSONTransformer {
         return new SchemaPageTransformer();
       case "schemaOverviewPage":
         return new SchemaOverviewPageTransformer();
+      case "schemaAttachmentPage":
+        return new SchemaAttachmentPageTransformer();
       case "subsidyPage":
         return new SubsidyPageTransformer();
       case "subsidyOverviewPage":

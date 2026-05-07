@@ -1,7 +1,13 @@
+import {
+  fetchUmbracoContent,
+  resolveBlockReferences,
+} from "@api/umbraco/client";
+import { type Locale, t } from "@i18n/index";
+import {
+  type ProviderInfo,
+  ProviderResolver,
+} from "@services/Providers/ProviderResolver";
 import type { IJSONTransformer } from "./IJSONTransformer";
-import { t, type Locale } from "@i18n/index";
-import { fetchUmbracoContent, fetchUmbracoChildren } from "@api/umbraco/client";
-import { buildOrgLookup, normalizeName, resolveProviderIcon } from "./providerUtils";
 import { transformOperationalMessageArticle } from "./OperationalMessageArticlePageTransformer";
 
 function formatDate(dateStr: string): string {
@@ -12,52 +18,10 @@ function formatDate(dateStr: string): string {
   return `${day}.${month}.${d.getFullYear()}`;
 }
 
-function getParentProviderSlug(schemaPath?: string, overviewPath?: string): string | null {
-  const schemaSegments = schemaPath?.split("/").filter(Boolean) ?? [];
-  const overviewSegments = overviewPath?.split("/").filter(Boolean) ?? [];
-  const providerSlug = schemaSegments[overviewSegments.length];
-  return providerSlug || null;
-}
-
-type ProviderInfo = { name: string; imageUrl: string; url: string };
-type ProviderLookup = Record<string, ProviderInfo>;
-
-const PARENT_PROVIDER_FALLBACK_SLUGS: Record<string, string[]> = {
-  "a-ordningen": [
-    "skatteetaten",
-    "arbeids-og-velferdsetaten-nav",
-    "statistisk-sentralbyra",
-    "a-ordningen",
-  ],
-  "the-a-ordning": [
-    "tax-administration",
-    "labour-and-welfare-service-nav",
-    "statistics-norway-ssb",
-    "the-a-ordning",
-  ],
-};
-
-function addProviderOnce(providers: ProviderInfo[], provider?: ProviderInfo) {
-  if (!provider) return;
-  const exists = providers.some(
-    (p) => p.url === provider.url || normalizeName(p.name) === normalizeName(provider.name),
-  );
-  if (!exists) providers.push(provider);
-}
-
-function addProvidersBySlug(
-  providers: ProviderInfo[],
-  providerBySlug: ProviderLookup,
-  slugs: string[],
-) {
-  for (const slug of slugs) {
-    addProviderOnce(providers, providerBySlug[slug]);
-  }
-}
-
 export class StartPageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
     const locale: Locale = globalData?.locale || "nb";
+    const resolver = await ProviderResolver.create();
     const p = cmsPageData.properties ?? {};
 
     // --- Operational messages from AlertArea ---
@@ -80,7 +44,8 @@ export class StartPageTransformer implements IJSONTransformer {
       (message: any) => message.isCritical || message.colorVariant === "danger",
     );
     const operationalMessages = alertMessages.filter(
-      (message: any) => !message.isCritical && message.colorVariant !== "danger",
+      (message: any) =>
+        !message.isCritical && message.colorVariant !== "danger",
     );
 
     // --- Link buttons (built from inboxUrl, profilUrl, schemaReference) ---
@@ -107,7 +72,10 @@ export class StartPageTransformer implements IJSONTransformer {
     if (schemaRef) {
       linkButtons.push({
         componentName: "LinkButtonBlock",
-        link: { text: t("start.findSchema", locale), url: schemaRef.route?.path || "/skjemaoversikt/" },
+        link: {
+          text: t("start.findSchema", locale),
+          url: schemaRef.route?.path || "/skjemaoversikt/",
+        },
         icon: "MenuGridIcon",
         buttonType: "Default",
         displayOptionId: "full",
@@ -139,76 +107,49 @@ export class StartPageTransformer implements IJSONTransformer {
     let relevantSchemas = null;
     if (schemaRef?.route?.path) {
       try {
-        const schemaPage = await fetchUmbracoContent(schemaRef.route.path, locale);
-        const recommended = schemaPage.properties?.recommendedSchemas ?? [];
-
-        // Build org icon lookup
-        let orgLookup = buildOrgLookup({});
-        try {
-          const orgsRes = await fetch("https://altinncdn.no/orgs/altinn-orgs.json");
-          const orgsData = await orgsRes.json() as { orgs: Record<string, { name?: Record<string, string>; logo?: string }> };
-          orgLookup = buildOrgLookup(orgsData.orgs);
-        } catch { /* icons will be empty */ }
-
-        // Build provider lookup from schemaOverviewPage children
-        const rawProviders = await fetchUmbracoChildren(schemaRef.route.path, 100, locale);
-        const providers = await Promise.all(
-          rawProviders.map(async (provider: any) => {
-            const path = provider.route?.path;
-            if (!path) return provider;
-            try {
-              return await fetchUmbracoContent(path, locale);
-            } catch {
-              return provider;
-            }
-          }),
+        const schemaPage = await fetchUmbracoContent(
+          schemaRef.route.path,
+          locale,
         );
-        const providerBySlug: ProviderLookup = {};
-        const providerByImportId: ProviderLookup = {};
-        for (const prov of providers) {
-          const info = {
-            name: prov.name,
-            imageUrl: resolveProviderIcon(prov, orgLookup),
-            url: prov.route?.path || "",
-          };
-          const slug = prov.route?.path?.split("/").filter(Boolean).pop();
-          if (slug) providerBySlug[slug] = info;
-          const providerId = prov.properties?.providerId ?? prov.properties?.importId;
-          if (providerId != null) providerByImportId[String(providerId)] = info;
-        }
+        const recommended = schemaPage.properties?.recommendedSchemas ?? [];
 
         const schemas = await Promise.all(
           recommended.map(async (item: any) => {
-            const icons: ProviderInfo[] = [];
+            let icons: ProviderInfo[] = [];
             let schemaCode: string | null = null;
-            const parentSlug = getParentProviderSlug(
-              item.route?.path,
-              schemaRef.route.path,
-            );
 
             try {
-              const fullPage = await fetchUmbracoContent(item.route?.path, locale);
-              schemaCode = fullPage.properties?.schemaCode || null;
-
-              const providersStr = fullPage.properties?.providers;
-              if (typeof providersStr === "string" && providersStr.trim()) {
-                for (const id of providersStr.split(",")) {
-                  const trimmed = id.trim();
-                  if (trimmed) addProviderOnce(icons, providerByImportId[trimmed]);
-                }
-              }
-            } catch { /* show schema without icons */ }
-
-            if (icons.length === 0 && parentSlug) {
-              addProvidersBySlug(
-                icons,
-                providerBySlug,
-                PARENT_PROVIDER_FALLBACK_SLUGS[parentSlug] ?? [parentSlug],
+              const fullPage = await fetchUmbracoContent(
+                item.route?.path,
+                locale,
               );
+              schemaCode = fullPage.properties?.schemaCode || null;
+              const resolvedRefs = await resolveBlockReferences(
+                fullPage.properties?.providers,
+                locale,
+              );
+              icons = resolvedRefs.map((ref: any) => {
+                const name = ref?.name ?? "";
+                return {
+                  name,
+                  imageUrl: resolver.resolveImageUrl(
+                    ref?.properties?.providerAcronym,
+                    ref?.properties?.providerOrgNr,
+                    name,
+                    locale,
+                  ),
+                  url: ref?.route?.path ?? "",
+                };
+              });
+            } catch {
+              /* show schema without icons */
             }
 
-            const displayName = schemaCode ? `${item.name} (${schemaCode})` : item.name;
-            const andMoreText = icons.length > 1 ? `+ ${t("start.more", locale)}` : undefined;
+            const displayName = schemaCode
+              ? `${item.name} (${schemaCode})`
+              : item.name;
+            const andMoreText =
+              icons.length > 1 ? `+ ${t("start.more", locale)}` : undefined;
             return {
               pageName: displayName,
               url: item.route?.path,
@@ -226,17 +167,15 @@ export class StartPageTransformer implements IJSONTransformer {
           schemaOverviewPageUrl: schemaRef.route.path,
           schemas,
         };
-      } catch { /* no schemas section */ }
+      } catch {
+        /* no schemas section */
+      }
     }
 
     // --- Company / "Starte og drive" section ---
     const companyRef = p.startAndRunCompany?.[0];
-    const companyTitle = companyRef
-      ? t("start.companyTitle", locale)
-      : null;
-    const companyText = companyRef
-      ? t("start.companyText", locale)
-      : null;
+    const companyTitle = companyRef ? t("start.companyTitle", locale) : null;
+    const companyText = companyRef ? t("start.companyText", locale) : null;
 
     // --- News list (fetch each article for mainIntro) ---
     const newsRefs: any[] = p.latestNewsContentArea ?? [];
@@ -246,7 +185,9 @@ export class StartPageTransformer implements IJSONTransformer {
         try {
           const full = await fetchUmbracoContent(ref.route?.path, locale);
           mainIntro = full.properties?.mainIntro ?? "";
-        } catch { /* no intro */ }
+        } catch {
+          /* no intro */
+        }
         return {
           componentName: "NewsArticleItem",
           pageName: ref.name ?? "",
@@ -283,12 +224,14 @@ export class StartPageTransformer implements IJSONTransformer {
       // Company / "Starte og drive" section
       companyTitle,
       companyText,
-      companyImageUrl: "/assets/img/illustrasjon_regnskap_og_revisjon_sirkel.svg",
+      companyImageUrl:
+        "/assets/img/illustrasjon_regnskap_og_revisjon_sirkel.svg",
       companyImageAlt: "",
 
       // Block areas
       promoBoxArea,
-      linkButtonAreaTitle: p.linkButtonAreaText || t("start.linkButtonAreaTitle", locale),
+      linkButtonAreaTitle:
+        p.linkButtonAreaText || t("start.linkButtonAreaTitle", locale),
       linkButtonArea,
 
       // Hero image

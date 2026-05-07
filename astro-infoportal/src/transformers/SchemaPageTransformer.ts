@@ -1,6 +1,10 @@
 import type { SchemaPageProps } from "@components/Pages/SchemaPage/SchemaPage.types";
 import { type Locale, t } from "@i18n/index";
-import { fetchUmbracoAncestors } from "../api/umbraco/client";
+import { ProviderResolver } from "@services/Providers/ProviderResolver";
+import {
+  fetchUmbracoAncestors,
+  resolveBlockReferences,
+} from "../api/umbraco/client";
 import { BlockTransformer } from "./BlockTransformer";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
 import type { IJSONTransformer } from "./IJSONTransformer";
@@ -12,6 +16,7 @@ export class SchemaPageTransformer implements IJSONTransformer {
   ): Promise<SchemaPageProps> {
     const props = cmsPageData.properties ?? {};
     const locale: Locale = globalData?.locale || "nb";
+    const resolver = await ProviderResolver.create();
 
     const ancestors = await fetchUmbracoAncestors(cmsPageData.route.path);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
@@ -40,13 +45,37 @@ export class SchemaPageTransformer implements IJSONTransformer {
         shallowLinkText = t("schema.shallowLink", locale);
       }
     }
-    
-    props.accordianList.items.forEach(item => {
-       item.translatedHeading = t(item.translatedHeading, locale)
+
+    props.accordianList.items.forEach((item: any) => {
+      item.translatedHeading = t(item.translatedHeading, locale);
     });
 
     const isCounty = !!props.areThereCounties;
     const hasMunicipalityOrCounty = props.areThereMunicipalities || isCounty;
+
+    // The schema's `providers` is a Content Picker. The Delivery API only returns
+    // reference metadata, so resolve each ref via path→id fallback before reading
+    // providerAcronym/providerOrgNr from the populated properties.
+    const resolvedProviderRefs = await resolveBlockReferences(
+      props.providers,
+      locale,
+    );
+    const providerPages = resolvedProviderRefs.map((ref: any) => {
+      const name = ref?.name ?? "";
+      return {
+        ...ref,
+        providerIcon: {
+          name,
+          imageUrl: resolver.resolveImageUrl(
+            ref?.properties?.providerAcronym,
+            ref?.properties?.providerOrgNr,
+            name,
+            locale,
+          ),
+        },
+        url: ref?.route?.path,
+      };
+    });
 
     return {
       componentName: "SchemaPage",
@@ -58,7 +87,7 @@ export class SchemaPageTransformer implements IJSONTransformer {
       startSchemaLinkText: t("schema.startSchema", locale),
       buttonInboxText: t("schema.buttonInbox", locale),
       accordianList: props.accordianList,
-      providerPages: props.providerPages || [],
+      providerPages,
       preInstansiated: props.preInstansiated || false,
       schemaNotInUse: props.schemaNotInUse || false,
       deactivateButton: props.deactivateButton || false,
