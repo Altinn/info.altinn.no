@@ -18,6 +18,7 @@ import { ProviderPageTransformer } from "./ProviderPageTransformer";
 import { NewsArchivePageTransformer } from "./NewsArchivePageTransformer";
 import { OperationalMessageArticlePageTransformer } from "./OperationalMessageArticlePageTransformer";
 import { OperationalMessageArchivePageTransformer } from "./OperationalMessageArchivePageTransformer";
+import { SchemaAttachmentPageTransformer } from "./SchemaAttachmentPageTransformer";
 import { HelpStartPageTransformer } from "./generatedTransformers/Pages/HelpStartPageTransformer";
 import { ContactFormPageTransformer } from "./generatedTransformers/Pages/ContactFormPageTransformer";
 import { hydrateNestedContactFormPageData } from "./contactFormData";
@@ -75,6 +76,8 @@ export class JSONTransformer implements IJSONTransformer {
         return new SchemaPageTransformer();
       case "schemaOverviewPage":
         return new SchemaOverviewPageTransformer();
+      case "schemaAttachmentPage":
+        return new SchemaAttachmentPageTransformer();
       case "subsidyPage":
         return new SubsidyPageTransformer();
       case "subsidyOverviewPage":

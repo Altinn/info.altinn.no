@@ -70,6 +70,60 @@ export async function fetchUmbracoContent(path: string, culture?: string) {
   return await response.json();
 }
 
+export async function fetchUmbracoContentById(id: string, culture?: string) {
+  const url = deliveryUrl(
+    `/umbraco/delivery/api/v2/content/item/${encodeURIComponent(id)}`,
+  );
+
+  const response = await fetch(url, { headers: cultureHeader(culture) });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  return await response.json();
+}
+
+/**
+ * Resolves an array of Content Picker references into fully-populated content objects.
+ * If a ref already has populated `properties`, it's returned as-is. Otherwise we try
+ * `route.path` first, then fall back to `id` (necessary when the ref points to content
+ * under a different startItem — path resolution fails there).
+ */
+export async function resolveBlockReferences(
+  refs: any[] | { items?: any[] } | undefined | null,
+  locale?: string,
+): Promise<any[]> {
+  const items: any[] = Array.isArray(refs)
+    ? refs
+    : Array.isArray((refs as any)?.items)
+      ? (refs as any).items
+      : [];
+  return Promise.all(
+    items.map(async (item) => {
+      if (item?.properties && Object.keys(item.properties).length > 0) {
+        return item;
+      }
+      const route = item?.route?.path;
+      if (route) {
+        try {
+          return await fetchUmbracoContent(route, locale);
+        } catch {
+          // cross-startItem reference — fall through to id-based fetch
+        }
+      }
+      if (item?.id) {
+        try {
+          return (await fetchUmbracoContentById(item.id, locale)) ?? item;
+        } catch {
+          return item;
+        }
+      }
+      return item;
+    }),
+  );
+}
+
 export async function fetchUmbracoChildren(
   path: string,
   take = 100,
