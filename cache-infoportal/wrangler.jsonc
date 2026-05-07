@@ -1,0 +1,52 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "cache-infoportal",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-05-03",
+	"observability": {
+		"enabled": true
+	},
+	"upload_source_maps": true,
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"workers_dev": false,
+	"env": {
+		"at22": {
+			"name": "cache-infoportal-at22",
+			"services": [
+				{
+					"binding": "ASTRO_INFOPORTAL",
+					"service": "astro-infoportal-at22"
+				}
+			]
+		},
+		"at23": {
+			"name": "cache-infoportal-at23",
+			"services": [
+				{
+					"binding": "ASTRO_INFOPORTAL",
+					"service": "astro-infoportal-at23"
+				}
+			]
+		},
+		"tt02": {
+			"name": "cache-infoportal-tt02",
+			"services": [
+				{
+					"binding": "ASTRO_INFOPORTAL",
+					"service": "astro-infoportal-tt02"
+				}
+			]
+		},
+		"prod": {
+			"name": "cache-infoportal-prod",
+			"services": [
+				{
+					"binding": "ASTRO_INFOPORTAL",
+					"service": "astro-infoportal-prod"
+				}
+			]
+		}	
+	}	
+}

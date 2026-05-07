@@ -19,6 +19,9 @@ import { NewsArchivePageTransformer } from "./NewsArchivePageTransformer";
 import { OperationalMessageArticlePageTransformer } from "./OperationalMessageArticlePageTransformer";
 import { OperationalMessageArchivePageTransformer } from "./OperationalMessageArchivePageTransformer";
 import { SchemaAttachmentPageTransformer } from "./SchemaAttachmentPageTransformer";
+import { HelpStartPageTransformer } from "./generatedTransformers/Pages/HelpStartPageTransformer";
+import { ContactFormPageTransformer } from "./generatedTransformers/Pages/ContactFormPageTransformer";
+import { hydrateNestedContactFormPageData } from "./contactFormData";
 
 export class JSONTransformer implements IJSONTransformer {
   public async Transform(umbracoPageData: any, globalData?: any): Promise<any> {
@@ -39,6 +42,14 @@ export class JSONTransformer implements IJSONTransformer {
       data.child = await bodyDataTransformer.Transform(umbracoPageData, globalData);
     }
 
+    if (data.child) {
+      data.child = await hydrateNestedContactFormPageData(
+        data.child,
+        globalData?.locale,
+        globalData?.startPageData,
+      );
+    }
+
     if (data.child?.pageSidebarViewModel) {
       data.pageSidebarViewModel = data.child.pageSidebarViewModel;
       delete data.child.pageSidebarViewModel;
@@ -57,6 +68,8 @@ export class JSONTransformer implements IJSONTransformer {
         return new HelpDrilldownPageTransformer();
       case "helpLandingPage":
         return new HelpLandingPageTransformer();
+      case "helpStartPage":
+        return new HelpStartPageTransformer();
       case "error404Page":
         return new Error404PageTransformer();
       case "schemaPage":
@@ -89,6 +102,8 @@ export class JSONTransformer implements IJSONTransformer {
         return new HeroArticlePageBaseTransformer();
       case "themePage":
         return new ThemePageTransformer();
+      case "contactFormPage":
+        return new ContactFormPageTransformer();
       default:
         return null;
     }

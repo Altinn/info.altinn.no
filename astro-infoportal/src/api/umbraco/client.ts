@@ -18,9 +18,30 @@ function trimTrailingSlash(value: string): string {
   return value.replace(/\/+$/, "");
 }
 
+export function resolveUmbracoPublicUrl(baseUrl = UMBRACO_API_URL): string {
+  const normalizedBaseUrl = trimTrailingSlash(baseUrl);
+  const url = new URL(normalizedBaseUrl);
+  const host = url.hostname.toLowerCase();
+  const envMatch = host.match(/^infoportal\.(at\d+)\.dis-core\.altinn\.cloud$/);
+
+  if (envMatch) {
+    return `https://info.${envMatch[1]}.altinn.cloud/`;
+  }
+
+  if (host === "infoportal.prod.dis-core.altinn.cloud") {
+    return "https://info.altinn.no/";
+  }
+
+  return `${url.origin}/`;
+}
+
 function normalizeItemPath(path: string): string {
   const trimmed = path.replace(/^\/+|\/+$/g, "");
   return trimmed ? `/${trimmed}/` : "/";
+}
+
+function normalizeDeliveryPath(path: string): string {
+  return path.replace(/-{2,}/g, "-");
 }
 
 function deliveryUrl(pathname: string, search?: string): string {
@@ -35,7 +56,7 @@ function deliveryUrl(pathname: string, search?: string): string {
 
 export async function fetchUmbracoContent(path: string, culture?: string) {
   const url = deliveryUrl(
-    `/umbraco/delivery/api/v2/content/item${normalizeItemPath(path)}`,
+    `/umbraco/delivery/api/v2/content/item${normalizeDeliveryPath(normalizeItemPath(path))}`,
   );
 
   const response = await fetch(url, { headers: cultureHeader(culture) });
@@ -110,7 +131,7 @@ export async function fetchUmbracoChildren(
   sort?: string,
 ) {
   const params = new URLSearchParams({
-    fetch: `children:${path}`,
+    fetch: `children:${normalizeDeliveryPath(path)}`,
     take: String(take),
   });
   if (sort) {
@@ -166,7 +187,7 @@ export async function fetchUmbracoContentList(
 }
 
 export async function fetchUmbracoAncestors(path: string, culture?: string) {
-  const params = new URLSearchParams({ fetch: `ancestors:${path}` });
+  const params = new URLSearchParams({ fetch: `ancestors:${normalizeDeliveryPath(path)}` });
   const url = deliveryUrl("/umbraco/delivery/api/v2/content", params.toString());
 
   const response = await fetch(url, { headers: cultureHeader(culture) });
@@ -206,7 +227,7 @@ export async function fetchUmbracoRelated(
   value: string,
   culture?: string) {
   const params = new URLSearchParams();
-  params.append("fetch", `descendants:${path}`);
+  params.append("fetch", `descendants:${normalizeDeliveryPath(path)}`);
   params.append("filter", `contentType:${contentType}`);
   params.append("filter", `${relation}:${value}`);
   params.append("fields", "");
