@@ -145,6 +145,21 @@ export async function fetchUmbracoStartPage(locale?: string) {
   return data.items?.[0] ?? null;
 }
 
+export async function fetchUmbracoErrorPage(locale?: string) {
+  const params = new URLSearchParams({
+    filter: "contentType:error404Page",
+    take: "1",
+  });
+  const url = deliveryUrl("/umbraco/delivery/api/v2/content", params.toString());
+
+  const response = await fetch(url, { headers: cultureHeader(locale) });
+
+  if (!response.ok) return null;
+
+  const data = await response.json();
+  return data.items?.[0] ?? null;
+}
+
 export async function fetchUmbracoRelated(
   path: string,
   contentType: string,
