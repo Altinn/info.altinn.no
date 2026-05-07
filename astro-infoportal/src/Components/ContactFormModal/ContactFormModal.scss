@@ -194,8 +194,8 @@
     padding: 0.5rem 1rem;
   }
 
-  &__message-description {
-    margin-top: 0 !important;
+  &__message-description.contact-form__message-description {
+    margin-top: 0;
   }
 
   // Hide native file input button to prevent double buttons

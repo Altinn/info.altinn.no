@@ -1,4 +1,5 @@
-import { FormEvent, useState } from "react";
+import * as React from "react";
+import { useState } from "react";
 import "./SearchForm.scss";
 import { MagnifyingGlassIcon } from "@navikt/aksel-icons";
 
@@ -10,7 +11,7 @@ const SearchForm = ({
 }: any) => {
   const [searchQuery, setSearchQuery] = useState(query || "");
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     const trimmed = (searchQuery || "").trim();
     if (typeof window !== "undefined" && trimmed && searchPageUrl) {

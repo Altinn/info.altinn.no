@@ -53,9 +53,9 @@
   }
 }
 
-// .content-area .rich-text > *:first-child {
-// 	margin-top: 0 !important;
-// }
-// .content-area .rich-text > *:last-child {
-// 	margin-bottom: 0 !important;
-// }
+.content-area .rich-text.rich-text > *:first-child {
+  margin-top: 0;
+}
+.content-area .rich-text.rich-text > *:last-child {
+  margin-bottom: 0;
+}

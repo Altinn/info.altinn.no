@@ -7,4 +7,7 @@ export interface SchemaOverviewPageProps {
   servicesText?: string;
   recommendedSchemasHeaderText?: string;
   initialTab?: string;
+  searchPageUrl?: string;
+  searchPlaceholder?: string;
+  searchAriaLabel?: string;
 }

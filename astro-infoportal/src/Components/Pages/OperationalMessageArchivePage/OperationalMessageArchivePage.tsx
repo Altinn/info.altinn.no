@@ -1,12 +1,16 @@
 import {
   Article,
   ArticleHeader,
+  Divider,
   Heading,
+  List,
+  MetaTimestamp,
   Section,
   Typography,
 } from "@altinn/altinn-components";
 import { ContentArea } from "/App.Components";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
+import RichTextArea from "../../Shared/RichTextArea/RichTextArea";
 import "./OperationalMessageArchivePage.scss";
 
 const OperationalMessageArchivePage = ({
@@ -26,14 +30,42 @@ const OperationalMessageArchivePage = ({
         </Heading>
       </ArticleHeader>
 
-      {hasArticles && articles.map((article: any, index: number) => (
-        <div key={index}>
-          <Heading size="lg" as="h2">{article.pageName}</Heading>
-          <Typography as="p">
-            {article.mainBody}
-          </Typography>
-        </div>
-      ))}
+      {hasArticles && (
+        <Typography as="div">
+          <List>
+            {articles.map((article: any, index: number) => (
+              <>
+                <li key={index}>
+                  <Heading size="lg" as="h2" weight="bold">
+                    {article.pageName || ""}
+                  </Heading>
+                  {article.lastChangedDateString && (
+                    <div className="operational-message-archive__date">
+                      <MetaTimestamp datetime={article.lastChangedDateString}>
+                        {article.lastChangedDateFormatted}
+                      </MetaTimestamp>
+                    </div>
+                  )}
+                  {article.mainBodyRichText &&
+                  article.mainBodyRichText.items &&
+                  article.mainBodyRichText.items.length > 0 ? (
+                    <div className="operational-message__body">
+                      <RichTextArea {...article.mainBodyRichText} />
+                    </div>
+                  ) : (
+                    article.mainBody && (
+                      <div className="operational-message__body">
+                        {article.mainBody}
+                      </div>
+                    )
+                  )}
+                </li>
+                <Divider as="li" key={`div-${index}`} />
+              </>
+            ))}
+          </List>
+        </Typography>
+      )}
 
       {bottomContentArea && (
         <Section

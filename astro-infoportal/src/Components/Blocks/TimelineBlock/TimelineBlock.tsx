@@ -1,10 +1,3 @@
-import {
-  Timeline,
-  TimelineActivity,
-  TimelineHeader,
-  TimelineSection,
-} from "@altinn/altinn-components";
-import { Fragment } from "react";
 import { ContentArea } from "/App.Components";
 import "./TimelineBlock.scss";
 
@@ -14,24 +7,28 @@ type TimelineBlockProps = {
 
 const TimelineBlock = ({ timelineItems }: TimelineBlockProps) => {
   return (
-    <div className="timeline-block">
-      <Timeline>
-        {timelineItems?.map(({ heading, subHeading, content }, i) => (
-          <Fragment key={`timeline-item-${i}`}>
-            <div className="timeline-header-custom">
-              <TimelineHeader icon={{ type: "person", name: (i + 1).toString() }}>
-                <b>{heading || ""}</b>
-              </TimelineHeader>
+    <ol className="timeline-block">
+      {timelineItems?.map(({ heading, subHeading, content }, i) => (
+        <li key={`timeline-item-${i}`} className="timeline-item">
+          <div className="timeline-item-header">
+            <span className="timeline-number" aria-hidden="true">
+              {i + 1}
+            </span>
+            <div className="timeline-item-heading">
+              <strong>{heading || ""}</strong>
+              {subHeading && (
+                <span className="timeline-subheading">{subHeading}</span>
+              )}
             </div>
-            <TimelineSection border="hidden" byline={subHeading}>
-              <TimelineActivity>
-                {content && <ContentArea {...content} />}
-              </TimelineActivity>
-            </TimelineSection>
-          </Fragment>
-        ))}
-      </Timeline>
-    </div>
+          </div>
+          {content && (
+            <div className="timeline-item-content">
+              <ContentArea {...content} />
+            </div>
+          )}
+        </li>
+      ))}
+    </ol>
   );
 };
 

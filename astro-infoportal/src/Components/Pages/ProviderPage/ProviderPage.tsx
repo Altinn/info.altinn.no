@@ -2,110 +2,84 @@ import {
   Article,
   ArticleHeader,
   Divider,
-  Heading,
   List,
-  ListItemIcon,
-} from '@altinn/altinn-components';
-import type {AvatarProps} from '@altinn/altinn-components';
-import './ProviderPage.scss';
-import {OperationalMessage} from '/App.Components';
-import {SearchItem} from '/Components/Shared/SearchItem/SearchItem';
-import BreadcrumbsView from '../../Layout/Breadcrumbs/BreadcrumbsView';
-import ProviderContactInformationBlock from '../../Blocks/ProviderContactInformationBlock/ProviderContactInformationBlock';
-import ProvidersInline from '../../Shared/ProvidersInline/ProvidersInline';
-import type {ProviderInlineItem} from '../../Shared/ProvidersInline/ProvidersInline';
-import RichTextArea from '../../Shared/RichTextArea/RichTextArea';
+  Typography,
+} from "@altinn/altinn-components";
+import { Fragment } from "react";
+import "./ProviderPage.scss";
+import { OperationalMessage, ProviderContactInformationBlock } from "/App.Components";
+import { SearchItem } from "/Components/Shared/SearchItem/SearchItem";
+import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
+import ProvidersInline from "../../Shared/ProvidersInline/ProvidersInline";
+import type { ProviderInlineItem } from "../../Shared/ProvidersInline/ProvidersInline";
+import RichTextArea from "../../Shared/RichTextArea/RichTextArea";
 
 const ProviderPage = ({
-  pageName,
   mainIntro,
   schemas,
   operationalMessages,
-  providerIcon,
   breadcrumb,
   contactInfo,
 }: any) => {
-  const providerAvatar: AvatarProps | null = providerIcon?.name
-    ? {
-        name: providerIcon.name,
-        imageUrl: providerIcon.imageUrl || '',
-        type: 'company',
-      }
-    : null;
-
   return (
-    <Article>
+    <>
       {breadcrumb && <BreadcrumbsView {...breadcrumb} />}
 
       {operationalMessages?.filter(Boolean).map((om: any, idx: number) => (
-        <OperationalMessage
-          {...om}
-          key={idx}
-        />
+        <OperationalMessage {...om} key={idx} />
       ))}
 
-      {contactInfo ? (
-        <ProviderContactInformationBlock {...contactInfo} />
-      ) : (
+      <Article>
         <ArticleHeader>
-          <Heading
-            size="xl"
-            as="h1"
-            className="provider-page-heading"
-          >
-            {providerAvatar && <ListItemIcon icon={providerAvatar} />}
-            {pageName}
-          </Heading>
+          {contactInfo && <ProviderContactInformationBlock {...contactInfo} />}
         </ArticleHeader>
-      )}
-      {mainIntro && <RichTextArea {...mainIntro} />}
 
-      {schemas?.length ? (
-        <List
-          className="provider-page"
-          size="sm"
-          color="neutral"
-          spacing={0}
-        >
-          {schemas.map(({providers, title, url, id}: any, idx: any) => {
-            const providerItems: ProviderInlineItem[] = (providers || [])
-              .filter(
-                (p: any): p is typeof p & {name: string} =>
-                  p?.name != null && p.name !== '',
-              )
-              .map((p: any) => ({
-                name: p.name,
-                imageUrl: p.imageUrl || '',
-                url: (p as any).url || undefined,
-              }));
+        <div className="provider-page__content">
+          {mainIntro && (
+            <Typography as="div">
+              <RichTextArea {...mainIntro} />
+            </Typography>
+          )}
 
-            return (
-              <>
-                <SearchItem
-                  className="search-item__item"
-                  key={id ?? idx}
-                  as="a"
-                  href={url}
-                  title={title}
-                  summary={
-                    providerItems.length ? (
-                      <ProvidersInline
-                        providers={providerItems}
-                        disableLinks={true}
-                      />
-                    ) : undefined
-                  }
-                />
-                <Divider
-                  as="li"
-                  key={`div-${id ?? idx}-div`}
-                />
-              </>
-            );
-          })}
-        </List>
-      ) : null}
-    </Article>
+          {schemas?.length ? (
+            <List className="provider-page" size="sm" color="neutral" spacing={0}>
+              {schemas.map(({ providers, title, url, id }: any, idx: any) => {
+                const providerItems: ProviderInlineItem[] = (providers || [])
+                  .filter(
+                    (p: any): p is typeof p & { name: string } =>
+                      p?.name != null && p.name !== "",
+                  )
+                  .map((p: any) => ({
+                    name: p.name,
+                    imageUrl: p.imageUrl || "",
+                    url: p.url || undefined,
+                  }));
+
+                return (
+                  <Fragment key={id ?? idx}>
+                    <SearchItem
+                      className="search-item__item"
+                      as="a"
+                      href={url}
+                      title={title}
+                      summary={
+                        providerItems.length ? (
+                          <ProvidersInline
+                            providers={providerItems}
+                            disableLinks={true}
+                          />
+                        ) : undefined
+                      }
+                    />
+                    <Divider as="li" />
+                  </Fragment>
+                );
+              })}
+            </List>
+          ) : null}
+        </div>
+      </Article>
+    </>
   );
 };
 

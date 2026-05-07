@@ -57,9 +57,9 @@
       margin-bottom: 0;
     }
 
-    // Badge white background
-    .altinn-badge {
-      background-color: #FFFFFF !important;
+    // Badge white background — doubled class beats library specificity
+    .altinn-badge.altinn-badge {
+      background-color: #FFFFFF;
     }
   }
 
@@ -74,8 +74,8 @@
   // Fix: Override link colors to use contrast color
   // Typography component uses var(--ds-color-base-default) which inherits
   // the banner's theme color, making links invisible on colored backgrounds
-  a {
-    color: var(--ds-color-base-contrast-default) !important;
+  &.banner-block a {
+    color: var(--ds-color-base-contrast-default);
     text-decoration: underline;
     opacity: 1;
 
@@ -86,5 +86,13 @@
 
   &__close {
     flex-shrink: 0;
+  }
+
+  // Hide banner when header menu/account drawer is open on phones
+  @media (max-width: 1023px) {
+    &:has(~ * [data-current-id="menu"]),
+    &:has(~ * [data-current-id="account"]) {
+      display: none;
+    }
   }
 }

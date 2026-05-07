@@ -10,10 +10,22 @@ function resolvePickerText(value: any): string | null {
   return item?.name ?? item?.title ?? null;
 }
 
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return "";
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  return `${day}.${month}.${d.getFullYear()}`;
+}
+
 export function transformOperationalMessageArticle(cmsPageData: any): any {
   const props = cmsPageData?.properties ?? {};
   const isCritical = props.isCritical === true;
   const colorVariant = props.colorVariant || (isCritical ? "danger" : "warning");
+  const lastChangedDateString = cmsPageData?.updateDate ?? null;
+  const lastChangedDateFormatted = lastChangedDateString
+    ? formatDate(lastChangedDateString)
+    : null;
 
   return {
     componentName: "OperationalMessageArticlePage",
@@ -25,8 +37,8 @@ export function transformOperationalMessageArticle(cmsPageData: any): any {
     colorVariant,
     linkUrl: props.linkUrl ?? resolvePickerUrl(props.link),
     linkText: props.linkText ?? resolvePickerText(props.link),
-    lastChangedDateString: cmsPageData?.updateDate ?? null,
-    lastChangedDateFormatted: null,
+    lastChangedDateString,
+    lastChangedDateFormatted,
   };
 }
 

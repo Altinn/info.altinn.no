@@ -1,4 +1,3 @@
-import { Button } from "@digdir/designsystemet-react";
 import * as AkselIcons from "@navikt/aksel-icons";
 
 import "./LinkButtonBlock.scss";
@@ -26,19 +25,19 @@ const LinkButtonBlock = ({
 
   const hasCustomIcon = icon && (AkselIcons as any)[icon];
   const CustomIcon = hasCustomIcon ? (AkselIcons as any)[icon] : null;
+  const btnVariant = getButtonVariant();
 
   return (
-    <Button data-size="lg" variant={getButtonVariant()} asChild>
-      <a
-        href={link.url}
-        rel={isExternal ? "noopener noreferrer" : undefined}
-        className="link-button"
-      >
-        {CustomIcon && <CustomIcon aria-hidden />}
-        <span>{link.text}</span>
-        <AkselIcons.EnterIcon aria-hidden className="link-button__icon" />
-      </a>
-    </Button>
+    <a
+      href={link.url}
+      rel={isExternal ? "noopener noreferrer" : undefined}
+      className={`btn-card--startpage${btnVariant === "secondary" ? " btn-card--startpage--secondary" : ""}`}
+      data-size="lg"
+    >
+      {CustomIcon && <CustomIcon aria-hidden />}
+      <span>{link.text}</span>
+      <AkselIcons.EnterIcon aria-hidden className="btn-card__icon" />
+    </a>
   );
 };
 

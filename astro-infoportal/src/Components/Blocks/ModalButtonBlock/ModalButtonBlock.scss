@@ -12,7 +12,12 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.4rem;
+  gap: 0.25rem;
+
+  .providers-inline {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
 }
 
 .btn-modal__providers {

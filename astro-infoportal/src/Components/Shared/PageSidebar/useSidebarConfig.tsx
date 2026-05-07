@@ -48,6 +48,8 @@ export default function useSidebarConfig(
         ),
         href: mainItem.url || undefined,
         as: mainItem.url ? 'a' : undefined,
+        selected: mainItem.current,
+        ...(mainItem.current ? {'aria-current': 'page' as const} : {}),
       } as MenuItemProps);
 
       if (mainItem.subItems?.length) {
@@ -64,6 +66,8 @@ export default function useSidebarConfig(
             href: subItem.url || undefined,
             as: subItem.url ? 'a' : undefined,
             icon: resolveAkselIcon(subItem.icon),
+            selected: subItem.current,
+            ...(subItem.current ? {'aria-current': 'page' as const} : {}),
           } as MenuItemProps);
         });
       }
