@@ -40,6 +40,10 @@ function normalizeItemPath(path: string): string {
   return trimmed ? `/${trimmed}/` : "/";
 }
 
+function normalizeDeliveryPath(path: string): string {
+  return path.replace(/-{2,}/g, "-");
+}
+
 function deliveryUrl(pathname: string, search?: string): string {
   const url = new URL(
     `${trimTrailingSlash(UMBRACO_API_URL)}${pathname}`,
@@ -52,7 +56,7 @@ function deliveryUrl(pathname: string, search?: string): string {
 
 export async function fetchUmbracoContent(path: string, culture?: string) {
   const url = deliveryUrl(
-    `/umbraco/delivery/api/v2/content/item${normalizeItemPath(path)}`,
+    `/umbraco/delivery/api/v2/content/item${normalizeDeliveryPath(normalizeItemPath(path))}`,
   );
 
   const response = await fetch(url, { headers: cultureHeader(culture) });
@@ -73,7 +77,7 @@ export async function fetchUmbracoChildren(
   sort?: string,
 ) {
   const params = new URLSearchParams({
-    fetch: `children:${path}`,
+    fetch: `children:${normalizeDeliveryPath(path)}`,
     take: String(take),
   });
   if (sort) {
@@ -129,7 +133,7 @@ export async function fetchUmbracoContentList(
 }
 
 export async function fetchUmbracoAncestors(path: string, culture?: string) {
-  const params = new URLSearchParams({ fetch: `ancestors:${path}` });
+  const params = new URLSearchParams({ fetch: `ancestors:${normalizeDeliveryPath(path)}` });
   const url = deliveryUrl("/umbraco/delivery/api/v2/content", params.toString());
 
   const response = await fetch(url, { headers: cultureHeader(culture) });
@@ -169,7 +173,7 @@ export async function fetchUmbracoRelated(
   value: string,
   culture?: string) {
   const params = new URLSearchParams();
-  params.append("fetch", `descendants:${path}`);
+  params.append("fetch", `descendants:${normalizeDeliveryPath(path)}`);
   params.append("filter", `contentType:${contentType}`);
   params.append("filter", `${relation}:${value}`);
   params.append("fields", "");
