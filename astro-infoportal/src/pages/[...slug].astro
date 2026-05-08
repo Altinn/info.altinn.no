@@ -20,6 +20,7 @@ const isNorwegianStartRoot = /^\/(no|nb)\/?$/.test(path);
 
 // Ignore internal Vite/framework paths
 if (
+  path === '/favicon.ico' ||
   path.startsWith('/@vite/') ||
   path.startsWith('/@react-refresh') ||
   path.startsWith('/@id/') ||
