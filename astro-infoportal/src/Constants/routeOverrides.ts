@@ -1,6 +1,10 @@
 const ROUTE_OVERRIDES: Record<string, string> = {
   "/starte-og-drive/dokumentmaler/": "/starte-og-drive/dokumentmaler/last-ned-dokumentmaler/",
   "/starte-og-drive/sideblokker/dokumentmaler/": "/starte-og-drive/dokumentmaler/last-ned-dokumentmaler/",
+  "/nn/starte-og-drive/dokumentmaler/": "/nn/starte-og-drive/dokumentmaler/last-ned-dokumentmaler/",
+  "/nn/starte-og-drive/sideblokker/dokumentmaler/": "/nn/starte-og-drive/dokumentmaler/last-ned-dokumentmaler/",
+  "/en/start-and-run-business/document-templates/": "/en/start-and-run-business/document-templates/download-document-templates/",
+  "/en/start-and-run-business/page-blocks/document-templates/": "/en/start-and-run-business/document-templates/download-document-templates/",
 };
 
 function normalizePath(path?: string) {

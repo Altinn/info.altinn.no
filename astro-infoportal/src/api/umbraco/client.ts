@@ -186,6 +186,42 @@ export async function fetchUmbracoContentList(
   return data.items ?? [];
 }
 
+export async function fetchUmbracoContentListPage(
+  filters: string[],
+  take = 100,
+  skip = 0,
+  culture?: string,
+  sort?: string,
+  fields?: string,
+) {
+  const params = new URLSearchParams({
+    take: String(take),
+    skip: String(skip),
+  });
+  filters.forEach((filter) => params.append("filter", filter));
+  if (sort) {
+    params.append("sort", sort);
+  }
+  if (fields !== undefined) {
+    params.append("fields", fields);
+  }
+  const url = deliveryUrl("/umbraco/delivery/api/v2/content", params.toString());
+
+  const response = await fetch(url, { headers: cultureHeader(culture) });
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch content list page from Umbraco: ${response.statusText} ${url}`,
+    );
+  }
+
+  const data = await response.json();
+  return {
+    total: data.total ?? 0,
+    items: data.items ?? [],
+  };
+}
+
 export async function fetchUmbracoAncestors(path: string, culture?: string) {
   const params = new URLSearchParams({ fetch: `ancestors:${normalizeDeliveryPath(path)}` });
   const url = deliveryUrl("/umbraco/delivery/api/v2/content", params.toString());
