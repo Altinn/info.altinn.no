@@ -78,6 +78,7 @@ globalData = {
   ...globalData,
   startPageData,
   query: Object.fromEntries(Astro.url.searchParams.entries()),
+  referer: Astro.request.headers.get("referer") || undefined,
 };
 
 const pageData = await new JSONTransformer().Transform(umbracoPageData, globalData);

@@ -31,4 +31,5 @@ export interface SchemaPageProps {
   noHitText?: string;
   orangeMessage?: any;
   orangeMessageTitle?: string;
+  pageSidebarViewModel?: any;
 }
