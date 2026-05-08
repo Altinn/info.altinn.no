@@ -1,0 +1,36 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "cms-infoportal",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-05-07",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"workers_dev": false,
+	"env": {
+		"at22": {
+			"name": "cms-infoportal-at22",
+			"vars": {
+				"ORIGIN": "https://infoportal.at22.dis-core.altinn.cloud",
+			}
+		},
+		"at23": {
+			"name": "cms-infoportal-at23",
+			"vars": {
+				"ORIGIN": "https://infoportal.at23.dis-core.altinn.cloud",
+			}			
+		},
+		"tt02": {
+			"name": "cms-infoportal-tt02",
+			"vars": {
+				"ORIGIN": "https://infoportal.tt02.dis-core.altinn.cloud",
+			}			
+		},
+		"prod": {
+			"name": "cms-infoportal-prod",
+			"vars": {
+				"ORIGIN": "https://infoportal.prod.dis-core.altinn.cloud",
+			}			
+		}	
+	}
+}
