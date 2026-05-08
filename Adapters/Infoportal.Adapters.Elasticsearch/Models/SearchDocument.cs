@@ -22,6 +22,15 @@ public class SearchDocument
     [JsonPropertyName("body")]
     public string Body { get; set; } = "";
 
+    [JsonPropertyName("metaTitle")]
+    public string MetaTitle { get; set; } = "";
+
+    [JsonPropertyName("metaDescription")]
+    public string MetaDescription { get; set; } = "";
+
+    [JsonPropertyName("metaKeywords")]
+    public string MetaKeywords { get; set; } = "";
+
     [JsonPropertyName("url")]
     public string Url { get; set; } = "";
 

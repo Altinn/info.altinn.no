@@ -11,10 +11,17 @@ public class ElasticsearchOptions
     public string? ApiKey { get; set; }
     public int PageSize { get; set; } = 10;
 
+    // Properties skipped by the generic body-text loop in ContentTextExtractor.
+    // metaTitle/metaDescription/metaKeywords are excluded here because they are
+    // promoted to dedicated SearchDocument fields with their own relevance weights —
+    // the extractor reads them out-of-loop into MetaTitle/MetaDescription/MetaKeywords.
     public List<string> ExcludedProperties { get; set; } =
     [
         "umbracoUrlName",
         "canonicalUrl",
-        "showInNavigation"
+        "showInNavigation",
+        "metaTitle",
+        "metaDescription",
+        "metaKeywords"
     ];
 }
