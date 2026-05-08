@@ -1,5 +1,5 @@
 {
-	"name": "astro-infoportal",
+	"name": "astro-infoportal-at22",
 	"compatibility_date": "2026-05-01",
 	"compatibility_flags": [
 		"nodejs_compat",
@@ -14,13 +14,13 @@
 	},
 	"preview_urls": false,
 	"workers_dev": false,
-  "vars": {
-    "UMBRACO_API_URL": "https://infoportal.tt02.dis-core.altinn.cloud/",
-    "ELASTICSEARCH_URL": "https://infoportal-search-tt02-ec939c.es.germanywestcentral.azure.elastic.cloud",
-    "ELASTICSEARCH_INDEX_PREFIX": "infoportal",
-    "PAGES_FROM_OLD_PORTAL": "/hjelp,/nn/hjelp,/en/help,/om-altinn,/en/about-altinn,/nn/om-altinn,/inforportalapi/,/ui,/skjemaoversikt,/en/forms-overview/,/nn/skjemaoversikt",
-    "OLD_PORTAL": "https://prep.info.altinn.no"
-  },
+	"vars": {
+		"UMBRACO_API_URL": "https://infoportal.at22.dis-core.altinn.cloud/",
+		"ELASTICSEARCH_URL": "https://infoportal-search-at22-f6bd85.es.germanywestcentral.azure.elastic.cloud",
+		"ELASTICSEARCH_INDEX_PREFIX": "infoportal",
+		"PAGES_FROM_OLD_PORTAL": "/hjelp,/nn/hjelp,/en/help,/om-altinn,/en/about-altinn,/nn/om-altinn,/inforportalapi/,/ui",
+        "OLD_PORTAL": "https://inte.info.altinn.no"
+      },
   "env": {
 		"prod": {
 			"name": "astro-infoportal-prod",
