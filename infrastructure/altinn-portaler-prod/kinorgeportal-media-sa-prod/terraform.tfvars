@@ -1,4 +1,4 @@
-umbraco_sp_object_id = "" # TODO: set to kinorgeportal prod Umbraco managed identity object ID
+umbraco_sp_object_id = "4ded8119-6c31-45ab-8da4-cf751c4c63b8" # kin-prod-kgufhh-sql-uami
 
 blob_reader_group_object_ids = [
   "84e8286e-40cf-4aa9-a43c-2bc78b77c63d", # DIS AKS Reader Dev KIN
