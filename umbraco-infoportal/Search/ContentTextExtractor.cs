@@ -38,7 +38,8 @@ public class ContentTextExtractor
         "schemaCollectionPage",
         "schemaAttachmentPage",
         "helpQuestionPage",
-        "helpProcessArticlePage"
+        "helpProcessArticlePage",
+        "newsArticlePage"
     ];
 
     private static readonly HashSet<string> TextEditors =
@@ -75,11 +76,41 @@ public class ContentTextExtractor
 
         var textSegments = new List<string>();
         string ingress = "";
+        string metaTitle = "";
+        string metaDescription = "";
+        string metaKeywords = "";
 
-        foreach (var propertyType in contentType.PropertyTypes)
+        // Use CompositionPropertyTypes (not PropertyTypes) so we also iterate properties
+        // inherited from compositions — e.g. SEO/meta fields that live on a shared SEO composition.
+        foreach (var propertyType in contentType.CompositionPropertyTypes)
         {
             if (_options.ExcludedProperties.Contains(propertyType.Alias))
+            {
+                // metaTitle/metaDescription/metaKeywords are excluded from `body`
+                // (avoiding double-counting), but still read into dedicated fields below.
+                if (propertyType.Alias is "metaTitle" or "metaDescription" or "metaKeywords")
+                {
+                    var metaEditorAlias = GetEditorAlias(propertyType);
+                    if (metaEditorAlias == null)
+                        continue;
+
+                    var metaValue = GetPropertyValue(content, propertyType, culture);
+                    if (metaValue == null)
+                        continue;
+
+                    var metaText = ExtractTextFromValue(metaValue, metaEditorAlias);
+                    if (string.IsNullOrWhiteSpace(metaText))
+                        continue;
+
+                    switch (propertyType.Alias)
+                    {
+                        case "metaTitle": metaTitle = metaText; break;
+                        case "metaDescription": metaDescription = metaText; break;
+                        case "metaKeywords": metaKeywords = metaText; break;
+                    }
+                }
                 continue;
+            }
 
             var editorAlias = GetEditorAlias(propertyType);
             if (editorAlias == null)
@@ -115,6 +146,9 @@ public class ContentTextExtractor
             TitleSuggest = string.IsNullOrWhiteSpace(title) ? [] : [title],
             Ingress = ingress,
             Body = string.Join(" ", textSegments),
+            MetaTitle = metaTitle,
+            MetaDescription = metaDescription,
+            MetaKeywords = metaKeywords,
             Url = url,
             ContentType = content.ContentType.Alias,
             Culture = culture,

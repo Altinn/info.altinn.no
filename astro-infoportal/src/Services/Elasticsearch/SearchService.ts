@@ -12,10 +12,24 @@ import type {
   SearchSuggestionResponse,
 } from "./types";
 
+// Field weights mirror legacy Optimizely RelativeImportance.xml intent
+// (title/metaTitle highest, curated keywords next, ingress, then description, then body).
+// IMPORTANT: keep in sync with
+//   Adapters/Infoportal.Adapters.Elasticsearch/Services/ElasticsearchSearchService.cs SearchFields.
+// This is the user-facing query path; the C# SearchAsync is only for backend/admin use.
+//
 // bestBetTriggers carries editorial trigger phrases (dialect, deprecated terms,
-// synonyms) that may not appear in the page itself. High boost so pages with
+// synonyms) that may not appear in the page itself. Highest boost so pages with
 // matching triggers rank above fuzzy hits. See umbraco-infoportal/Search/BestBets/.
-const SEARCH_FIELDS = ["title^3", "ingress^2", "body", "bestBetTriggers^5"];
+const SEARCH_FIELDS = [
+  "title^3",
+  "metaTitle^3",
+  "metaKeywords^2.5",
+  "ingress^2",
+  "metaDescription^1.5",
+  "body",
+  "bestBetTriggers^5",
+];
 const DEFAULT_PAGE_SIZE = 10;
 
 function getIndexName(config: ElasticsearchConfig, culture: string): string {

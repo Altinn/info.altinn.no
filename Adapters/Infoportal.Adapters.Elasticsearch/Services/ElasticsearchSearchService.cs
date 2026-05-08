@@ -19,10 +19,20 @@ public class ElasticsearchSearchService : ISearchService
     private static readonly HashSet<string> _createdIndices = [];
     private static readonly string[] SupportedCultures = ["nb", "nn", "en"];
 
-    // TODO: Configurable field weights — Optimizely stores these in XML (RelativeImportance.xml)
-    // with per-field weights for title, ingress, body, metaKeywords, metaDescription.
-    // Consider moving to appsettings.json or a separate config when fine-tuning is needed.
-    private static readonly Fields SearchFields = new[] { "title^3", "ingress^2", "body" };
+    // Field weights mirror the legacy Optimizely RelativeImportance.xml intent
+    // (title/metaTitle highest, curated keywords next, ingress, then description, then body).
+    // IMPORTANT: keep in sync with astro-infoportal/src/Services/Elasticsearch/SearchService.ts SEARCH_FIELDS
+    // — user-facing search runs through the TS path; this C# query is only for backend/admin.
+    // TODO: make weights configurable via appsettings.json when tuning is needed.
+    private static readonly Fields SearchFields = new[]
+    {
+        "title^3",
+        "metaTitle^3",
+        "metaKeywords^2.5",
+        "ingress^2",
+        "metaDescription^1.5",
+        "body",
+    };
 
     // Solr-format synonyms loaded from an embedded text resource.
     // Includes one-way entries (a => b) ported from Optimizely Find,
@@ -104,7 +114,10 @@ public class ElasticsearchSearchService : ISearchService
                         .IntegerNumber("contentId")
                         .Keyword("contentGuid")
                         .Text("title", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
+                        .Text("metaTitle", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
                         .Text("ingress", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
+                        .Text("metaDescription", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
+                        .Text("metaKeywords", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
                         .Text("body", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
                         .Text("bestBetTriggers", t => t.Analyzer(BestBetTriggersAnalyzer).SearchAnalyzer(BestBetTriggersAnalyzer))
                         .Keyword("url")
@@ -175,6 +188,11 @@ public class ElasticsearchSearchService : ISearchService
             tokenFilters[NorwegianSynonymFilter] = new SynonymGraphTokenFilter
             {
                 Synonyms = NorwegianSynonyms,
+                // Skip synonym rules whose head term resolves to nothing after preceding
+                // filters (e.g. when a head term is a Norwegian stopword like "om").
+                // Without this the index settings fail with "term: <x> was completely
+                // eliminated by analyzer".
+                Lenient = true,
             };
             tokenFilters["norwegian_stop_filter"] = new StopTokenFilter
             {
@@ -195,11 +213,18 @@ public class ElasticsearchSearchService : ISearchService
             analyzers[NorwegianSynonymAnalyzer] = new CustomAnalyzer
             {
                 Tokenizer = "standard",
+                // IMPORTANT: stop-filter must run BEFORE synonyms.
+                // If synonyms run first, expanding a stopword head term (e.g. "om" in the
+                // group "vedrørende, om, med omsyn til, som gjeld") leaves multi-word
+                // synonym tokens in place after the stop-filter removes the original.
+                // Combined with multi_match best_fields + operator AND, the resulting bool
+                // query becomes over-strict and yields zero hits even when the doc clearly
+                // contains the user's terms.
                 Filter =
                 [
                     "lowercase",
-                    NorwegianSynonymFilter,
                     "norwegian_stop_filter",
+                    NorwegianSynonymFilter,
                     "norwegian_stemmer_filter",
                 ],
             };
