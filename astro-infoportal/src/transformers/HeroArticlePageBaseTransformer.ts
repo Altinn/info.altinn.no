@@ -31,10 +31,17 @@ function toRichTextArea(value: any) {
   }
 
   return {
-    items: value.items.map((item: any) => ({
-      componentName: item.componentName ?? "RichText",
-      html: normalizeRichTextHtml(item.html),
-    })),
+    items: value.items.map((item: any) => {
+      const componentName = item.componentName ?? "RichText";
+      if (componentName === "RichText") {
+        return {
+          ...item,
+          componentName,
+          html: normalizeRichTextHtml(item.html),
+        };
+      }
+      return { ...item, componentName };
+    }),
   };
 }
 

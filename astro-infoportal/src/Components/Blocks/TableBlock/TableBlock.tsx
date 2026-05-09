@@ -32,7 +32,7 @@ const TableBlock = ({
           </tr>
         </thead>
         <tbody>
-          {rows?.map((row: any, rowIndex: number) => {
+          {Array.isArray(rows) && rows.map((row: any, rowIndex: number) => {
             // Build array of column values in the same order as headers
             const columnValues = [
               row.column1,
