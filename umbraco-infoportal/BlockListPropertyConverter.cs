@@ -77,6 +77,8 @@ public class BlockListPropertyConverter : IPropertyValueConverter
             {
                 string contentTypeKey = jsonObject.GetPropertyAsString("contentTypeKey");
 
+                Console.WriteLine("ContentTypeKey: " + contentTypeKey);
+
                 if ("dff512a2-d00c-94ac-46ee-f3ecfb68da6a".Equals(contentTypeKey))
                 {
                     string uriString = jsonObject.GetPropertyAsString("schemaAccordianBlockPicker");
@@ -90,6 +92,7 @@ public class BlockListPropertyConverter : IPropertyValueConverter
                     JsonArray blockItems = description.GetPropertyAsArray("items");
                     string content = blockItems.ElementAt(0).AsObject().GetPropertyAsString("html");
 
+                    Console.WriteLine("Getting header from " + blockObject);
                     string heading = blockObject.GetPropertyAsString("heading");
 
                     JsonArray richText = [];
@@ -117,7 +120,6 @@ public class BlockListPropertyConverter : IPropertyValueConverter
                 }
                 else
                 {
-                    Console.WriteLine("JsonObject: " + jsonObject);
                     // SchemaAccordianBlock constructed based on one of the 5 standard form blocks
                     JsonArray richText = [];
                     richText.Add(new JsonObject
@@ -196,7 +198,6 @@ public class BlockListPropertyConverter : IPropertyValueConverter
         }
 
         JsonArray values = jsonObject.GetPropertyAsArray("values");
-        Console.WriteLine("Finding markup in " + jsonObject);
 
         foreach (JsonObject value in values.Cast<JsonObject>())
         {
@@ -205,7 +206,6 @@ public class BlockListPropertyConverter : IPropertyValueConverter
                 string richTextJsonString = value.GetPropertyAsString("value");
 
                 JsonObject richText = JsonSerializer.Deserialize<JsonObject>(richTextJsonString);
-                Console.WriteLine(richText.GetPropertyAsString("markup"));
                 return richText.GetPropertyAsString("markup");
             }
         }
