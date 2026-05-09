@@ -3,6 +3,8 @@ import { type Locale, t } from "@i18n/index";
 import { ProviderResolver } from "@services/Providers/ProviderResolver";
 import {
   fetchUmbracoAncestors,
+  fetchUmbracoChildren,
+  fetchUmbracoContent,
   resolveBlockReferences,
 } from "../api/umbraco/client";
 import { BlockTransformer } from "./BlockTransformer";
@@ -77,6 +79,88 @@ export class SchemaPageTransformer implements IJSONTransformer {
       };
     });
 
+    // Sidebar: schema's tree parent is a providerPage (URL: /skjemaoversikt/<provider>/<schema>/),
+    // so the category/subcategory comes from the `subCategories` Content Picker property.
+    // Schemas can belong to multiple subcategories; prefer the one the user came from
+    // (server-side Referer header), falling back to subCategories[0] (editorial primary).
+    // Subcategory URLs look like /skjemaoversikt/kategori/<categorySlug>/<subCategorySlug>/,
+    // so the parent category is segments.slice(0, 3) of the subcategory's route.path.
+    const subCategoryRefs = Array.isArray(props.subCategories)
+      ? props.subCategories
+      : [];
+
+    const normalizePath = (p: string | undefined) =>
+      (p || "").replace(/\/+$/, "").toLowerCase();
+
+    let refererPath: string | undefined;
+    if (globalData?.referer) {
+      try {
+        refererPath = normalizePath(new URL(globalData.referer).pathname);
+      } catch {
+        // Invalid referer — ignore.
+      }
+    }
+
+    const primarySubCategory =
+      (refererPath
+        ? subCategoryRefs.find(
+            (s: any) => normalizePath(s?.route?.path) === refererPath,
+          )
+        : undefined) ?? subCategoryRefs[0];
+
+    let pageSidebarViewModel: any;
+    if (primarySubCategory?.route?.path) {
+      const subSegments = primarySubCategory.route.path
+        .split("/")
+        .filter(Boolean);
+      const parentCategoryPath = `/${subSegments.slice(0, 3).join("/")}/`;
+
+      let parentCategory: any;
+      try {
+        parentCategory = await fetchUmbracoContent(parentCategoryPath, locale);
+      } catch {
+        // Category fetch failed — render no sidebar rather than a broken one.
+      }
+
+      if (parentCategory) {
+        const categoryPrefix = parentCategory.name
+          ? `${parentCategory.name} - `
+          : "";
+        const stripPrefix = (name: string) =>
+          categoryPrefix && name.startsWith(categoryPrefix)
+            ? name.slice(categoryPrefix.length)
+            : name;
+
+        const siblings = await fetchUmbracoChildren(parentCategory.route.path);
+        const subItems = siblings
+          .filter((sub: any) => sub.contentType === "subCategoryPage")
+          .map((sub: any) => ({
+            label: stripPrefix(sub.name),
+            url: sub.route?.path,
+            current: sub.id === primarySubCategory.id,
+          }))
+          .sort((a: any, b: any) => a.label.localeCompare(b.label, locale));
+
+        pageSidebarViewModel = {
+          titleItem: {
+            label: t("schemaOverview.allServices", locale),
+            url: "/skjemaoversikt",
+            icon: "MenuGridIcon",
+          },
+          mainItems: [
+            {
+              label:
+                parentCategory.name || t("schema.accordions.category", locale),
+              url: parentCategory.route?.path,
+              icon: parentCategory.properties?.icon,
+              current: false,
+              subItems,
+            },
+          ],
+        };
+      }
+    }
+
     return {
       componentName: "SchemaPage",
       schemaPageNameText: cmsPageData.name,
@@ -119,6 +203,7 @@ export class SchemaPageTransformer implements IJSONTransformer {
       noHitText: t("schema.noHit", locale),
       orangeMessage: props.orangeMessage || undefined,
       orangeMessageTitle: props.orangeMessageTitle || undefined,
+      pageSidebarViewModel,
     };
   }
 }
