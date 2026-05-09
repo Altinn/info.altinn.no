@@ -92,7 +92,6 @@ public class BlockListPropertyConverter : IPropertyValueConverter
                     JsonArray blockItems = description.GetPropertyAsArray("items");
                     string content = blockItems.ElementAt(0).AsObject().GetPropertyAsString("html");
 
-                    Console.WriteLine("Getting header from " + blockObject);
                     string heading = blockObject.GetPropertyAsString("heading");
 
                     JsonArray richText = [];
