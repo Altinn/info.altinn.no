@@ -24,9 +24,8 @@ export class SchemaPageTransformer implements IJSONTransformer {
     const mainBody = props.mainIntro?.items?.length
       ? {
           items: props.mainIntro.items.map((item: any) => ({
-            translatedHeading: item.name,
-            html: item.html,
-            componentName: "RichText",
+            ...item,
+            componentName: item.componentName ?? "RichText",
           })),
         }
       : props.mainIntro || undefined;
