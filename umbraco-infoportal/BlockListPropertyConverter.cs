@@ -89,6 +89,7 @@ public class BlockListPropertyConverter : IPropertyValueConverter
                     JsonObject description = blockObject.GetPropertyAsObject("description");
                     JsonArray blockItems = description.GetPropertyAsArray("items");
                     string content = blockItems.ElementAt(0).AsObject().GetPropertyAsString("html");
+
                     string heading = blockObject.GetPropertyAsString("heading");
 
                     JsonArray richText = [];
@@ -116,11 +117,12 @@ public class BlockListPropertyConverter : IPropertyValueConverter
                 }
                 else
                 {
+                    Console.WriteLine("JsonObject: " + jsonObject);
                     // SchemaAccordianBlock constructed based on one of the 5 standard form blocks
                     JsonArray richText = [];
                     richText.Add(new JsonObject
                         {
-                            { "html", jsonObject.GetPropertyAsString("content") },
+                            { "html", GetMarkup(jsonObject) },
                             { "componentName", "RichText" }
                         });
 
@@ -142,7 +144,7 @@ public class BlockListPropertyConverter : IPropertyValueConverter
                     if ("f6598f3e-b675-4dcb-89e8-3c99fbf15889".Equals(contentTypeKey))
                     {
                         // Freetext element
-                        schemaAccordianBlock.Add("heading", jsonObject.GetPropertyAsString("heading"));
+                        schemaAccordianBlock.Add("heading", GetHeading(jsonObject));
                     } else
                     {
                         schemaAccordianBlock.Add("translatedHeading", GetTranslationCode(contentTypeKey));
@@ -162,6 +164,54 @@ public class BlockListPropertyConverter : IPropertyValueConverter
             return null;
         }
     }
+
+    private string? GetHeading(JsonObject jsonObject)
+    {
+        string heading = jsonObject.GetPropertyAsString("heading");
+        if (!string.IsNullOrEmpty(heading))
+        {
+            return heading;
+        }    
+
+        JsonArray values = jsonObject.GetPropertyAsArray("values");
+
+        foreach (JsonObject value in values.Cast<JsonObject>())
+        {
+            if ("heading".Equals(value.GetPropertyAsString("alias")))
+            {
+                return value.GetPropertyAsString("value");
+            }
+        }
+
+        return null;
+    }
+
+    private string? GetMarkup(JsonObject jsonObject)
+    {
+
+        string content = jsonObject.GetPropertyAsString("content");
+        if (!string.IsNullOrEmpty(content))
+        {
+            return content;
+        }
+
+        JsonArray values = jsonObject.GetPropertyAsArray("values");
+        Console.WriteLine("Finding markup in " + jsonObject);
+
+        foreach (JsonObject value in values.Cast<JsonObject>())
+        {
+            if ("content".Equals(value.GetPropertyAsString("alias")))
+            {
+                string richTextJsonString = value.GetPropertyAsString("value");
+
+                JsonObject richText = JsonSerializer.Deserialize<JsonObject>(richTextJsonString);
+                Console.WriteLine(richText.GetPropertyAsString("markup"));
+                return richText.GetPropertyAsString("markup");
+            }
+        }
+
+        return null;
+    }    
 
     private string? GetTranslationCode(string contentTypeKey)
     {
