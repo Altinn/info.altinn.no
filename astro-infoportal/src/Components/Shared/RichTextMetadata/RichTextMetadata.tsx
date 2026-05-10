@@ -23,7 +23,11 @@ export const RichTextMetadata = ({ items }: RichTextMetadataProps) => {
             <IconComponent aria-hidden="true" className="rich-text-metadata__icon" />
             <dt className="rich-text-metadata__label">{item.label}:</dt>
             <dd className="rich-text-metadata__content">
-              <RichTextArea {...item.content} />
+              {typeof item.content === "string" ? (
+                item.content
+              ) : (
+                <RichTextArea {...item.content} />
+              )}
             </dd>
           </div>
         );

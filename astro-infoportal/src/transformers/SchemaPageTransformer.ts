@@ -11,6 +11,10 @@ import { BlockTransformer } from "./BlockTransformer";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
 import type { IJSONTransformer } from "./IJSONTransformer";
 
+// Prefer rich text when an editor has populated it; fall back to the legacy plain-text field.
+const richTextOrText = (rich: any, text: any) =>
+  rich?.items?.length ? rich : text || undefined;
+
 export class SchemaPageTransformer implements IJSONTransformer {
   public async Transform(
     cmsPageData: any,
@@ -32,10 +36,6 @@ export class SchemaPageTransformer implements IJSONTransformer {
         }
       : props.mainIntro || undefined;
 
-    const promoArea = props.promoArea
-      ? BlockTransformer.TransformBlocks(props.promoArea)
-      : undefined;
-
     let shallowLinkText: string | undefined;
     if (props.shallowLink) {
       try {
@@ -47,7 +47,7 @@ export class SchemaPageTransformer implements IJSONTransformer {
       }
     }
 
-    props.accordianList.items.forEach((item: any) => {
+    props.accordianList?.items?.forEach((item: any) => {
       item.translatedHeading = t(item.translatedHeading, locale);
     });
 
@@ -77,6 +77,42 @@ export class SchemaPageTransformer implements IJSONTransformer {
         url: ref?.route?.path,
       };
     });
+
+    // `promoArea` (editor label "Faglig brukerstøtte") is a Content Picker, so refs
+    // arrive with `properties: {}` and must be hydrated. `providerContactInformationBlock`
+    // gets an explicit field mapping (mirrors ProviderPageTransformer.contactInfo);
+    // other block types fall back to BlockTransformer.
+    const resolvedPromoItems = await resolveBlockReferences(
+      props.promoArea,
+      locale,
+    );
+    const defaultProviderIcon = providerPages[0]?.providerIcon;
+    const promoItems = resolvedPromoItems.map((item: any) => {
+      if (item?.contentType === "providerContactInformationBlock") {
+        const bp = item.properties ?? {};
+        return {
+          componentName: "ProviderContactInformationBlock",
+          body: bp.body ?? undefined,
+          bottomText: bp.bottomText ?? undefined,
+          webpageLink: bp.webpageLink ?? undefined,
+          telephone: bp.telephone ?? "",
+          telephoneLabel: bp.telephoneLabel ?? "",
+          email: bp.email ?? "",
+          emailTitle: bp.emailTitle ?? "",
+          pageName: item.name,
+          providerIcon: defaultProviderIcon
+            ? {
+                name: defaultProviderIcon.name,
+                imageUrl: defaultProviderIcon.imageUrl,
+              }
+            : undefined,
+        };
+      }
+      return BlockTransformer.TransformBlocks([item]).items[0];
+    });
+    const promoArea = promoItems.length
+      ? { componentName: "ContentArea", items: promoItems }
+      : undefined;
 
     // Sidebar: schema's tree parent is a providerPage (URL: /skjemaoversikt/<provider>/<schema>/),
     // so the category/subcategory comes from the `subCategories` Content Picker property.
@@ -174,11 +210,11 @@ export class SchemaPageTransformer implements IJSONTransformer {
       preInstansiated: props.preInstansiated || false,
       schemaNotInUse: props.schemaNotInUse || false,
       deactivateButton: props.deactivateButton || false,
-      deadline: props.deadline || undefined,
+      deadline: richTextOrText(props.deadlineRichText, props.deadline),
       deadlineText: t("schema.deadline", locale),
-      processTime: props.processTime || undefined,
+      processTime: richTextOrText(props.processTimeRichText, props.processTime),
       processTimeText: t("schema.processTime", locale),
-      fee: props.fee || undefined,
+      fee: richTextOrText(props.feeRichText, props.fee),
       feeText: t("schema.fee", locale),
       securityLevelInfo: props.securityLevelInfo || undefined,
       shallowLink: props.shallowLink || undefined,
