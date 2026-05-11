@@ -37,6 +37,12 @@ resource "azurerm_role_assignment" "backup_vault_sa_contributor" {
   principal_id         = azurerm_data_protection_backup_vault.media.identity[0].principal_id
 }
 
+resource "azurerm_management_lock" "backup_vault" {
+  name       = "${var.backup_vault_name}-lock"
+  scope      = azurerm_data_protection_backup_vault.media.id
+  lock_level = "CanNotDelete"
+}
+
 # Backup instance is created in the vault subscription but references the cross-subscription storage account
 resource "azurerm_data_protection_backup_instance_blob_storage" "media" {
   name               = "${var.backup_vault_name}-instance"
