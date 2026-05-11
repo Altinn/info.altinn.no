@@ -64,9 +64,13 @@ export class SchemaAttachmentPageTransformer implements IJSONTransformer {
             ),
             url: a.route?.path ?? "",
           }));
+        const schemaCode = schema?.properties?.schemaCode;
+        const title = schemaCode
+          ? `${schema?.name} (${schemaCode})`
+          : schema?.name;
         return {
           id: schema?.id,
-          title: schema?.name,
+          title,
           url: schemaPath ?? "",
           providers,
         };
