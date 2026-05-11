@@ -20,6 +20,7 @@ export function getGlobalData(
   cultures: CultureRoutes = {},
   startPage?: { properties?: Record<string, unknown> },
   currentPageContentType?: string,
+  currentPath?: string,
 ) {
   const afBase = endpoints.afBaseUrl.replace(/\/$/, "");
   const amUiBase = endpoints.amUiBaseUrl.replace(/\/$/, "");
@@ -60,7 +61,7 @@ export function getGlobalData(
       loggedInAsText: t("header.loggedInAs", locale),
       backButtonText: t("header.back", locale),
       chooseLanguageText: t("header.chooseLanguage", locale),
-      menuLanguageList: buildMenuLanguageList(locale, cultures),
+      menuLanguageList: buildMenuLanguageList(locale, cultures, currentPath),
       shortcutText: t("header.shortcuts", locale),
       menuText: t("header.menu", locale),
       searchTextPlaceholder: t("header.searchPlaceholder", locale),
