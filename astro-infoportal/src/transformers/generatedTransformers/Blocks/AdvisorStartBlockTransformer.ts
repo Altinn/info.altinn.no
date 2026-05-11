@@ -1,6 +1,6 @@
 import type { IJSONTransformer } from "../IJSONTransformer";
 
-const ADVISOR_START_BLOCK_IMAGE_MAP: Record<string, { src: string; alt: string }> = {
+const ADVISOR_START_BLOCK_IMAGE_MAP_RAW: Record<string, { src: string; alt: string }> = {
     "Veileder for valg av organisasjonsform": {
         src: "/assets/img/illustrasjon_arbeidsforhold_sirkel.svg",
         alt: "Illustrasjon for veileder organisasjonsform",
@@ -9,8 +9,16 @@ const ADVISOR_START_BLOCK_IMAGE_MAP: Record<string, { src: string; alt: string }
         src: "/assets/img/altinn-veileder-sirkel.svg",
         alt: "Illustrasjon for veileder enkeltpersonforetak",
     },
+    "Oppstartsveilederen for enkeltpersonforetak": {
+        src: "/assets/img/illustrasjon_loginn_sirkel_2.svg",
+        alt: "Illustrasjon for veileder enkeltpersonforetak",
+    },
     "Oppstartsveileder for aksjeselskap": {
         src: "/assets/img/illustrasjon_regnskap_og_revisjon_sirkel.svg",
+        alt: "Illustrasjon for veileder aksjeselskap",
+    },
+    "Oppstartsveilederen for aksjeselskap": {
+        src: "/assets/img/illustrasjon_loginn_sirkel_1.svg",
         alt: "Illustrasjon for veileder aksjeselskap",
     },
     "Veileder for serveringsbransjen": {
@@ -34,6 +42,16 @@ const ADVISOR_START_BLOCK_IMAGE_MAP: Record<string, { src: string; alt: string }
         alt: "Illustrasjon for veileder varebransjen",
     },
 };
+
+const normalizeHeadingKey = (s: string): string => s.trim().toLowerCase();
+
+const ADVISOR_START_BLOCK_IMAGE_MAP: Record<string, { src: string; alt: string }> =
+    Object.fromEntries(
+        Object.entries(ADVISOR_START_BLOCK_IMAGE_MAP_RAW).map(([k, v]) => [
+            normalizeHeadingKey(k),
+            v,
+        ]),
+    );
 
 export class AdvisorStartBlockTransformer implements IJSONTransformer {
     public Transform(cmsPageData:any):any {
@@ -70,7 +88,7 @@ export class AdvisorStartBlockTransformer implements IJSONTransformer {
         */
                                 const props = cmsPageData?.properties ?? {};
                 const imageFallback = props?.heading
-                    ? ADVISOR_START_BLOCK_IMAGE_MAP[props.heading] ?? null
+                    ? ADVISOR_START_BLOCK_IMAGE_MAP[normalizeHeadingKey(props.heading)] ?? null
                     : null;
                 const linkLocation = props?.url
                     ? {
