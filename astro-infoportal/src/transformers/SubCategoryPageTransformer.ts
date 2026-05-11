@@ -20,7 +20,7 @@ export class SubCategoryPageTransformer implements IJSONTransformer {
     const locale: Locale = globalData?.locale || "nb";
     const resolver = await ProviderResolver.create();
 
-    const ancestors = await fetchUmbracoAncestors(cmsPageData.route.path);
+    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, locale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
     const boxBlocks = props.boxBlocks

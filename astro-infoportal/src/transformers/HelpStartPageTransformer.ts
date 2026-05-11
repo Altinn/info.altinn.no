@@ -62,7 +62,7 @@ export class HelpStartPageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
     const props = cmsPageData?.properties ?? {};
     const locale: Locale = globalData?.locale || "nb";
-    const ancestors = await fetchUmbracoAncestors(cmsPageData.route?.path ?? cmsPageData.id);
+    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, locale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
     // Drilldown/question/contact picker refs arrive with `properties: {}`;

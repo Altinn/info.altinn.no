@@ -3,8 +3,8 @@ import { fetchUmbracoAncestors } from "../api/umbraco/client";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
 
 export class HelpQuestionPageTransformer implements IJSONTransformer {
-  public async Transform(cmsPageData: any): Promise<any> {
-    const ancestors = await fetchUmbracoAncestors(cmsPageData.route?.path ?? cmsPageData.id);
+  public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
+    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, globalData?.locale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
     return {
