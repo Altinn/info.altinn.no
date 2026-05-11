@@ -73,7 +73,7 @@ if (pageResult.status === 'rejected') {
 
 const startPageData = startPageResult.status === 'fulfilled' ? startPageResult.value : null;
 
-let globalData: any = getGlobalData(locale, "/sok/", altinnEndpoints, umbracoPageData?.cultures, startPageData, umbracoPageData?.contentType);
+let globalData: any = getGlobalData(locale, "/sok/", altinnEndpoints, umbracoPageData?.cultures, startPageData, umbracoPageData?.contentType, path);
 globalData = {
   ...globalData,
   startPageData,
