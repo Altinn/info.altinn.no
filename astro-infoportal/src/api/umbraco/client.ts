@@ -70,6 +70,33 @@ export async function fetchUmbracoContent(path: string, culture?: string) {
   return await response.json();
 }
 
+/**
+ * Fetch a content item with locale fallback to bokmål.
+ *
+ * If a request for /{nn|en}/... 404s, retry once with the locale prefix
+ * stripped and Accept-Language: nb. This matches the editorial expectation
+ * that untranslated pages render their NB content while the surrounding
+ * chrome stays in the requested locale.
+ */
+export async function fetchUmbracoContentWithLocaleFallback(
+  path: string,
+  culture?: string,
+) {
+  try {
+    return await fetchUmbracoContent(path, culture);
+  } catch (error) {
+    if (culture && culture !== "nb") {
+      const normalized = normalizeItemPath(path);
+      const prefix = `/${culture}/`;
+      if (normalized.startsWith(prefix)) {
+        const fallbackPath = normalized.slice(prefix.length - 1) || "/";
+        return await fetchUmbracoContent(fallbackPath, "nb");
+      }
+    }
+    throw error;
+  }
+}
+
 export async function fetchUmbracoContentById(id: string, culture?: string) {
   const url = deliveryUrl(
     `/umbraco/delivery/api/v2/content/item/${encodeURIComponent(id)}`,

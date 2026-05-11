@@ -1,6 +1,6 @@
 ---
 
-import { fetchUmbracoContent, fetchUmbracoErrorPage, fetchUmbracoStartPage } from '@api/umbraco/client';
+import { fetchUmbracoContentWithLocaleFallback, fetchUmbracoErrorPage, fetchUmbracoStartPage } from '@api/umbraco/client';
 import { fetchFromOldPortal } from '@api/oldportal/client';
 import { shouldFetchFromOldPortal } from '@api/oldportal/client';
 import AstroSiteLayout from '@layouts/AstroSiteLayout.astro';
@@ -51,7 +51,7 @@ if (redirectTarget && redirectTarget !== path) {
 const isLocaleRoot = isNorwegianStartRoot || /^\/(nn|en)\/?$/.test(path);
 const umbracoPath = isNorwegianStartRoot ? "/" : path;
 
-const pagePromise = fetchUmbracoContent(umbracoPath, locale);
+const pagePromise = fetchUmbracoContentWithLocaleFallback(umbracoPath, locale);
 const startPagePromise = isLocaleRoot ? pagePromise : fetchUmbracoStartPage(locale);
 
 const [pageResult, startPageResult] = await Promise.allSettled([
