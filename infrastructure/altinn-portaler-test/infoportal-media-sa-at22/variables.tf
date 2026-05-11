@@ -1,3 +1,8 @@
+variable "backup_subscription_id" {
+  description = "Azure subscription ID where the backup vault will be created (separate from the storage account subscription)"
+  type        = string
+}
+
 variable "umbraco_sp_object_id" {
   description = "Object ID of the Umbraco managed identity that reads/writes media files in the storage account. Leave empty to skip the role assignment."
   type        = string
