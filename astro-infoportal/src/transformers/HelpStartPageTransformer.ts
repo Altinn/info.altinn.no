@@ -1,7 +1,8 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
-import { fetchUmbracoAncestors } from "../api/umbraco/client";
+import { fetchUmbracoAncestors, resolveBlockReferences } from "../api/umbraco/client";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
 import { BlockTransformer } from "./BlockTransformer";
+import { type Locale, t } from "@i18n/index";
 
 function mapDrilldownPage(item: any) {
   const props = item?.properties ?? {};
@@ -28,24 +29,70 @@ function mapQuestionAreaItem(item: any) {
   return null;
 }
 
+// Mirrors the legacy Optimizely ContactListBlockViewModelBuilder shape: i18n labels
+// for contactNumberText, and contactFormLocation reshaped from a picker array into
+// a LinkItem-ish object. contactFormPageData is attached by
+// hydrateNestedContactFormPageData in JSONTransformer.
+function mapContactListBlock(props: any, locale: Locale) {
+  const locationRefs = Array.isArray(props.contactFormLocation)
+    ? props.contactFormLocation
+    : [];
+  const firstLocation = locationRefs[0];
+  const contactFormLocation = firstLocation
+    ? {
+        text: t("support.contactForm", locale),
+        url: firstLocation?.route?.path,
+        route: firstLocation?.route,
+      }
+    : undefined;
+
+  return {
+    componentName: "ContactListBlock",
+    contactHeading: props.contactHeading ?? undefined,
+    text: props.text ?? undefined,
+    useContactNumberButton: props.useContactNumberButton ?? false,
+    contactNumber: props.contactNumber ?? "",
+    contactNumberText: t("support.contactTelephone", locale),
+    useContactFormButton: props.useContactFormButton ?? false,
+    contactFormLocation,
+  };
+}
+
 export class HelpStartPageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
     const props = cmsPageData?.properties ?? {};
+    const locale: Locale = globalData?.locale || "nb";
     const ancestors = await fetchUmbracoAncestors(cmsPageData.route?.path ?? cmsPageData.id);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
-    const newDrilldownPages = Array.isArray(props.newDrilldownPages)
-      ? props.newDrilldownPages.map(mapDrilldownPage)
-      : [];
-    const oldDrilldownPages = Array.isArray(props.oldDrilldownPages)
-      ? props.oldDrilldownPages.map(mapDrilldownPage)
-      : [];
-    const questionArea = Array.isArray(props.questionArea)
-      ? props.questionArea.map(mapQuestionAreaItem).filter(Boolean)
-      : [];
+    // Drilldown/question/contact picker refs arrive with `properties: {}`;
+    // hydrate each ref so the mappers below have access to inline properties
+    // (icon, triggerWords, mainBody, contact fields).
+    const [
+      newDrilldownRefs,
+      oldDrilldownRefs,
+      questionAreaRefs,
+      helpContentRefs,
+    ] = await Promise.all([
+      resolveBlockReferences(props.newDrilldownPages, locale),
+      resolveBlockReferences(props.oldDrilldownPages, locale),
+      resolveBlockReferences(props.questionArea, locale),
+      resolveBlockReferences(props.helpContentArea, locale),
+    ]);
 
-    const helpContentArea = props.helpContentArea
-      ? BlockTransformer.TransformBlocks(props.helpContentArea)
+    const newDrilldownPages = newDrilldownRefs.map(mapDrilldownPage);
+    const oldDrilldownPages = oldDrilldownRefs.map(mapDrilldownPage);
+    const questionArea = questionAreaRefs.map(mapQuestionAreaItem).filter(Boolean);
+
+    const helpContentItems = helpContentRefs.map((item: any) => {
+      const blockProps = item?.properties ?? {};
+      if (item?.contentType === "contactListBlock") {
+        return mapContactListBlock(blockProps, locale);
+      }
+      return BlockTransformer.TransformBlocks([item]).items[0];
+    });
+    const helpContentArea = helpContentItems.length
+      ? { componentName: "ContentArea", items: helpContentItems }
       : undefined;
 
     const helpSearchPageUrl =

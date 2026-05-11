@@ -1,8 +1,61 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
-import { fetchUmbracoAncestors, fetchUmbracoChildrenInEditorOrder, fetchUmbracoContent } from "../api/umbraco/client";
+import {
+  fetchUmbracoAncestors,
+  fetchUmbracoChildrenInEditorOrder,
+  fetchUmbracoContent,
+  resolveBlockReferences,
+} from "../api/umbraco/client";
 import { BlockTransformer } from "./BlockTransformer";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
-import type { Locale } from "@i18n/index";
+import { type Locale, t } from "@i18n/index";
+
+// Mirrors the legacy Optimizely CampaignBlockViewModelBuilder. Umbraco's link
+// editor stores a plain URL string, but the component expects { url, text }.
+// Use the block's content name as heading text (the picked node's name).
+function mapCampaignBlock(item: any) {
+  const props = item?.properties ?? {};
+  const rawLink = props.link;
+  const linkUrl =
+    typeof rawLink === "string" ? rawLink : rawLink?.url ?? undefined;
+  const linkText =
+    typeof rawLink === "string"
+      ? item?.name ?? ""
+      : rawLink?.text ?? item?.name ?? "";
+  return {
+    componentName: "CampaignBlock",
+    link: linkUrl ? { url: linkUrl, text: linkText } : null,
+    description: props.description ?? null,
+  };
+}
+
+// Mirrors the legacy Optimizely ContactListBlockViewModelBuilder: contactNumberText
+// always comes from i18n, and the contactFormLocation MNTP ref is reshaped into a
+// LinkItem-ish object with localized link text. contactFormPageData is attached
+// later by hydrateNestedContactFormPageData in JSONTransformer.
+function mapContactListBlock(props: any, locale: Locale) {
+  const locationRefs = Array.isArray(props.contactFormLocation)
+    ? props.contactFormLocation
+    : [];
+  const firstLocation = locationRefs[0];
+  const contactFormLocation = firstLocation
+    ? {
+        text: t("support.contactForm", locale),
+        url: firstLocation?.route?.path,
+        route: firstLocation?.route,
+      }
+    : undefined;
+
+  return {
+    componentName: "ContactListBlock",
+    contactHeading: props.contactHeading ?? undefined,
+    text: props.text ?? undefined,
+    useContactNumberButton: props.useContactNumberButton ?? false,
+    contactNumber: props.contactNumber ?? "",
+    contactNumberText: t("support.contactTelephone", locale),
+    useContactFormButton: props.useContactFormButton ?? false,
+    contactFormLocation,
+  };
+}
 
 const articleContentTypes = new Set([
   "articlePage",
@@ -77,8 +130,26 @@ export class ThemePageTransformer implements IJSONTransformer {
       }),
     );
 
-    const bottomContentArea = props.bottomContentArea
-      ? BlockTransformer.TransformBlocks(props.bottomContentArea)
+    // `bottomContentArea` (editor label "Faglig brukerstøtte") is a Content Picker.
+    // Refs arrive with `properties: {}`; hydrate them, then map known block types
+    // (mirroring legacy Optimizely ViewModelBuilders) so the React components receive
+    // the shape they expect. Unknown types fall through to BlockTransformer.
+    const hydratedBottomItems = await resolveBlockReferences(
+      props.bottomContentArea,
+      locale,
+    );
+    const bottomItems = hydratedBottomItems.map((item: any) => {
+      const blockProps = item?.properties ?? {};
+      if (item?.contentType === "contactListBlock") {
+        return mapContactListBlock(blockProps, locale);
+      }
+      if (item?.contentType === "campaignBlock") {
+        return mapCampaignBlock(item);
+      }
+      return BlockTransformer.TransformBlocks([item]).items[0];
+    });
+    const bottomContentArea = bottomItems.length
+      ? { componentName: "ContentArea", items: bottomItems }
       : undefined;
 
     return {
