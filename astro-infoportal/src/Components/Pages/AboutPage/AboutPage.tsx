@@ -7,6 +7,7 @@ import {
   SearchItem,
   Section,
 } from "@altinn/altinn-components";
+import { Fragment } from "react";
 import ContentArea from "../../Shared/ContentArea/ContentArea";
 import "./AboutPage.scss";
 
@@ -24,7 +25,7 @@ const AboutPage = ({ pageName, linkArea, contactArea }: any) => {
           {linkArea
             .filter((link: any) => !!link?.url)
             .map((link: any, index: number) => (
-              <React.Fragment key={link.url || index}>
+              <Fragment key={link.url || index}>
                 <SearchItem
                   as="a"
                   href={link.url || "#"}
@@ -32,7 +33,7 @@ const AboutPage = ({ pageName, linkArea, contactArea }: any) => {
                   summary={link.preamble}
                 />
                 <Divider as="li" />
-              </React.Fragment>
+              </Fragment>
             ))}
         </List>
       )}
