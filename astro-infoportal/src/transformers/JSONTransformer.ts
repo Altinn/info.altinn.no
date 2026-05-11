@@ -3,6 +3,7 @@ import { t } from "@i18n/index";
 import { SectionPageTransformer } from "./SectionPageTransformer";
 import { HeroArticlePageBaseTransformer } from "./HeroArticlePageBaseTransformer";
 import { ThemePageTransformer } from "./ThemePageTransformer";
+import { AboutPageTransformer } from "./AboutPageTransformer";
 import { CategoryPageTransformer } from "./CategoryPageTransformer";
 import { HelpDrilldownPageTransformer } from "./HelpDrilldownPageTransformer";
 import { HelpLandingPageTransformer } from "./HelpLandingPageTransformer";
@@ -65,6 +66,8 @@ export class JSONTransformer implements IJSONTransformer {
     switch (umbracoContentType) {
       case "startPage":
         return new StartPageTransformer();
+      case "aboutPage":
+        return new AboutPageTransformer();
       case "categoryPage":
         return new CategoryPageTransformer();
       case "helpDrilldownPage":

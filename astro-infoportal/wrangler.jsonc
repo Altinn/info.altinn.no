@@ -18,7 +18,7 @@
 		"UMBRACO_API_URL": "https://infoportal.at22.dis-core.altinn.cloud/",
 		"ELASTICSEARCH_URL": "https://infoportal-search-at22-f6bd85.es.germanywestcentral.azure.elastic.cloud",
 		"ELASTICSEARCH_INDEX_PREFIX": "infoportal",
-		"PAGES_FROM_OLD_PORTAL": "/om-altinn,/en/about-altinn,/nn/om-altinn,/inforportalapi/,/ui",
+		"PAGES_FROM_OLD_PORTAL": "/inforportalapi/,/ui",
         "OLD_PORTAL": "https://inte.info.altinn.no"
       },
   "env": {
@@ -28,7 +28,7 @@
 				"UMBRACO_API_URL": "https://infoportal.prod.dis-core.altinn.cloud/",
 				"ELASTICSEARCH_URL": "https://infoportal-search-at22-f6bd85.es.germanywestcentral.azure.elastic.cloud",
 				"ELASTICSEARCH_INDEX_PREFIX": "infoportal",
-				"PAGES_FROM_OLD_PORTAL": "/om-altinn,/en/about-altinn,/nn/om-altinn,/inforportalapi/,/ui",
+				"PAGES_FROM_OLD_PORTAL": "/inforportalapi/,/ui",
         "OLD_PORTAL": "https://prod.info.altinn.no"
       }
 		},
@@ -38,7 +38,7 @@
 				"UMBRACO_API_URL": "https://infoportal.at22.dis-core.altinn.cloud/",
 				"ELASTICSEARCH_URL": "https://infoportal-search-at22-f6bd85.es.germanywestcentral.azure.elastic.cloud",
 				"ELASTICSEARCH_INDEX_PREFIX": "infoportal",
-				"PAGES_FROM_OLD_PORTAL": "/om-altinn,/en/about-altinn,/nn/om-altinn,/inforportalapi/,/ui",
+				"PAGES_FROM_OLD_PORTAL": "/inforportalapi/,/ui",
         "OLD_PORTAL": "https://inte.info.altinn.no"
       }
 		},
@@ -48,7 +48,7 @@
 				"UMBRACO_API_URL": "https://infoportal.at23.dis-core.altinn.cloud/",
 				"ELASTICSEARCH_URL": "https://infoportal-search-at22-f6bd85.es.germanywestcentral.azure.elastic.cloud",
 				"ELASTICSEARCH_INDEX_PREFIX": "infoportal",
-				"PAGES_FROM_OLD_PORTAL": "/om-altinn,/en/about-altinn,/nn/om-altinn,/inforportalapi/,/ui",
+				"PAGES_FROM_OLD_PORTAL": "/inforportalapi/,/ui",
         "OLD_PORTAL": "https://inte.info.altinn.no"
 			}
 		},
@@ -58,7 +58,7 @@
 				"UMBRACO_API_URL": "https://infoportal.tt02.dis-core.altinn.cloud/",
 				"ELASTICSEARCH_URL": "https://infoportal-search-tt02-ec939c.es.germanywestcentral.azure.elastic.cloud",
 				"ELASTICSEARCH_INDEX_PREFIX": "infoportal",
-				"PAGES_FROM_OLD_PORTAL": "/om-altinn,/en/about-altinn,/nn/om-altinn,/inforportalapi/,/ui,/skjemaoversikt,/en/forms-overview/,/nn/skjemaoversikt",
+				"PAGES_FROM_OLD_PORTAL": "/inforportalapi/,/ui,/skjemaoversikt,/en/forms-overview/,/nn/skjemaoversikt",
         "OLD_PORTAL": "https://prep.info.altinn.no"
 			}
 		}
