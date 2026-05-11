@@ -28,9 +28,13 @@ public class BlockListPropertyConverter : IPropertyValueConverter
         _publishedContentCache = publishedContentCache;
     }
 
-    // Make sure the Property Value Converter only applies to the Content Picker property editor
+    // This converter pre-renders schemaAccordianBlock content into a ContentArea shape
+    // (see ConvertIntermediateToObject). Apply it only to `accordianList` so other
+    // BlockList properties (e.g. `promoArea` on schemaPage) return raw Delivery API
+    // output and are mapped in TypeScript via BlockTransformer.
     public bool IsConverter(IPublishedPropertyType propertyType)
-        => propertyType.EditorAlias.Equals(Constants.PropertyEditors.Aliases.BlockList);
+        => propertyType.EditorAlias.Equals(Constants.PropertyEditors.Aliases.BlockList)
+           && "accordianList".Equals(propertyType.Alias);
 
 
     public bool? IsValue(object? value, PropertyValueLevel level)

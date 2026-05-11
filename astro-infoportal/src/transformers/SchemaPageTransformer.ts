@@ -78,38 +78,41 @@ export class SchemaPageTransformer implements IJSONTransformer {
       };
     });
 
-    // `promoArea` (editor label "Faglig brukerstøtte") is a Content Picker, so refs
-    // arrive with `properties: {}` and must be hydrated. `providerContactInformationBlock`
-    // gets an explicit field mapping (mirrors ProviderPageTransformer.contactInfo);
-    // other block types fall back to BlockTransformer.
-    const resolvedPromoItems = await resolveBlockReferences(
-      props.promoArea,
-      locale,
-    );
-    const defaultProviderIcon = providerPages[0]?.providerIcon;
-    const promoItems = resolvedPromoItems.map((item: any) => {
-      if (item?.contentType === "providerContactInformationBlock") {
-        const bp = item.properties ?? {};
-        return {
-          componentName: "ProviderContactInformationBlock",
-          body: bp.body ?? undefined,
-          bottomText: bp.bottomText ?? undefined,
-          webpageLink: bp.webpageLink ?? undefined,
-          telephone: bp.telephone ?? "",
-          telephoneLabel: bp.telephoneLabel ?? "",
-          email: bp.email ?? "",
-          emailTitle: bp.emailTitle ?? "",
-          pageName: item.name,
-          providerIcon: defaultProviderIcon
-            ? {
-                name: defaultProviderIcon.name,
-                imageUrl: defaultProviderIcon.imageUrl,
-              }
-            : undefined,
-        };
-      }
-      return BlockTransformer.TransformBlocks([item]).items[0];
-    });
+    // `promoArea` (editor label "Faglig brukerstøtte") is a Block List. Items wrap
+    // each block as `{ content: { contentType, id, properties }, settings }`, with
+    // properties inline (no picker hydration needed). The `formElementContactFreetext`
+    // element type maps to ProviderContactInformationBlock; other block types fall
+    // back to BlockTransformer's contentType-keyed registry.
+    const promoBlockItems: any[] = Array.isArray(props.promoArea?.items)
+      ? props.promoArea.items
+      : [];
+    const defaultProvider = providerPages[0];
+    const promoItems = promoBlockItems
+      .map((wrapper: any) => {
+        const content = wrapper?.content ?? wrapper;
+        const blockProps = content?.properties ?? {};
+        if (content?.contentType === "formElementContactFreetext") {
+          return {
+            componentName: "ProviderContactInformationBlock",
+            body: blockProps.body ?? undefined,
+            bottomText: blockProps.bottomText ?? undefined,
+            webpageLink: blockProps.webpageLink ?? undefined,
+            telephone: blockProps.telephone ?? "",
+            telephoneLabel: blockProps.telephoneLabel ?? "",
+            email: blockProps.email ?? "",
+            emailTitle: blockProps.emailTitle ?? "",
+            pageName: defaultProvider?.name ?? "",
+            providerIcon: defaultProvider?.providerIcon
+              ? {
+                  name: defaultProvider.providerIcon.name,
+                  imageUrl: defaultProvider.providerIcon.imageUrl,
+                }
+              : undefined,
+          };
+        }
+        return BlockTransformer.TransformBlocks([content]).items[0];
+      })
+      .filter(Boolean);
     const promoArea = promoItems.length
       ? { componentName: "ContentArea", items: promoItems }
       : undefined;

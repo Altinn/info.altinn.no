@@ -6,8 +6,14 @@ const LinkBlock = ({
   // icon,
   extraTitle,
   link,
+  urlBlock,
 }: any) => {
-  if (!link?.linkText || !link?.url) {
+  // Legacy Optimizely shape supplied a built `link` view-model. Umbraco's
+  // RichTextPropertyConverter instead exposes the raw picker as `urlBlock`
+  // (array). Accept either; pick the first populated item.
+  const resolved =
+    link ?? (Array.isArray(urlBlock) ? urlBlock[0] : urlBlock);
+  if (!resolved?.linkText || !resolved?.url) {
     return null;
   }
 
@@ -35,12 +41,12 @@ const LinkBlock = ({
             <p className="a-iconText-text-small">{extraTitle}</p>
           )}
           <a
-            href={link.url}
+            href={resolved.url}
             className="a-linkFeatured"
-            target={link.openInNewWindow ? "_blank" : undefined}
-            rel={link.openInNewWindow ? "noopener noreferrer" : undefined}
+            target={resolved.openInNewWindow ? "_blank" : undefined}
+            rel={resolved.openInNewWindow ? "noopener noreferrer" : undefined}
           >
-            {link.linkText}
+            {resolved.linkText}
           </a>
         </div>
       </div>
