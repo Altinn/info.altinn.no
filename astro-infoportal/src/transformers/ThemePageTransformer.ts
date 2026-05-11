@@ -81,7 +81,7 @@ export class ThemePageTransformer implements IJSONTransformer {
     const props = cmsPageData.properties ?? {};
     const locale: Locale = globalData?.locale || "nb";
 
-    const ancestors = await fetchUmbracoAncestors(cmsPageData.route.path, locale);
+    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, locale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
     const allChildren = await fetchUmbracoChildrenInEditorOrder(cmsPageData.route.path, 100, locale);

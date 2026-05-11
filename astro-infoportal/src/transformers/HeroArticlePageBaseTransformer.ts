@@ -71,7 +71,7 @@ export class HeroArticlePageBaseTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
     const locale: Locale = globalData?.locale || "nb";
     const props = cmsPageData.properties ?? {};
-    const ancestors = await fetchUmbracoAncestors(cmsPageData.route.path, locale);
+    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, locale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
     const mainBody = toRichTextArea(props.mainBody);
     const bottomContentArea = props.bottomContentArea

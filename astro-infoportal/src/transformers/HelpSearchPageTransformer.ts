@@ -4,7 +4,7 @@ import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
 
 export class HelpSearchPageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
-    const ancestors = await fetchUmbracoAncestors(cmsPageData.route?.path ?? cmsPageData.id);
+    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, globalData?.locale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
     return {

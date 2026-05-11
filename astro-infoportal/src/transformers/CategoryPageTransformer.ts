@@ -32,10 +32,11 @@ async function fetchSchemaCountsByUrl(): Promise<Record<string, string>> {
 }
 
 export class CategoryPageTransformer implements IJSONTransformer {
-  public async Transform(cmsPageData: any): Promise<any> {
+  public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
     const props = cmsPageData.properties ?? {};
+    const locale = globalData?.locale ?? "nb";
 
-    const ancestors = await fetchUmbracoAncestors(cmsPageData.route.path);
+    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, locale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
     // Subcategories: direct children of this category page

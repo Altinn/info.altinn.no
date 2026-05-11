@@ -31,7 +31,7 @@ export class NewsArchivePageTransformer implements IJSONTransformer {
     const startIndex = (currentPageNumber - 1) * PAGE_SIZE;
     const paginatedArticles = newsChildren.slice(startIndex, startIndex + PAGE_SIZE);
 
-    const ancestors = await fetchUmbracoAncestors(cmsPageData.route.path, locale);
+    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, locale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
     const newsArticles = paginatedArticles.map((child: any) => {
