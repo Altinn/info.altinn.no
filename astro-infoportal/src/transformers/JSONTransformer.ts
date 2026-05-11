@@ -6,6 +6,10 @@ import { ThemePageTransformer } from "./ThemePageTransformer";
 import { CategoryPageTransformer } from "./CategoryPageTransformer";
 import { HelpDrilldownPageTransformer } from "./HelpDrilldownPageTransformer";
 import { HelpLandingPageTransformer } from "./HelpLandingPageTransformer";
+import { HelpProcessArticlePageTransformer } from "./HelpProcessArticlePageTransformer";
+import { HelpQuestionPageTransformer } from "./HelpQuestionPageTransformer";
+import { HelpSearchPageTransformer } from "./HelpSearchPageTransformer";
+import { HelpStartPageTransformer } from "./HelpStartPageTransformer";
 import { StartPageTransformer } from "./StartPageTransformer";
 import { Error404PageTransformer } from "./Error404PageTransformer";
 import { SchemaPageTransformer } from "./SchemaPageTransformer";
@@ -19,7 +23,6 @@ import { NewsArchivePageTransformer } from "./NewsArchivePageTransformer";
 import { OperationalMessageArticlePageTransformer } from "./OperationalMessageArticlePageTransformer";
 import { OperationalMessageArchivePageTransformer } from "./OperationalMessageArchivePageTransformer";
 import { SchemaAttachmentPageTransformer } from "./SchemaAttachmentPageTransformer";
-import { HelpStartPageTransformer } from "./generatedTransformers/Pages/HelpStartPageTransformer";
 import { ContactFormPageTransformer } from "./generatedTransformers/Pages/ContactFormPageTransformer";
 import { hydrateNestedContactFormPageData } from "./contactFormData";
 
@@ -68,6 +71,12 @@ export class JSONTransformer implements IJSONTransformer {
         return new HelpDrilldownPageTransformer();
       case "helpLandingPage":
         return new HelpLandingPageTransformer();
+      case "helpProcessArticlePage":
+        return new HelpProcessArticlePageTransformer();
+      case "helpQuestionPage":
+        return new HelpQuestionPageTransformer();
+      case "helpSearchPage":
+        return new HelpSearchPageTransformer();
       case "helpStartPage":
         return new HelpStartPageTransformer();
       case "error404Page":
@@ -89,7 +98,7 @@ export class JSONTransformer implements IJSONTransformer {
       case "providerPage":
         return new ProviderPageTransformer();
       case "newsArchivePage":
-        return new NewsArchivePageTransformer();        
+        return new NewsArchivePageTransformer();
       case "operationalMessageArticlePage":
         return new OperationalMessageArticlePageTransformer();
       case "operationalMessageArchivePage":
