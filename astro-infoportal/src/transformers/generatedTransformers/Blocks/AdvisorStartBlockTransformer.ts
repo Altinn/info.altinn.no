@@ -1,45 +1,142 @@
 import type { IJSONTransformer } from "../IJSONTransformer";
 
+// Image lookup keyed by block heading. Heading text varies per locale and even
+// within a locale (definite vs indefinite Norwegian forms, editor typos with
+// trailing spaces), so every observed variant is enumerated here. Lookup is
+// normalized (trim + lowercase) before matching. Note: nynorsk collapses the
+// definite/indefinite bokmål forms to one heading; where that happens the nynorsk
+// entry mirrors the definite form's image.
 const ADVISOR_START_BLOCK_IMAGE_MAP_RAW: Record<string, { src: string; alt: string }> = {
+    // valg av organisasjonsform
     "Veileder for valg av organisasjonsform": {
         src: "/assets/img/illustrasjon_arbeidsforhold_sirkel.svg",
         alt: "Illustrasjon for veileder organisasjonsform",
     },
+    "Rettleiar for val av organisasjonsform": {
+        src: "/assets/img/illustrasjon_arbeidsforhold_sirkel.svg",
+        alt: "Illustrasjon for rettleiar organisasjonsform",
+    },
+    "Tutorial for choosing legal structure": {
+        src: "/assets/img/illustrasjon_arbeidsforhold_sirkel.svg",
+        alt: "Illustration for choosing legal structure",
+    },
+
+    // enkeltpersonforetak — indefinite NB form
     "Oppstartsveileder for enkeltpersonforetak": {
         src: "/assets/img/altinn-veileder-sirkel.svg",
         alt: "Illustrasjon for veileder enkeltpersonforetak",
     },
+    "Startup tutorial for sole proprietorships": {
+        src: "/assets/img/altinn-veileder-sirkel.svg",
+        alt: "Illustration for sole proprietorship tutorial",
+    },
+
+    // enkeltpersonforetak — definite NB form (used on the "oppstartsveileder-for-enkeltpersonforetak" page)
     "Oppstartsveilederen for enkeltpersonforetak": {
         src: "/assets/img/illustrasjon_loginn_sirkel_2.svg",
         alt: "Illustrasjon for veileder enkeltpersonforetak",
     },
+    "Oppstartsrettleiar for enkeltpersonføretak": {
+        src: "/assets/img/illustrasjon_loginn_sirkel_2.svg",
+        alt: "Illustrasjon for rettleiar enkeltpersonføretak",
+    },
+    "Start-up tutorial for sole proprietorship": {
+        src: "/assets/img/illustrasjon_loginn_sirkel_2.svg",
+        alt: "Illustration for sole proprietorship tutorial",
+    },
+
+    // aksjeselskap — indefinite NB form
     "Oppstartsveileder for aksjeselskap": {
         src: "/assets/img/illustrasjon_regnskap_og_revisjon_sirkel.svg",
         alt: "Illustrasjon for veileder aksjeselskap",
     },
+    "Startup tutorial for private limited company": {
+        src: "/assets/img/illustrasjon_regnskap_og_revisjon_sirkel.svg",
+        alt: "Illustration for private limited company tutorial",
+    },
+
+    // aksjeselskap — definite NB form (used on the "oppstartsveileder-for-enkeltpersonforetak" page)
     "Oppstartsveilederen for aksjeselskap": {
         src: "/assets/img/illustrasjon_loginn_sirkel_1.svg",
         alt: "Illustrasjon for veileder aksjeselskap",
     },
+    "Oppstartsrettleiar for aksjeselskap": {
+        src: "/assets/img/illustrasjon_loginn_sirkel_1.svg",
+        alt: "Illustrasjon for rettleiar aksjeselskap",
+    },
+    "Start-up tutorial for private limited company": {
+        src: "/assets/img/illustrasjon_loginn_sirkel_1.svg",
+        alt: "Illustration for private limited company tutorial",
+    },
+
+    // serveringsbransjen
     "Veileder for serveringsbransjen": {
         src: "/assets/img/illustrasjon_hjelp_sirkel_1.svg",
         alt: "Illustrasjon for veileder serveringsbransjen",
     },
+    "Rettleiar for serveringsbransjen": {
+        src: "/assets/img/illustrasjon_hjelp_sirkel_1.svg",
+        alt: "Illustrasjon for rettleiar serveringsbransjen",
+    },
+    "Tutorial for the food and beverage services sector": {
+        src: "/assets/img/illustrasjon_hjelp_sirkel_1.svg",
+        alt: "Illustration for the food and beverage services sector",
+    },
+
+    // renholdsbransjen / reinhaldsbransjen
     "Veileder for renholdsbransjen": {
         src: "/assets/img/illustrasjon_skatt_og_avgift_sirkel.svg",
         alt: "Veileder for renholdsbransjen",
     },
+    "Rettleiar for reinhaldsbransjen": {
+        src: "/assets/img/illustrasjon_skatt_og_avgift_sirkel.svg",
+        alt: "Rettleiar for reinhaldsbransjen",
+    },
+    "Guide for the cleaning industry": {
+        src: "/assets/img/illustrasjon_skatt_og_avgift_sirkel.svg",
+        alt: "Guide for the cleaning industry",
+    },
+
+    // frisørbransjen
     "Veiledning for frisørbransjen": {
         src: "/assets/img/illustrasjon_loginn_sirkel_1.svg",
         alt: "Illustrasjon for veileder frisør",
     },
+    "Rettleiing for frisørbransjen": {
+        src: "/assets/img/illustrasjon_loginn_sirkel_1.svg",
+        alt: "Illustrasjon for rettleiar frisør",
+    },
+    "Guidance for the hairdressing industry": {
+        src: "/assets/img/illustrasjon_loginn_sirkel_1.svg",
+        alt: "Guidance for the hairdressing industry",
+    },
+
+    // byggebransjen
     "Veiledning for byggebransjen": {
         src: "/assets/img/illustrasjon_starte_og_drive_sirkel.svg",
         alt: "Illustrasjon for veileder elektriker og rørlegger",
     },
+    "Rettleiing for byggebransjen": {
+        src: "/assets/img/illustrasjon_starte_og_drive_sirkel.svg",
+        alt: "Illustrasjon for rettleiar elektrikar og røyrleggjar",
+    },
+    "Guidance for the construction industry": {
+        src: "/assets/img/illustrasjon_starte_og_drive_sirkel.svg",
+        alt: "Guidance for the construction industry",
+    },
+
+    // varebransjen
     "Veiledning for varebransjen": {
         src: "/assets/img/illustrasjon_arbeidsforhold_sirkel.svg",
         alt: "Illustrasjon for veileder varebransjen",
+    },
+    "Rettleiing for varebransjen": {
+        src: "/assets/img/illustrasjon_arbeidsforhold_sirkel.svg",
+        alt: "Illustrasjon for rettleiar varebransjen",
+    },
+    "Guidance for the retail industry": {
+        src: "/assets/img/illustrasjon_arbeidsforhold_sirkel.svg",
+        alt: "Guidance for the retail industry",
     },
 };
 
