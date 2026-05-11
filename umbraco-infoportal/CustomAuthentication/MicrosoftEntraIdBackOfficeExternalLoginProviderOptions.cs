@@ -61,16 +61,49 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
                 if (roles.Contains("umbraco-admin"))
                     mappedGroups.Add("admin");
 
-                if (roles.Contains("umbraco-editor-startogdrive"))
-                    mappedGroups.Add("editorStarteOgDrive");
+                if (roles.Contains("umbraco-redaktor"))
+                    mappedGroups.Add("editor");
 
-                if (roles.Contains("umbraco-editor-nyheter"))
-                    mappedGroups.Add("editorNyheter");
+                if (roles.Contains("umbraco-aordningen"))
+                    mappedGroups.Add("tjenesterAOrdningen");
+
+                if (roles.Contains("umbraco-brg"))
+                    mappedGroups.Add("tjenesterBrg");
+
+                if (roles.Contains("umbraco-dat"))
+                    mappedGroups.Add("tjenesterDat");
+
+                 if (roles.Contains("umbraco-fd"))
+                    mappedGroups.Add("tjenesterFd");
+
+                 if (roles.Contains("umbraco-krt"))
+                    mappedGroups.Add("tjenesterKrt");
+
+                if (roles.Contains("umbraco-mdir"))
+                    mappedGroups.Add("tjenesterMdir");
+                
+                 if (roles.Contains("umbraco-skatt"))
+                    mappedGroups.Add("tjenesterSkatt");
+                
+                 if (roles.Contains("umbraco-slf"))
+                    mappedGroups.Add("tjenesterSlf");
+                
+                 if (roles.Contains("umbraco-ssb"))
+                    mappedGroups.Add("tjenesterSsb");
+
+                if (roles.Contains("umbraco-staf"))
+                    mappedGroups.Add("tjenesterStaf");
+                
+                if (roles.Contains("umbraco-beredskapsvakt"))
+                    mappedGroups.Add("beredskapsvakt");
+                
+                if (roles.Contains("umbraco-tad"))
+                    mappedGroups.Add("tjenesterTad");
 
                 // Writer rolle om ingen andre er spesifisert
                 if (!mappedGroups.Any())
                 {
-                    mappedGroups.Add("writer");
+                    return false;
                 }
 
                 // Sett roller i Umbraco
