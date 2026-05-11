@@ -3,7 +3,10 @@ import {
   type ProviderInfo,
   ProviderResolver,
 } from "@services/Providers/ProviderResolver";
-import { fetchUmbracoAncestors } from "../api/umbraco/client";
+import {
+  fetchUmbracoAncestors,
+  resolveBlockReferences,
+} from "../api/umbraco/client";
 import { BlockTransformer } from "./BlockTransformer";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
 import type { IJSONTransformer } from "./IJSONTransformer";
@@ -42,15 +45,33 @@ export class SchemaAttachmentPageTransformer implements IJSONTransformer {
       ? BlockTransformer.TransformBlocks(props.promoArea)
       : undefined;
 
-    // Related schemas: legacy used IRelationsDataProvider.GetRelatedSchemas.
-    // Until we have an equivalent Umbraco wiring for relation-based lookups,
-    // emit an empty list so the section is hidden gracefully.
-    const relatedSchemas: Array<{
-      id: string;
-      title: string;
-      url: string;
-      providers: ProviderInfo[];
-    }> = [];
+    const resolvedSchemas = await resolveBlockReferences(props.schemas, locale);
+    const relatedSchemas = await Promise.all(
+      resolvedSchemas.map(async (schema: any) => {
+        const schemaPath = schema?.route?.path;
+        const schemaAncestors = schemaPath
+          ? await fetchUmbracoAncestors(schemaPath, locale)
+          : [];
+        const providers: ProviderInfo[] = schemaAncestors
+          .filter((a: any) => a.contentType === "providerPage")
+          .map((a: any) => ({
+            name: a.name,
+            imageUrl: resolver.resolveImageUrl(
+              a.properties?.providerAcronym,
+              a.properties?.providerOrgNr,
+              a.name ?? "",
+              locale,
+            ),
+            url: a.route?.path ?? "",
+          }));
+        return {
+          id: schema?.id,
+          title: schema?.name,
+          url: schemaPath ?? "",
+          providers,
+        };
+      }),
+    );
 
     return {
       componentName: "SchemaAttachmentPage",
