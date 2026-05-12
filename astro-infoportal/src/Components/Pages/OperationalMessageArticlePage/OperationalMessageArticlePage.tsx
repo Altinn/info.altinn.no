@@ -17,7 +17,7 @@ const OperationalMessageArticlePage = ({
           marginBottom: "var(--ds-size-2)",
         }}
       >
-        {pageName || ""} - TEST {colorVariant}
+        {pageName || ""}
       </Heading>
       {mainBodyRichText &&
       mainBodyRichText.items &&
