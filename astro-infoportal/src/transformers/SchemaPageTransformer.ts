@@ -101,13 +101,17 @@ export class SchemaPageTransformer implements IJSONTransformer {
             telephoneLabel: blockProps.telephoneLabel ?? "",
             email: blockProps.email ?? "",
             emailTitle: blockProps.emailTitle ?? "",
-            pageName: defaultProvider?.name ?? "",
-            providerIcon: defaultProvider?.providerIcon
-              ? {
-                  name: defaultProvider.providerIcon.name,
-                  imageUrl: defaultProvider.providerIcon.imageUrl,
-                }
-              : undefined,
+            pageName: blockProps.heading || defaultProvider?.name || "",
+            // Only show the provider emblem when we fell back to the provider
+            // name as the heading. If the editor supplied a `heading`, the
+            // card stands on its own without the org logo.
+            providerIcon:
+              !blockProps.heading && defaultProvider?.providerIcon
+                ? {
+                    name: defaultProvider.providerIcon.name,
+                    imageUrl: defaultProvider.providerIcon.imageUrl,
+                  }
+                : undefined,
           };
         }
         return BlockTransformer.TransformBlocks([content]).items[0];
