@@ -3,7 +3,6 @@ import { ProviderResolver } from "@services/Providers/ProviderResolver";
 import {
   fetchUmbracoAncestors,
   fetchUmbracoChildren,
-  fetchUmbracoContent,
   resolveBlockReferences,
 } from "../api/umbraco/client";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
@@ -66,34 +65,36 @@ export class ProviderPageTransformer implements IJSONTransformer {
     );
     schemas.sort((a: any, b: any) => a.title.localeCompare(b.title, locale));
 
+    // `promoArea` (editor label "Faglig brukerstøtte") is a Block List. Items
+    // wrap each block as `{ content: { contentType, properties }, settings }`
+    // with inline properties (no picker hydration needed). We map the first
+    // `formElementContactFreetext` block to a ProviderContactInformationBlock
+    // view-model — same shape as on schemaPage.
+    const promoBlockItems: any[] = Array.isArray(props.promoArea?.items)
+      ? props.promoArea.items
+      : [];
     let contactInfo: any;
-    const contactBlock = (props.promoArea || []).find(
-      (b: any) => b.contentType === "providerContactInformationBlock",
-    );
-    
-    if (contactBlock?.route?.path) {
-      try {
-        const blockPath = contactBlock.route.path.replace(/^\/+/, "");
-        const blockData = await fetchUmbracoContent(blockPath, locale);
-        const bp = blockData.properties ?? {};
-        contactInfo = {
-          componentName: "ProviderContactInformationBlock",
-          body: bp.body ?? undefined,
-          bottomText: bp.bottomText ?? undefined,
-          webpageLink: bp.webpageLink ?? undefined,
-          telephone: bp.telephone ?? "",
-          telephoneLabel: bp.telephoneLabel ?? "",
-          email: bp.email ?? "",
-          emailTitle: bp.emailTitle ?? "",
-          pageName: cmsPageData.name,
-          providerIcon: {
-            name: cmsPageData.name,
-            imageUrl: providerIcon.imageUrl,
-          },
-        };
-      } catch {
-        // Block fetch failed, skip contact info
-      }
+    for (const wrapper of promoBlockItems) {
+      const content = wrapper?.content ?? wrapper;
+      if (content?.contentType !== "formElementContactFreetext") continue;
+      const bp = content.properties ?? {};
+      contactInfo = {
+        componentName: "ProviderContactInformationBlock",
+        body: bp.body ?? undefined,
+        bottomText: bp.bottomText ?? undefined,
+        webpageLink: bp.webpageLink ?? undefined,
+        telephone: bp.telephone ?? "",
+        telephoneLabel: bp.telephoneLabel ?? "",
+        email: bp.email ?? "",
+        emailTitle: bp.emailTitle ?? "",
+        // Editor-supplied heading wins; provider name is the fallback. The
+        // emblem only shows when the heading isn't set (matches schemaPage).
+        pageName: bp.heading || cmsPageData.name,
+        providerIcon: !bp.heading
+          ? { name: cmsPageData.name, imageUrl: providerIcon.imageUrl }
+          : undefined,
+      };
+      break;
     }
 
     const pageSidebarViewModel = {
