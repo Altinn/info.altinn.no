@@ -40,10 +40,15 @@ export class BreadcrumbsTransformer {
     }];
 
     ancestors.forEach((item:any) => {
+      // providerPage-noder har `showInNavigation: false` i CMS for å skjules
+      // i meny og drilldowns, men de skal være med i brødsmulestien
+      // (`Start > Skjemaoversikt > Skatteetaten > Avskrivning`).
       const isBreadcrumbVisible =
         item.contentType !== "startPage" &&
         item.contentType !== "themeContainerPage" &&
-        (item.properties?.showInNavigation !== false || item.contentType === "themePage");
+        (item.properties?.showInNavigation !== false ||
+          item.contentType === "themePage" ||
+          item.contentType === "providerPage");
 
       if (isBreadcrumbVisible) {
         breadcrumbs.push({

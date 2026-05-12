@@ -38,9 +38,17 @@ export class SchemaAttachmentPageTransformer implements IJSONTransformer {
       });
     }
 
-    const accordianList = props.accordianList
-      ? BlockTransformer.TransformBlocks(props.accordianList)
-      : undefined;
+    // `accordianList` kommer fra CMS allerede i ContentArea-formen
+    // (`{componentName: "ContentArea", items: [{componentName: "SchemaAccordianBlock",
+    //   description, displayOption..., translatedHeading: "schema.importAccordions.b"}]}`).
+    // Skal IKKE gå gjennom BlockTransformer (som forventer
+    // `{content: {contentType, properties}}`). Vi muterer kun `translatedHeading`,
+    // identisk med SchemaPageTransformer.
+    props.accordianList?.items?.forEach((item: any) => {
+      item.translatedHeading = t(item.translatedHeading, locale);
+    });
+    const accordianList = props.accordianList || undefined;
+
     const promoArea = props.promoArea
       ? BlockTransformer.TransformBlocks(props.promoArea)
       : undefined;
