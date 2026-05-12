@@ -1,7 +1,6 @@
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Identity;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-using OpenTelemetry.Exporter;
 using OpenTelemetry.Trace;
 using umbraco_infoportal.Options;
 using Umbraco.Cms.Core.Composing;
@@ -57,7 +56,6 @@ if (!string.IsNullOrWhiteSpace(otlpEndpoint))
         .WithTracing(tracing => tracing
             .AddAspNetCoreInstrumentation(opt =>
             {
-                opt.RecordException = true;
                 opt.Filter = ctx =>
                 {
                     PathString path = ctx.Request.Path;
@@ -72,7 +70,6 @@ if (!string.IsNullOrWhiteSpace(otlpEndpoint))
             })
             .AddHttpClientInstrumentation(opt =>
             {
-                opt.RecordException = true;
                 opt.FilterHttpRequestMessage = req =>
                 {
                     string? host = req.RequestUri?.Host;
@@ -87,11 +84,7 @@ if (!string.IsNullOrWhiteSpace(otlpEndpoint))
                         && !host.EndsWith("telemetry.umbraco.com", StringComparison.OrdinalIgnoreCase);
                 };
             })
-            .AddOtlpExporter(opt =>
-            {
-                opt.Endpoint = otlpUri;
-                opt.Protocol = OtlpExportProtocol.Grpc;
-            }));
+            .AddOtlpExporter(opt => opt.Endpoint = otlpUri));
 }
 
 builder.CreateUmbracoBuilder()
