@@ -9,6 +9,7 @@ import {
   Section,
   Typography,
 } from "@altinn/altinn-components";
+import { Fragment } from "react";
 import { ContentArea, OperationalMessage, RichTextArea } from "/App.Components";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
 import ProvidersInline from "../../Shared/ProvidersInline/ProvidersInline";
@@ -106,10 +107,9 @@ const SchemaAttachmentPage = ({
                 }));
 
               return (
-                <>
+                <Fragment key={id ?? idx}>
                   <SearchItem
                     className="search-item__item"
-                    key={id ?? idx}
                     as="a"
                     href={url}
                     title={title}
@@ -122,8 +122,8 @@ const SchemaAttachmentPage = ({
                       ) : undefined
                     }
                   />
-                  <Divider as="li" key={`div-${id ?? idx}`} />
-                </>
+                  <Divider as="li" />
+                </Fragment>
               );
             })}
           </List>
