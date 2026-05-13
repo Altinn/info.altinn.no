@@ -24,4 +24,7 @@ allowed_cidr_blocks = [
 
   # dis-core-at22 AKS egress prefixes
   "4.177.14.48/28",
+
+  # VPN exit nodes
+  "4.235.99.236/32", # ts-exit-test
 ]
