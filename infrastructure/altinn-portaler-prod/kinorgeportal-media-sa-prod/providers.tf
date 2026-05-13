@@ -24,3 +24,9 @@ provider "azurerm" {
   features {}
   storage_use_azuread = true
 }
+
+provider "azurerm" {
+  alias           = "backup"
+  subscription_id = var.backup_subscription_id
+  features {}
+}

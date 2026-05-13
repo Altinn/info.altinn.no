@@ -12,6 +12,7 @@ on:
       - .github/workflows/infoportal-media-sa-tt02.yml
       - infrastructure/altinn-portaler-test/infoportal-media-sa-tt02/**
       - infrastructure/modules/infoportal-media-sa/**
+      - infrastructure/modules/infoportal-media-sa-backup/**
   pull_request:
     branches:
       - main
@@ -19,6 +20,7 @@ on:
       - .github/workflows/infoportal-media-sa-tt02.yml
       - infrastructure/altinn-portaler-test/infoportal-media-sa-tt02/**
       - infrastructure/modules/infoportal-media-sa/**
+      - infrastructure/modules/infoportal-media-sa-backup/**
   workflow_dispatch:
     inputs:
       log_level:
@@ -38,6 +40,7 @@ env:
   WORKING_DIRECTORY: ./infrastructure/altinn-portaler-test/infoportal-media-sa-tt02
   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID_ALTINN_PORTALER_TEST }}
   ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID_ALTINN_PORTALER_TEST }}
+  TF_VAR_backup_subscription_id: ${{ secrets.AZURE_SUBSCRIPTION_ID_ALTINN_PORTALER_TEST }}
 
 permissions:
   id-token: write
