@@ -30,3 +30,9 @@ variable "eso_object_id" {
   type        = string
   default     = ""
 }
+
+variable "allowed_cidr_blocks" {
+  description = "List of CIDR blocks allowed to access the Elasticsearch project. Empty list allows all traffic."
+  type        = list(string)
+  default     = []
+}
