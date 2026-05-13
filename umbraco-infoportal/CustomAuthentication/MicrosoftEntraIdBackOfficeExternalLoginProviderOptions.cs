@@ -97,6 +97,9 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
                 if (roles.Contains("umbraco-beredskapsvakt"))
                     mappedGroups.Add("beredskapsvakt");
                 
+                if (roles.Contains("umbraco-servicedesk"))
+                    mappedGroups.Add("servicedesk");
+                
                 if (roles.Contains("umbraco-tad"))
                     mappedGroups.Add("tjenesterTad");
 
