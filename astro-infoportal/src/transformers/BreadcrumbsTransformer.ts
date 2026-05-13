@@ -29,6 +29,12 @@ function getBreadcrumbUrl(item: any, cmsPageData: any): string {
     : override.targetPath;
 }
 
+function pathDepth(path?: string): number {
+  if (!path) return 0;
+  // Count non-empty segments. "/hjelp/" → 1, "/hjelp/a/b/" → 3.
+  return path.split("/").filter(Boolean).length;
+}
+
 export class BreadcrumbsTransformer {
   static Transform(ancestors: any, cmsPageData: any): any {
     const breadcrumbs = [{
@@ -39,7 +45,16 @@ export class BreadcrumbsTransformer {
       }
     }];
 
-    ancestors.forEach((item:any) => {
+    // Umbraco's ancestors endpoint does not guarantee depth-ordering; sort
+    // shallowest-first so the breadcrumb chain reads root → leaf.
+    const sortedAncestors = Array.isArray(ancestors)
+      ? [...ancestors].sort(
+          (a: any, b: any) =>
+            pathDepth(a?.route?.path) - pathDepth(b?.route?.path),
+        )
+      : [];
+
+    sortedAncestors.forEach((item:any) => {
       // providerPage-noder har `showInNavigation: false` i CMS for å skjules
       // i meny og drilldowns, men de skal være med i brødsmulestien
       // (`Start > Skjemaoversikt > Skatteetaten > Avskrivning`).
