@@ -100,7 +100,7 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
                 if (roles.Contains("umbraco-tad"))
                     mappedGroups.Add("tjenesterTad");
 
-                // Writer rolle om ingen andre er spesifisert
+                // Deny om ingen andre er roller er spesifisert
                 if (!mappedGroups.Any())
                 {
                     return false;

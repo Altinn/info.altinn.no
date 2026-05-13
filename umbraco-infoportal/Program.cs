@@ -1,5 +1,6 @@
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Identity;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using OpenTelemetry.Trace;
 using umbraco_infoportal.Options;
@@ -13,6 +14,15 @@ builder.WebHost.ConfigureKestrel(options =>
     options.Limits.MaxRequestHeadersTotalSize = 65536;
 });
 
+// Honor X-Forwarded-Proto/For from the cluster ingress (Traefik) so Request.Scheme
+// reflects the original https scheme. Required for OIDC correlation cookies set
+// with SecurePolicy.Always to round-trip correctly.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 builder.Services.Configure<KeyVaultOptions>(
     builder.Configuration.GetSection(KeyVaultOptions.SectionName));
@@ -102,6 +112,8 @@ builder.CreateUmbracoBuilder()
 WebApplication app = builder.Build();
 
 await app.BootUmbracoAsync();
+
+app.UseForwardedHeaders();
 
 app.UseUmbraco()
     .WithMiddleware(u =>
