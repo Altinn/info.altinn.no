@@ -26,3 +26,4 @@ module "media_sa" {
   blob_contributor_group_object_ids = var.blob_contributor_group_object_ids
   tags                              = local.tags
 }
+

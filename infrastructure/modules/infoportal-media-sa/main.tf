@@ -14,7 +14,8 @@ resource "azurerm_storage_account" "media" {
   shared_access_key_enabled = false
 
   blob_properties {
-    versioning_enabled = true
+    versioning_enabled  = true
+    change_feed_enabled = true
   }
 
   tags = var.tags
