@@ -48,12 +48,7 @@ resource "ec_serverless_traffic_filter" "allowed_sources" {
   region = "azure-germanywestcentral"
   type   = "ip"
 
-  dynamic "rules" {
-    for_each = var.allowed_cidr_blocks
-    content {
-      source = rules.value
-    }
-  }
+  rules = [for cidr in var.allowed_cidr_blocks : { source = cidr }]
 }
 
 resource "ec_elasticsearch_project" "search" {
