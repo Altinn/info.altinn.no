@@ -5,11 +5,6 @@ import {
 } from "@api/umbraco/client";
 import { t, type Locale } from "@i18n/index";
 
-const CONTACT_FORM_SCHEMA_ID_BY_SUPPORT_EMAIL: Record<string, number> = {
-  "support@altinn.no": 31158,
-  "altinn.starteogdrive@brreg.no": 31157,
-};
-
 const defaultContactFormPageCache = new Map<Locale, Promise<any>>();
 
 function normalizeRichTextArea(value: any) {
@@ -131,8 +126,8 @@ async function hydrateContactFormBlock(
     useRecaptcha: startProps.useRecaptcha ?? props.useRecaptcha ?? false,
     recaptchaSiteKey:
       startProps.reCaptchaSiteKey ?? props.recaptchaSiteKey ?? undefined,
-    // Umbraco delivery omits the legacy numeric content id used by the submit endpoint.
-    schemaId: CONTACT_FORM_SCHEMA_ID_BY_SUPPORT_EMAIL[props.supportEmail ?? ""] ?? 0,
+    // Umbraco GUID of the contactFormBlock — backend looks up supportEmail from this.
+    schemaId: blockData?.id ?? rawBlock?.id ?? "",
     labels: buildContactFormLabels(locale),
     displayOptionId: rawBlock?.displayOptionId ?? "full",
     displayOptionName: rawBlock?.displayOptionName ?? "/displayoptions/full",

@@ -18,6 +18,9 @@ builder.WebHost.ConfigureKestrel(options =>
 builder.Services.Configure<KeyVaultOptions>(
     builder.Configuration.GetSection(KeyVaultOptions.SectionName));
 
+builder.Services.Configure<SupportEmailOptions>(
+    builder.Configuration.GetSection(SupportEmailOptions.SectionName));
+
 KeyVaultOptions keyVaultOptions = builder.Configuration
     .GetSection(KeyVaultOptions.SectionName)
     .Get<KeyVaultOptions>() ?? new();
