@@ -42,24 +42,19 @@ resource "azurerm_elastic_cloud_elasticsearch" "search" {
   }
 }
 
-resource "ec_deployment_traffic_filter" "allowed_sources" {
+resource "ec_serverless_traffic_filter" "allowed_sources" {
   count  = length(var.allowed_cidr_blocks) > 0 ? 1 : 0
   name   = "infoportal-${var.environment}-allowed-sources"
   region = "azure-germanywestcentral"
   type   = "ip"
 
-  dynamic "rule" {
-    for_each = var.allowed_cidr_blocks
-    content {
-      source = rule.value
-    }
-  }
+  rules = [for cidr in var.allowed_cidr_blocks : { source = cidr }]
 }
 
 resource "ec_elasticsearch_project" "search" {
   name               = "infoportal-search-${var.environment}"
   region_id          = "azure-germanywestcentral"
-  traffic_filter_ids = length(var.allowed_cidr_blocks) > 0 ? [ec_deployment_traffic_filter.allowed_sources[0].id] : []
+  traffic_filter_ids = length(var.allowed_cidr_blocks) > 0 ? [ec_serverless_traffic_filter.allowed_sources[0].id] : []
 }
 
 resource "azurerm_key_vault_secret" "es_endpoint" {
