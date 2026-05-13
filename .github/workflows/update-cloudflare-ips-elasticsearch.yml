@@ -23,9 +23,7 @@ jobs:
           python3 - <<'EOF'
           import urllib.request, re
 
-          v4 = urllib.request.urlopen('https://www.cloudflare.com/ips-v4').read().decode().strip().splitlines()
-          v6 = urllib.request.urlopen('https://www.cloudflare.com/ips-v6').read().decode().strip().splitlines()
-          new_ips = v4 + v6
+          new_ips = urllib.request.urlopen('https://www.cloudflare.com/ips-v4').read().decode().strip().splitlines()
 
           paths = [
             'infrastructure/altinn-portaler-prod/infoportal-elasticsearch-prod/terraform.tfvars',
