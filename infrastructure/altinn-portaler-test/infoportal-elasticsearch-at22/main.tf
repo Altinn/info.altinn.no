@@ -29,5 +29,6 @@ module "elasticsearch" {
   elastic_cloud_email_address = var.elastic_cloud_email_address
   sku_name                    = var.sku_name
   elasticsearch_api_key       = var.elasticsearch_api_key
+  allowed_cidr_blocks         = var.allowed_cidr_blocks
   tags                        = local.tags
 }

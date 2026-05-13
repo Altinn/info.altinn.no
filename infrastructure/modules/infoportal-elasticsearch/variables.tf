@@ -51,6 +51,12 @@ variable "elastic_cloud_api_key" {
   sensitive   = true
 }
 
+variable "allowed_cidr_blocks" {
+  description = "List of CIDR blocks allowed to access the Elasticsearch project. Empty list allows all traffic."
+  type        = list(string)
+  default     = []
+}
+
 variable "tags" {
   description = "Tags to apply to all taggable resources"
   type        = map(string)

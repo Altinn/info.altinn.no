@@ -1,0 +1,76 @@
+name: Update Cloudflare IP ranges (Elasticsearch)
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'  # Mondays at 06:00 UTC
+    - cron: '0 6 * * 4'  # Thursdays at 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Fetch and update Cloudflare IP ranges
+        id: update
+        run: |
+          python3 - <<'EOF'
+          import urllib.request, re
+
+          v4 = urllib.request.urlopen('https://www.cloudflare.com/ips-v4').read().decode().strip().splitlines()
+          v6 = urllib.request.urlopen('https://www.cloudflare.com/ips-v6').read().decode().strip().splitlines()
+          new_ips = v4 + v6
+
+          paths = [
+            'infrastructure/altinn-portaler-prod/infoportal-elasticsearch-prod/terraform.tfvars',
+            'infrastructure/altinn-portaler-test/infoportal-elasticsearch-test/terraform.tfvars',
+            'infrastructure/altinn-portaler-test/infoportal-elasticsearch-at22/terraform.tfvars',
+          ]
+
+          items = ''.join(f'  "{ip}",\n' for ip in new_ips)
+
+          for path in paths:
+              with open(path) as f:
+                  content = f.read()
+
+              new_content = re.sub(
+                  r'(  # BEGIN CLOUDFLARE\n)(?:  ".+",\n)+(  # END CLOUDFLARE\n)',
+                  r'\g<1>' + items + r'\g<2>',
+                  content,
+              )
+
+              with open(path, 'w') as f:
+                  f.write(new_content)
+          EOF
+
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open pull request
+        if: steps.update.outputs.changed == 'true'
+        run: |
+          BRANCH="chore/update-cloudflare-ips-elasticsearch-$(date +%Y%m%d)"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add infrastructure/altinn-portaler-prod/infoportal-elasticsearch-prod/terraform.tfvars
+          git add infrastructure/altinn-portaler-test/infoportal-elasticsearch-test/terraform.tfvars
+          git add infrastructure/altinn-portaler-test/infoportal-elasticsearch-at22/terraform.tfvars
+          git commit -m "chore(elasticsearch): update Cloudflare IP ranges"
+          git push origin "$BRANCH"
+          gh pr create \
+            --title "chore(elasticsearch): update Cloudflare IP ranges" \
+            --body "Automated update of Cloudflare IP ranges for Elasticsearch traffic filters." \
+            --base main \
+            --head "$BRANCH"
+        env:
+          GH_TOKEN: ${{ github.token }}
