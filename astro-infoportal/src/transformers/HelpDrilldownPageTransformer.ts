@@ -1,37 +1,54 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
+import {
+  fetchUmbracoAncestors,
+  fetchUmbracoChildrenInEditorOrder,
+} from "../api/umbraco/client";
+import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
+import { hydrateContentAreaItems } from "./contentArea";
+import { buildHelpSidebarViewModel } from "./helpSidebar";
+import type { Locale } from "@i18n/index";
+
+function mapLandingPage(item: any) {
+  return {
+    pageName: item?.name,
+    mainIntro: item?.properties?.mainIntro ?? undefined,
+    url: item?.route?.path,
+  };
+}
 
 export class HelpDrilldownPageTransformer implements IJSONTransformer {
-  public async Transform(cmsPageData: any): Promise<any> {
-        /* C# logic (TS-ish++):
-    const culture: CultureInfo.CurrentCulture.NormalizeCulture();
-    
-                const landingpages: contentLoader.GetChildren<HelpLandingPage>(currentPage.ContentLink)
-                    .FilterForDisplay()
-                    
-                    .map(item: > {
-                        pageName: item.PageName,
-                        mainIntro: item.MainIntro,
-                        url: urlResolver.GetUrl(item.ContentLink, culture.Name, { contextMode: ContextMode.Default })
-                    });
-    
-                return {
-                    pageName: currentPage.PageName,
-                    triggerWords: currentPage.TriggerWords,
-                    iconUrl: currentPage.Icon != null ? urlResolver.GetUrl(currentPage.Icon) : null,
-                    altImage: currentPage.AltImage,
-                    landingPages: landingPages,
-                    bottomContentArea: contentAreaPropsBuilder.Build({
-                        contentArea: currentPage.BottomContentArea,
-                        propertyName: "currentPage.BottomContentArea"
-                    }),
-                    breadcrumb: breadcrumbViewModelBuilder.Build({ currentPage: currentPage }),
-                    ope: withOnPageEdit ? {} : null
-                }
-    */
+  public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
+    const locale: Locale = globalData?.locale || "nb";
+    const props = cmsPageData?.properties ?? {};
+
+    const [ancestors, children] = await Promise.all([
+      fetchUmbracoAncestors(cmsPageData.id, locale),
+      fetchUmbracoChildrenInEditorOrder(cmsPageData.id, 100, locale),
+    ]);
+
+    const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
+
+    const landingPages = (children ?? [])
+      .filter((c: any) => c?.contentType === "helpLandingPage")
+      .map(mapLandingPage);
+
+    const [bottomContentArea, pageSidebarViewModel] = await Promise.all([
+      props.bottomContentArea
+        ? hydrateContentAreaItems(props.bottomContentArea, locale)
+        : Promise.resolve(undefined),
+      buildHelpSidebarViewModel(cmsPageData, ancestors, locale),
+    ]);
+
     return {
       componentName: "HelpDrilldownPage",
-      pageName: cmsPageData.name,
-      ...cmsPageData.properties,
+      pageName: cmsPageData?.name,
+      triggerWords: props.triggerWords,
+      akselIcon: props.akselIcon,
+      altImage: props.altImage,
+      landingPages,
+      bottomContentArea,
+      breadcrumb,
+      pageSidebarViewModel,
       isUserLoggedIn: false,
     };
   }

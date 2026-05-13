@@ -1,58 +1,60 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
+import {
+  fetchUmbracoAncestors,
+  fetchUmbracoChildrenInEditorOrder,
+} from "../api/umbraco/client";
+import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
+import { hydrateContentAreaItems } from "./contentArea";
+import { buildHelpSidebarViewModel } from "./helpSidebar";
+import type { Locale } from "@i18n/index";
+
+function mapChildPage(item: any) {
+  const ct = item?.contentType;
+  if (ct !== "helpQuestionPage" && ct !== "helpProcessArticlePage") {
+    return null;
+  }
+  return {
+    pageName: item?.name,
+    pageType:
+      ct === "helpQuestionPage" ? "HelpQuestionPage" : "HelpProcessArticlePage",
+    url: item?.route?.path,
+    body: item?.properties?.mainBody ?? undefined,
+  };
+}
 
 export class HelpLandingPageTransformer implements IJSONTransformer {
-  public async Transform(cmsPageData: any): Promise<any> {
+  public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
+    const locale: Locale = globalData?.locale || "nb";
+    const props = cmsPageData?.properties ?? {};
 
-     /* C# logic (TS-ish++):
-    const culture: CultureInfo.CurrentCulture.NormalizeCulture();
-    
-                const childpageItems: contentLoader.GetChildren<SitePageData>(currentPage.ContentLink)
-                    .FilterForDisplay()
-                    .filter(item: > isHelpQuestionPage(item) || isHelpProcessArticlePage(item))
-                    .map(item: >
-                    {
-                        if isHelpQuestionPage((item) questionPage)
-                        {
-                            return {
-                                pageName: questionPage.PageName,
-                                pageType: "HelpQuestionPage",
-                                url: urlResolver.GetUrl(questionPage.ContentLink, culture.Name, { contextMode: ContextMode.Default }),
-                                body: richTextAreaPropsBuilder.Build({ richTextArea: questionPage.MainBody })
-                            };
-                        }
-                        else if isHelpProcessArticlePage((item) articlePage)
-                        {
-                            return {
-                                pageName: articlePage.PageName,
-                                pageType: "HelpProcessArticlePage",
-                                url: urlResolver.GetUrl(articlePage.ContentLink, culture.Name, { contextMode: ContextMode.Default }),
-                                body: richTextAreaPropsBuilder.Build({ richTextArea: articlePage.MainBody })
-                            };
-                        }
-                        return null;
-                    })
-                    .filter(item: > item != null)
-                    ;
-    
-                return {
-                    pageName: currentPage.PageName,
-                    mainIntro: currentPage.MainIntro,
-                    questionHeading: currentPage.QuestionHeading,
-                    topicName: currentPage.TopicName,
-                    childPages: childPageItems,
-                    bottomContentArea: contentAreaPropsBuilder.Build({
-                        contentArea: currentPage.BottomContentArea,
-                        propertyName: "currentPage.BottomContentArea"
-                    }),
-                    breadcrumb: breadcrumbViewModelBuilder.Build({ currentPage: currentPage }),
-                    ope: withOnPageEdit ? {} : null
-                }
-    */
-   
+    const [ancestors, children] = await Promise.all([
+      fetchUmbracoAncestors(cmsPageData.id, locale),
+      fetchUmbracoChildrenInEditorOrder(cmsPageData.id, 100, locale),
+    ]);
+
+    const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
+
+    const childPages = (children ?? [])
+      .map(mapChildPage)
+      .filter((p: any) => p !== null);
+
+    const [bottomContentArea, pageSidebarViewModel] = await Promise.all([
+      props.bottomContentArea
+        ? hydrateContentAreaItems(props.bottomContentArea, locale)
+        : Promise.resolve(undefined),
+      buildHelpSidebarViewModel(cmsPageData, ancestors, locale),
+    ]);
+
     return {
       componentName: "HelpLandingPage",
-      pageName: cmsPageData.name,
-      ...cmsPageData.properties,
+      pageName: cmsPageData?.name,
+      mainIntro: props.mainIntro,
+      questionHeading: props.questionHeading,
+      topicName: props.topicName,
+      childPages,
+      bottomContentArea,
+      breadcrumb,
+      pageSidebarViewModel,
       isUserLoggedIn: false,
     };
   }

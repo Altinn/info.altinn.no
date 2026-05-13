@@ -1,7 +1,8 @@
 import { type Locale, t } from "@i18n/index";
 import { fetchUmbracoAncestors } from "../api/umbraco/client";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
-import { BlockTransformer } from "./BlockTransformer";
+import { hydrateContentAreaItems } from "./contentArea";
+import { buildHelpSidebarViewModel } from "./helpSidebar";
 import type { IJSONTransformer } from "./IJSONTransformer";
 
 function formatDate(dateStr: string): string {
@@ -19,14 +20,19 @@ export class HelpProcessArticlePageTransformer implements IJSONTransformer {
     const ancestors = await fetchUmbracoAncestors(cmsPageData.id, locale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
-    const lastUpdatedDateString = formatDate(cmsPageData?.updateDate ?? "");
+    const lastUpdatedDateString = formatDate(
+      props.lastChanged ?? cmsPageData?.updateDate ?? "",
+    );
     const lastUpdatedDateText = lastUpdatedDateString
       ? t("common.lastUpdated", locale)
       : undefined;
 
-    const bottomContentArea = props.bottomContentArea
-      ? BlockTransformer.TransformBlocks(props.bottomContentArea)
-      : undefined;
+    const [bottomContentArea, pageSidebarViewModel] = await Promise.all([
+      props.bottomContentArea
+        ? hydrateContentAreaItems(props.bottomContentArea, locale)
+        : Promise.resolve(undefined),
+      buildHelpSidebarViewModel(cmsPageData, ancestors, locale),
+    ]);
 
     return {
       componentName: "HelpProcessArticlePage",
@@ -39,6 +45,7 @@ export class HelpProcessArticlePageTransformer implements IJSONTransformer {
       lastUpdatedDateString: lastUpdatedDateString || undefined,
       lastUpdatedDateText,
       breadcrumb,
+      pageSidebarViewModel,
       isUserLoggedIn: false,
     };
   }
