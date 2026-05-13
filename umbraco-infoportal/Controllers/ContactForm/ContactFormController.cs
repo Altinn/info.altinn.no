@@ -81,7 +81,7 @@ public sealed class ContactFormController(
                 string extension = Path.GetExtension(file.FileName);
                 if (string.IsNullOrEmpty(extension) || !AllowedExtensions.Contains(extension))
                 {
-                    logger.LogWarning("Contact form rejected: disallowed attachment extension {Extension}.", extension);
+                    logger.LogWarning("Contact form rejected: disallowed attachment extension {Extension}.", SanitizeForLog(extension));
                     return BadRequest(new
                     {
                         success = false,
@@ -97,7 +97,7 @@ public sealed class ContactFormController(
             await emailSender.SendAsync(message, emailType: "ContactForm", enableNotification: false, expires: null);
             logger.LogInformation(
                 "Contact form sent to {Recipients} for schemaId {SchemaId}.",
-                string.Join(", ", recipients), model.SchemaId);
+                string.Join(", ", recipients), SanitizeForLog(model.SchemaId));
             return Ok(new { success = true });
         }
         catch (Exception ex)
@@ -150,7 +150,7 @@ public sealed class ContactFormController(
 
         if (!Guid.TryParse(schemaId.Trim(), out Guid blockKey))
         {
-            logger.LogWarning("Contact form rejected: schemaId is not a GUID ({SchemaId}).", schemaId);
+            logger.LogWarning("Contact form rejected: schemaId is not a GUID ({SchemaId}).", SanitizeForLog(schemaId));
             return null;
         }
 
@@ -299,6 +299,19 @@ public sealed class ContactFormController(
         }
 
         return true;
+    }
+
+    // Strip control characters and cap length so user-supplied values cannot
+    // forge fake log lines (CRLF injection) or flood logs.
+    private static string SanitizeForLog(string? value, int maxLength = 64)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return "<empty>";
+        }
+
+        string trimmed = value.Length > maxLength ? value[..maxLength] : value;
+        return new string([.. trimmed.Where(c => !char.IsControl(c))]);
     }
 
     private readonly record struct CleanedFields(
