@@ -1,27 +1,14 @@
-import { useMemo } from "react";
 import * as Components from "../../../App.Components";
-import { transformRichTextHtml } from "../RichText/htmlTransforms";
 import type { RichTextAreaItem, RichTextAreaProps } from "./RichTextArea.types";
 
-const RichTextArea = ({ items, addAnchors = false }: RichTextAreaProps) => {
-  const processedItems = useMemo(() => {
-    if (!items || items.length === 0) return items;
+// RichText HTML is transformed up-front by walkAndTransformRichText in the
+// server-side JSON transformer pipeline, so this component is a dumb renderer.
+// Running node-html-parser here too would re-introduce SSR/client hydration
+// mismatches (the parser's round-trip is not byte-identical across runtimes).
+const RichTextArea = ({ items }: RichTextAreaProps) => {
+  if (!items || items.length === 0) return null;
 
-    const usedIds = new Set<string>();
-    return items.map((item) => {
-      if (item.componentName !== "RichText" || typeof item.html !== "string") {
-        return item;
-      }
-      return {
-        ...item,
-        html: transformRichTextHtml(item.html, { usedIds, addAnchors }),
-      };
-    });
-  }, [items, addAnchors]);
-
-  if (!processedItems || processedItems.length === 0) return null;
-
-  return processedItems.map((item: RichTextAreaItem, idx: number) => {
+  return items.map((item: RichTextAreaItem, idx: number) => {
     // @ts-expect-error dynamic component lookup by name
     const Comp = Components[item.componentName];
 
