@@ -309,6 +309,7 @@ export async function fetchUmbracoRelated(
   params.append("filter", `contentType:${contentType}`);
   params.append("filter", `${relation}:${value}`);
   params.append("fields", "");
+  params.append("take", "300");
   const url = deliveryUrl("/umbraco/delivery/api/v2/content", params.toString());
 
   const response = await fetch(url, { headers: cultureHeader(culture) });
