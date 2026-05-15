@@ -29,14 +29,6 @@ public sealed class ContactFormController(
     private const string FormTypeAreaPropertyAlias = "formTypeArea";
     private const string GenericErrorMessage = "Unable to send contact form. Please try again later.";
 
-    // TODO: TEMP — remove before merging. Extra recipients for local testing visibility.
-    private static readonly string[] TempExtraRecipients = ["vu.quan@digdir.no", "quan.vu@knowit.no"];
-
-    // TODO: TEMP — remove before merging. Fallback used when block resolution fails,
-    // so test submissions still produce an email instead of a 400. Points at a test
-    // address only — never a production support inbox.
-    private const string TempFallbackRecipient = "quan.vu@knowit.no";
-
     private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
         ".bmp", ".jpg", ".jpeg", ".png", ".gif",
@@ -58,40 +50,19 @@ public sealed class ContactFormController(
         if (!string.IsNullOrWhiteSpace(model.Location))
         {
             logger.LogWarning("Contact form rejected: honeypot triggered.");
-            return BadRequest(new
-            {
-                success = false,
-                errorMessage = GenericErrorMessage,
-                // TODO: TEMP — debug surface for the test deploy, remove before prod merge.
-                debug = new { stage = "honeypot" },
-            });
+            return BadRequest(new { success = false, errorMessage = GenericErrorMessage });
         }
 
-        (string? recipient, string? resolveFailureStage) = await ResolveRecipientAsync(model.SchemaId);
-        bool usedFallbackRecipient = false; // TODO: TEMP — for test deploy visibility.
+        string? recipient = await ResolveRecipientAsync(model.SchemaId);
         if (string.IsNullOrEmpty(recipient))
         {
-            // TODO: TEMP — remove fallback before merging. Lets test submissions
-            // still produce an email when the Umbraco block lookup fails.
-            logger.LogWarning(
-                "Contact form: block resolution failed ({Stage}) for schemaId {SchemaId}; using temp fallback recipient.",
-                resolveFailureStage, SanitizeForLog(model.SchemaId));
-            recipient = TempFallbackRecipient;
-            usedFallbackRecipient = true;
+            return BadRequest(new { success = false, errorMessage = GenericErrorMessage });
         }
-
-        string[] recipients = BuildRecipientList(recipient, TempExtraRecipients);
 
         if (!TryValidate(model, out CleanedFields fields, out string? validationError))
         {
             logger.LogWarning("Contact form rejected: {Reason}", validationError);
-            return BadRequest(new
-            {
-                success = false,
-                errorMessage = validationError,
-                // TODO: TEMP — debug surface for the test deploy, remove before prod merge.
-                debug = new { stage = "validation" },
-            });
+            return BadRequest(new { success = false, errorMessage = validationError });
         }
 
         Stream? attachmentStream = null;
@@ -104,13 +75,7 @@ public sealed class ContactFormController(
                 if (file.Length > MaxAttachmentBytes)
                 {
                     logger.LogWarning("Contact form rejected: attachment too large ({Size} bytes).", file.Length);
-                    return BadRequest(new
-                    {
-                        success = false,
-                        errorMessage = "File is too large. Maximum size is 15 MB",
-                        // TODO: TEMP — debug surface for the test deploy, remove before prod merge.
-                        debug = new { stage = "attachment-size", attachmentBytes = file.Length },
-                    });
+                    return BadRequest(new { success = false, errorMessage = "File is too large. Maximum size is 15 MB" });
                 }
 
                 string extension = Path.GetExtension(file.FileName);
@@ -121,8 +86,6 @@ public sealed class ContactFormController(
                     {
                         success = false,
                         errorMessage = $"Invalid file type. Allowed types: {string.Join(", ", AllowedExtensions)}",
-                        // TODO: TEMP — debug surface for the test deploy, remove before prod merge.
-                        debug = new { stage = "attachment-extension", extension = SanitizeForLog(extension) },
                     });
                 }
 
@@ -130,38 +93,17 @@ public sealed class ContactFormController(
                 emailAttachment = new EmailMessageAttachment(attachmentStream, file.FileName);
             }
 
-            EmailMessage message = BuildMessage(fields, recipients, options.Value.FromAddress, emailAttachment);
+            EmailMessage message = BuildMessage(fields, recipient, options.Value.FromAddress, emailAttachment);
             await emailSender.SendAsync(message, emailType: "ContactForm", enableNotification: false, expires: null);
             logger.LogInformation(
-                "Contact form sent to {Recipients} for schemaId {SchemaId}.",
-                string.Join(", ", recipients), SanitizeForLog(model.SchemaId));
-            return Ok(new
-            {
-                success = true,
-                // TODO: TEMP — debug surface for the test deploy, remove before prod merge.
-                debug = new
-                {
-                    usedFallbackRecipient,
-                    fallbackReason = usedFallbackRecipient ? resolveFailureStage : null,
-                    recipientCount = recipients.Length,
-                },
-            });
+                "Contact form sent to {Recipient} for schemaId {SchemaId}.",
+                recipient, SanitizeForLog(model.SchemaId));
+            return Ok(new { success = true });
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to send contact form email.");
-            return BadRequest(new
-            {
-                success = false,
-                errorMessage = GenericErrorMessage,
-                // TODO: TEMP — debug surface for the test deploy, remove before prod merge.
-                debug = new
-                {
-                    stage = "send",
-                    exceptionType = ex.GetType().FullName,
-                    exceptionMessage = ex.Message,
-                },
-            });
+            return BadRequest(new { success = false, errorMessage = GenericErrorMessage });
         }
         finally
         {
@@ -169,84 +111,52 @@ public sealed class ContactFormController(
         }
     }
 
-    private string[] BuildRecipientList(string blockRecipient, string[] additionalRecipients)
-    {
-        List<string> list = [blockRecipient];
-
-        foreach (string candidate in additionalRecipients)
-        {
-            string trimmed = candidate?.Trim() ?? string.Empty;
-            if (string.IsNullOrEmpty(trimmed))
-            {
-                continue;
-            }
-
-            if (!MailAddress.TryCreate(trimmed, out _))
-            {
-                logger.LogWarning("Skipping invalid additional recipient: {Email}", trimmed);
-                continue;
-            }
-
-            if (list.Any(r => string.Equals(r, trimmed, StringComparison.OrdinalIgnoreCase)))
-            {
-                continue;
-            }
-
-            list.Add(trimmed);
-        }
-
-        return [.. list];
-    }
-
-    // Returns (email, null) on success, or (null, failureStage) when resolution fails.
-    // The failureStage string surfaces in the success response when fallback is used,
-    // so testers can see in DevTools exactly why the lookup failed.
-    private async Task<(string? Email, string? FailureStage)> ResolveRecipientAsync(string? schemaId)
+    private async Task<string?> ResolveRecipientAsync(string? schemaId)
     {
         if (string.IsNullOrWhiteSpace(schemaId))
         {
-            logger.LogWarning("Contact form: schemaId missing.");
-            return (null, "schemaId-missing");
+            logger.LogWarning("Contact form rejected: schemaId missing.");
+            return null;
         }
 
         if (!Guid.TryParse(schemaId.Trim(), out Guid blockKey))
         {
-            logger.LogWarning("Contact form: schemaId is not a GUID ({SchemaId}).", SanitizeForLog(schemaId));
-            return (null, "schemaId-not-guid");
+            logger.LogWarning("Contact form rejected: schemaId is not a GUID ({SchemaId}).", SanitizeForLog(schemaId));
+            return null;
         }
 
         IPublishedElement? block = await ResolveBlockElementAsync(blockKey);
         if (block is null)
         {
             logger.LogWarning(
-                "Contact form: no contactFormBlock for {BlockKey} " +
+                "Contact form rejected: no contactFormBlock for {BlockKey} " +
                 "(neither as a content node nor as a block-list element inside a contactFormPage).",
                 blockKey);
-            return (null, $"no-published-content:{blockKey}");
+            return null;
         }
 
         if (!string.Equals(block.ContentType.Alias, ContactFormBlockAlias, StringComparison.Ordinal))
         {
             logger.LogWarning(
-                "Contact form: content {BlockKey} has alias '{Alias}', expected '{Expected}'.",
+                "Contact form rejected: content {BlockKey} has alias '{Alias}', expected '{Expected}'.",
                 blockKey, block.ContentType.Alias, ContactFormBlockAlias);
-            return (null, $"wrong-content-type:{block.ContentType.Alias}");
+            return null;
         }
 
         string? email = block.Value<string>(SupportEmailPropertyAlias)?.Trim();
         if (string.IsNullOrEmpty(email))
         {
-            logger.LogWarning("Contact form: block {BlockKey} has empty supportEmail.", blockKey);
-            return (null, "empty-supportEmail");
+            logger.LogWarning("Contact form rejected: block {BlockKey} has empty supportEmail.", blockKey);
+            return null;
         }
 
         if (!MailAddress.TryCreate(email, out _))
         {
-            logger.LogWarning("Contact form: block {BlockKey} supportEmail is not a valid email.", blockKey);
-            return (null, "invalid-supportEmail");
+            logger.LogWarning("Contact form rejected: block {BlockKey} supportEmail is not a valid email.", blockKey);
+            return null;
         }
 
-        return (email, null);
+        return email;
     }
 
     // contactFormBlock can be either a top-level content node OR a block-list
@@ -338,7 +248,7 @@ public sealed class ContactFormController(
 
     private static EmailMessage BuildMessage(
         CleanedFields fields,
-        string[] recipients,
+        string recipient,
         string fromAddress,
         EmailMessageAttachment? attachment)
     {
@@ -351,12 +261,9 @@ public sealed class ContactFormController(
             $"Telefon: {encoder.Encode(fields.Phone)}<br/>" +
             $"E-post: <a href=\"mailto:{encoder.Encode(fields.Email)}\">{encoder.Encode(fields.Email)}</a></p>";
 
-        string?[] to = new string?[recipients.Length];
-        Array.Copy(recipients, to, recipients.Length);
-
         return new EmailMessage(
             from: fromAddress,
-            to: to,
+            to: new string?[] { recipient },
             cc: null,
             bcc: null,
             replyTo: new[] { fields.Email },
