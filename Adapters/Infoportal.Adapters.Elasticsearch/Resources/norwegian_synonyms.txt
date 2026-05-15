@@ -33,18 +33,23 @@
 
 
 # ============================================================================
-# SECTION 1 — One-way synonyms ported from Optimizely Find legacy export
+# SECTION 1 — Equivalence groups ported from Optimizely Find legacy export
 # ============================================================================
-# These entries were copied verbatim from the synonym list that ran in
-# production on the legacy Optimizely Find search. They have been
-# production-tested and are considered verified.
+# These entries were ported from the synonym list that ran in production on
+# the legacy Optimizely Find search. Optimizely shows them as `A => B` in its
+# admin UI but semantically expands the query as `A OR B` (the original is
+# preserved). ES's `synonym_graph` with `=>` instead REPLACES A with B at
+# search-analyzer time, which — combined with multi_match best_fields +
+# operator AND — eliminates the original tokens and yields zero hits when
+# B is not present in the indexed corpus. Comma form keeps both sides at the
+# same token-graph position, matching Optimizely's behavior.
 
-aksjebok => aksjeeierbok
-bakgrunnsjekk => søknad om bakgrunnssjekk
-frikort => skattekort
-fylkesmann => statsforvalter, statsforvalteren
-samordnet registermelding => samordnet registreringsmelding
-vergeregnskap => fullstendighetserklæring
+aksjebok, aksjeeierbok
+bakgrunnsjekk, søknad om bakgrunnssjekk
+frikort, skattekort
+fylkesmann, statsforvalter, statsforvalteren
+samordnet registermelding, samordnet registreringsmelding
+vergeregnskap, fullstendighetserklæring
 
 
 # ============================================================================
