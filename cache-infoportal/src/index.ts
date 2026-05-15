@@ -9,7 +9,7 @@ export default {
 			}
 		} catch (error) {
 			throw new Error(`Failed to fetch NON-GET-request from origin: ${error}`);
-		}		  
+		}
 
 		const url = new URL(request.url);
 
@@ -19,7 +19,7 @@ export default {
 			}
 		} catch (error) {
 			throw new Error(`Failed to fetch API request from origin: ${error}`);
-		}		  
+		}
 
 		const cacheKey = new Request(url.toString(), {
 			headers: request.headers,
