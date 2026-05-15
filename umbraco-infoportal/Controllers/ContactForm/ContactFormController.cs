@@ -96,8 +96,8 @@ public sealed class ContactFormController(
             EmailMessage message = BuildMessage(fields, recipient, options.Value.FromAddress, emailAttachment);
             await emailSender.SendAsync(message, emailType: "ContactForm", enableNotification: false, expires: null);
             logger.LogInformation(
-                "Contact form sent to {Recipient} for schemaId {SchemaId}.",
-                recipient, SanitizeForLog(model.SchemaId));
+                "Contact form sent for schemaId {SchemaId}.",
+                SanitizeForLog(model.SchemaId));
             return Ok(new { success = true });
         }
         catch (Exception ex)
