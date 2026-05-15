@@ -1,5 +1,6 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
 import { t } from "@i18n/index";
+import { walkAndTransformRichText } from "@components/Shared/RichText/htmlTransforms";
 import { SectionPageTransformer } from "./SectionPageTransformer";
 import { HeroArticlePageBaseTransformer } from "./HeroArticlePageBaseTransformer";
 import { ThemePageTransformer } from "./ThemePageTransformer";
@@ -58,6 +59,10 @@ export class JSONTransformer implements IJSONTransformer {
       data.pageSidebarViewModel = data.child.pageSidebarViewModel;
       delete data.child.pageSidebarViewModel;
     }
+
+    // Pre-transform RichText HTML once, server-side, so it ships identical
+    // to SSR output and the client doesn't re-parse during hydration.
+    walkAndTransformRichText(data);
 
     return data;
   }
