@@ -1,6 +1,7 @@
 ---
 import SiteLayout from "../Components/Layout/SiteLayout/SiteLayout";
 import ApplicationInsightsFilterJS from "../bundles/ApplicationInsightsFilterJS.astro";
+import SiteimproveAnalytics from "../bundles/SiteimproveAnalytics.astro";
 
 const { pageData, htmlLanguage, title, canonicalUrl, metaNoIndex, metaDescription, metaKeywords, seoScript, enableAppInsightsFiltering } = Astro.props;
 ---
@@ -28,6 +29,7 @@ const { pageData, htmlLanguage, title, canonicalUrl, metaNoIndex, metaDescriptio
     <link rel="stylesheet" href="https://altinncdn.no/fonts/inter/v4.1/inter.css" crossorigin="anonymous">
     {seoScript && <Fragment set:html={seoScript} />}
     {enableAppInsightsFiltering && <ApplicationInsightsFilterJS/>}
+    <SiteimproveAnalytics/>
 </head>
 <body>
     <SiteLayout client:load {...pageData} />
