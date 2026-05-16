@@ -63,11 +63,11 @@ function inferContentType(pathname: string): string | null {
 
 const CSP_REPORT_ONLY = [
 	"default-src 'self'",
-	"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://player.vimeo.com",
+	"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://player.vimeo.com https://siteimproveanalytics.com",
 	"style-src 'self' 'unsafe-inline' https://altinncdn.no",
 	"img-src 'self' data: blob: https:",
 	"font-src 'self' data: https:",
-	"connect-src 'self' https://*.altinn.cloud https://*.altinn.no https://altinncdn.no",
+	"connect-src 'self' https://*.altinn.cloud https://*.altinn.no https://altinncdn.no https://*.siteimproveanalytics.io",
 	"frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com",
 	"frame-ancestors 'self'",
 	"base-uri 'self'",
