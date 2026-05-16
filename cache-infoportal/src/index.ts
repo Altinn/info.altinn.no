@@ -14,7 +14,7 @@ export default {
 		const url = new URL(request.url);
 
 		try {
-			if (url.search.startsWith("api")) {
+			if (url.search.startsWith("api/") || url.search.startsWith("ui/")) {
 				return await env.ASTRO_INFOPORTAL.fetch(request);
 			}
 		} catch (error) {
