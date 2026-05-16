@@ -29,6 +29,38 @@ import {defineMiddleware} from 'astro:middleware';
  * see the new value on previously-cached pages.
  */
 
+// Upstream proxies sometimes return asset bytes without a Content-Type. Combined
+// with the `X-Content-Type-Options: nosniff` header below, browsers refuse to
+// sniff and render binaries as text. Infer the type from the URL extension so
+// proxied responses (e.g. /globalassets/...xlsx) render correctly.
+const MIME_TYPES: Record<string, string> = {
+	'.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+	'.xls': 'application/vnd.ms-excel',
+	'.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+	'.doc': 'application/msword',
+	'.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+	'.ppt': 'application/vnd.ms-powerpoint',
+	'.pdf': 'application/pdf',
+	'.png': 'image/png',
+	'.jpg': 'image/jpeg',
+	'.jpeg': 'image/jpeg',
+	'.gif': 'image/gif',
+	'.webp': 'image/webp',
+	'.svg': 'image/svg+xml',
+	'.ico': 'image/x-icon',
+	'.zip': 'application/zip',
+	'.txt': 'text/plain; charset=utf-8',
+	'.json': 'application/json',
+	'.xml': 'application/xml',
+	'.css': 'text/css; charset=utf-8',
+	'.js': 'application/javascript; charset=utf-8',
+};
+
+function inferContentType(pathname: string): string | null {
+	const ext = pathname.toLowerCase().match(/\.[a-z0-9]+$/)?.[0];
+	return ext ? MIME_TYPES[ext] ?? null : null;
+}
+
 const CSP_REPORT_ONLY = [
 	"default-src 'self'",
 	"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://player.vimeo.com",
@@ -42,9 +74,17 @@ const CSP_REPORT_ONLY = [
 	"form-action 'self'",
 ].join('; ');
 
-function applySecurityHeaders(response: Response): void {
+function applySecurityHeaders(response: Response, pathname: string): void {
 	// Skip if already set (e.g. by a downstream handler that overrides).
 	const headers = response.headers;
+
+	// Backfill Content-Type for proxied asset responses that arrived without one.
+	if (response.ok && !headers.has('Content-Type')) {
+		const inferred = inferContentType(pathname);
+		if (inferred) {
+			headers.set('Content-Type', inferred);
+		}
+	}
 
 	// Zero-risk headers — only block misbehavior, never correct behavior.
 	if (!headers.has('X-Content-Type-Options')) {
@@ -79,11 +119,12 @@ function applySecurityHeaders(response: Response): void {
 	}
 }
 
-export const onRequest = defineMiddleware(async (_context, next) => {
+export const onRequest = defineMiddleware(async (context, next) => {
 	const response = await next();
+	const pathname = context.url.pathname;
 
 	try {
-		applySecurityHeaders(response);
+		applySecurityHeaders(response, pathname);
 	} catch {
 		// Some Response objects (e.g. from Response.redirect) have immutable headers.
 		// In that rare case, rebuild the response with mutable headers.
@@ -92,7 +133,7 @@ export const onRequest = defineMiddleware(async (_context, next) => {
 			statusText: response.statusText,
 			headers: new Headers(response.headers),
 		});
-		applySecurityHeaders(rebuilt);
+		applySecurityHeaders(rebuilt, pathname);
 		return rebuilt;
 	}
 

@@ -30,8 +30,12 @@ if (
 }
 
 if (shouldFetchFromOldPortal(path)) {
-    const bytes = await fetchFromOldPortal(path);
-    return new Response(bytes);
+    try {
+        const bytes = await fetchFromOldPortal(path);
+        return new Response(bytes);
+    } catch (err) {
+        console.warn(`Old portal fetch failed for ${path}, falling through:`, err);
+    }
 }
 
 if (path.startsWith('/api/') || path.match(/\.[a-zA-Z0-9]+$/)) {
