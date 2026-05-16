@@ -78,12 +78,11 @@ function applySecurityHeaders(response: Response, pathname: string): void {
 	// Skip if already set (e.g. by a downstream handler that overrides).
 	const headers = response.headers;
 
-	// Backfill Content-Type for proxied asset responses that arrived without one.
+	// Backfill Content-Type for responses that arrived without one. Proxied
+	// assets are inferred from the URL extension; everything else defaults to
+	// text/html so `nosniff` doesn't refuse to render the page.
 	if (response.ok && !headers.has('Content-Type')) {
-		const inferred = inferContentType(pathname);
-		if (inferred) {
-			headers.set('Content-Type', inferred);
-		}
+		headers.set('Content-Type', inferContentType(pathname) ?? 'text/html; charset=utf-8');
 	}
 
 	// Zero-risk headers — only block misbehavior, never correct behavior.
