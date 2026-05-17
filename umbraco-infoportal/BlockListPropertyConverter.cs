@@ -81,8 +81,6 @@ public class BlockListPropertyConverter : IPropertyValueConverter
             {
                 string contentTypeKey = jsonObject.GetPropertyAsString("contentTypeKey");
 
-                Console.WriteLine("ContentTypeKey: " + contentTypeKey);
-
                 if ("dff512a2-d00c-94ac-46ee-f3ecfb68da6a".Equals(contentTypeKey))
                 {
                     string uriString = jsonObject.GetPropertyAsString("schemaAccordianBlockPicker");
