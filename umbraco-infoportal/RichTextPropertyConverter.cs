@@ -197,8 +197,29 @@ public class RichTextPropertyConverter : IPropertyValueConverter
         Uri uri = new Uri(blockPickerValue);
 
         IPublishedContent? content = _publishedContentCache.GetById(new GuidUdi(uri).Guid);
-        item.Add("componentName", Capitalize(content.ContentType.Alias));
-        item = AddContentProperties(item, content);
+        
+        if ("tableBlock".Equals(content.ContentType.Alias))
+        {
+            item.Add("componentName", "RichText");
+            IPublishedProperty property = content.GetProperty("table");
+
+            if (property is null)
+            {
+                return item;
+            }
+
+            RichTextEditorValue rteValue = (RichTextEditorValue) property.GetDeliveryApiValue(true);
+
+            if (rteValue is null)
+            {
+                return item;
+            }
+
+            item.Add("html", rteValue.Markup);
+        } else {
+            item.Add("componentName", Capitalize(content.ContentType.Alias));
+            item = AddContentProperties(item, content);    
+        }
         return item;
     }
 
