@@ -70,12 +70,13 @@ async function hydrateContentAreaItems(items: any, locale: Locale) {
 export class HeroArticlePageBaseTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
     const locale: Locale = globalData?.locale || "nb";
+    const contentLocale: Locale = globalData?.contentLocale || locale;
     const props = cmsPageData.properties ?? {};
-    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, locale);
+    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, contentLocale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
     const mainBody = toRichTextArea(props.mainBody);
     const bottomContentArea = props.bottomContentArea
-      ? await hydrateContentAreaItems(props.bottomContentArea, locale)
+      ? await hydrateContentAreaItems(props.bottomContentArea, contentLocale)
       : undefined;
     const lastUpdatedDateString = formatDate(props.lastChanged ?? cmsPageData.updateDate);
 

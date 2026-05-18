@@ -29,6 +29,10 @@ const searchPageUrl = locale === "en"
   : locale === "nn"
     ? "/nn/sok/"
     : "/sok/";
+const contentLocale: Locale =
+  umbracoPageData?.cultures && umbracoPageData.cultures[locale]
+    ? locale
+    : "nb";
 const globalData: any = getGlobalData(
   locale,
   searchPageUrl,
@@ -36,6 +40,8 @@ const globalData: any = getGlobalData(
   umbracoPageData?.cultures,
   umbracoPageData,
   umbracoPageData?.contentType,
+  undefined,
+  contentLocale,
 );
 
 const pageData = await new JSONTransformer().Transform(umbracoPageData, globalData);

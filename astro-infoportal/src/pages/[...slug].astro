@@ -90,7 +90,16 @@ if (pageResult.status === 'rejected') {
 
 const startPageData = startPageResult.status === 'fulfilled' ? startPageResult.value : null;
 
-let globalData: any = getGlobalData(locale, "/sok/", altinnEndpoints, umbracoPageData?.cultures, startPageData, umbracoPageData?.contentType, path);
+// If the requested locale isn't among the page's variants, Umbraco's Delivery API
+// fell back to nb (see fetchUmbracoContentWithLocaleFallback). Downstream content
+// fetches (children/ancestors/related) must use the effective culture, or they'll
+// return empty for NB-only content. UI translations still use the requested locale.
+const contentLocale: Locale =
+  umbracoPageData?.cultures && umbracoPageData.cultures[locale]
+    ? locale
+    : "nb";
+
+let globalData: any = getGlobalData(locale, "/sok/", altinnEndpoints, umbracoPageData?.cultures, startPageData, umbracoPageData?.contentType, path, contentLocale);
 globalData = {
   ...globalData,
   startPageData,

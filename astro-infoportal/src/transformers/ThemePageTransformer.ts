@@ -80,11 +80,12 @@ export class ThemePageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
     const props = cmsPageData.properties ?? {};
     const locale: Locale = globalData?.locale || "nb";
+    const contentLocale: Locale = globalData?.contentLocale || locale;
 
-    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, locale);
+    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, contentLocale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
-    const allChildren = await fetchUmbracoChildrenInEditorOrder(cmsPageData.route.path, 100, locale);
+    const allChildren = await fetchUmbracoChildrenInEditorOrder(cmsPageData.route.path, 100, contentLocale);
     const children = allChildren.filter(
       (c: any) => c.properties?.showInNavigation !== false,
     );
@@ -98,7 +99,7 @@ export class ThemePageTransformer implements IJSONTransformer {
 
         if (isArticle && !intro && child.route?.path) {
           try {
-            const fullArticle = await fetchUmbracoContent(child.route.path, locale);
+            const fullArticle = await fetchUmbracoContent(child.route.path, contentLocale);
             intro = fullArticle.properties?.mainIntro ?? null;
           } catch {
             intro = null;
@@ -106,7 +107,7 @@ export class ThemePageTransformer implements IJSONTransformer {
         }
 
         if (shouldFetchChildLinks && child.route?.path) {
-          const allChildPages = await fetchUmbracoChildrenInEditorOrder(child.route.path, 100, locale);
+          const allChildPages = await fetchUmbracoChildrenInEditorOrder(child.route.path, 100, contentLocale);
           childPages = allChildPages.filter(
             (c: any) =>
               childLinkContentTypes.has(c.contentType) &&
@@ -136,7 +137,7 @@ export class ThemePageTransformer implements IJSONTransformer {
     // the shape they expect. Unknown types fall through to BlockTransformer.
     const hydratedBottomItems = await resolveBlockReferences(
       props.bottomContentArea,
-      locale,
+      contentLocale,
     );
     const bottomItems = hydratedBottomItems.map((item: any) => {
       const blockProps = item?.properties ?? {};

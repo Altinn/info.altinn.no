@@ -25,11 +25,12 @@ function mapChildPage(item: any) {
 export class HelpLandingPageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
     const locale: Locale = globalData?.locale || "nb";
+    const contentLocale: Locale = globalData?.contentLocale || locale;
     const props = cmsPageData?.properties ?? {};
 
     const [ancestors, children] = await Promise.all([
-      fetchUmbracoAncestors(cmsPageData.id, locale),
-      fetchUmbracoChildrenInEditorOrder(cmsPageData.id, 100, locale),
+      fetchUmbracoAncestors(cmsPageData.id, contentLocale),
+      fetchUmbracoChildrenInEditorOrder(cmsPageData.id, 100, contentLocale),
     ]);
 
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
@@ -40,9 +41,9 @@ export class HelpLandingPageTransformer implements IJSONTransformer {
 
     const [bottomContentArea, pageSidebarViewModel] = await Promise.all([
       props.bottomContentArea
-        ? hydrateContentAreaItems(props.bottomContentArea, locale)
+        ? hydrateContentAreaItems(props.bottomContentArea, contentLocale)
         : Promise.resolve(undefined),
-      buildHelpSidebarViewModel(cmsPageData, ancestors, locale),
+      buildHelpSidebarViewModel(cmsPageData, ancestors, contentLocale),
     ]);
 
     return {

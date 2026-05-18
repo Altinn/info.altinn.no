@@ -18,9 +18,10 @@ export class SubCategoryPageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
     const props = cmsPageData.properties ?? {};
     const locale: Locale = globalData?.locale || "nb";
+    const contentLocale: Locale = globalData?.contentLocale || locale;
     const resolver = await ProviderResolver.create();
 
-    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, locale);
+    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, contentLocale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
     const boxBlocks = props.boxBlocks
@@ -46,11 +47,11 @@ export class SubCategoryPageTransformer implements IJSONTransformer {
         let schemaCode: string | null = null;
 
         try {
-          const fullSchema = await fetchUmbracoContent(s.route?.path, locale);
+          const fullSchema = await fetchUmbracoContent(s.route?.path, contentLocale);
           schemaCode = fullSchema.properties?.schemaCode || null;
           const resolvedRefs = await resolveBlockReferences(
             fullSchema.properties?.providers,
-            locale,
+            contentLocale,
           );
           providers = resolvedRefs.map((ref: any) => {
             const name = ref?.name ?? "";
@@ -100,7 +101,7 @@ export class SubCategoryPageTransformer implements IJSONTransformer {
 
     let subItems: any[] = [];
     if (parentCategory) {
-      const siblings = await fetchUmbracoChildren(parentCategory.route.path);
+      const siblings = await fetchUmbracoChildren(parentCategory.route.path, 100, contentLocale);
       subItems = siblings
         .filter((sub: any) => sub.contentType === "subCategoryPage")
         .map((sub: any) => ({
