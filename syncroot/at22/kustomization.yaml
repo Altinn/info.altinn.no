@@ -5,6 +5,7 @@ resources:
   - ../base
   - elasticsearch-secretstore.yaml
   - elasticsearch-secrets.yaml
+  - cloudflare-secrets.yaml
 
 images:
   - name: umbraco
@@ -19,6 +20,9 @@ patches:
       - op: add
         path: /spec/tags/env
         value: at22
+      - op: add
+        path: /spec/externalSecrets
+        value: true
   - target:
       kind: Deployment
       name: umbraco
@@ -59,6 +63,22 @@ patches:
             secretKeyRef:
               name: elasticsearch
               key: api-key
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Cloudflare__ZoneId
+          valueFrom:
+            secretKeyRef:
+              name: cloudflare
+              key: Cloudflare--ZoneId
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: Cloudflare__ApiToken
+          valueFrom:
+            secretKeyRef:
+              name: cloudflare
+              key: Cloudflare--ApiToken
   - target:
       kind: HTTPRoute
       name: umbraco
