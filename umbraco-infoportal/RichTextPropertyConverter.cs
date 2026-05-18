@@ -76,13 +76,16 @@ public class RichTextPropertyConverter : IPropertyValueConverter
                 return null;
             }
 
-
             if (!raw.StartsWith('{'))
             {
-                return new RichTextEditorValue()
+                JsonArray items = [];
+                items.Add(new JsonObject
                 {
-                    Markup = raw
-                };
+                    { "html", raw },
+                    { "componentName", "RichText" }
+                });
+
+                return new JsonObject { { "items", items } };
             }
 
             return new JsonObject { { "items", ParseRichText(raw) } };

@@ -76,14 +76,13 @@ public class BlockListPropertyConverter : IPropertyValueConverter
             JsonObject blockListObject = JsonSerializer.Deserialize<JsonObject>(raw);
             JsonArray contentDataArray = blockListObject.GetPropertyAsArray("contentData");
 
-
             foreach (JsonObject jsonObject in contentDataArray.Cast<JsonObject>())
             {
                 string contentTypeKey = jsonObject.GetPropertyAsString("contentTypeKey");
 
-                if ("dff512a2-d00c-94ac-46ee-f3ecfb68da6a".Equals(contentTypeKey))
+                if ("4c7190f5-ea4b-488e-a6ae-83c11d70d861".Equals(contentTypeKey))
                 {
-                    string uriString = jsonObject.GetPropertyAsString("schemaAccordianBlockPicker");
+                    string uriString = jsonObject.GetPropertyAsString("blockPicker");
                     // Regular SchemaAccordianBlock
                     IPublishedContent? block = _publishedContentCache.GetById(new GuidUdi(new Uri(uriString)).Guid);
 
