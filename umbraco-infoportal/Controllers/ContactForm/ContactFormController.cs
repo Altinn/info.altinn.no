@@ -44,7 +44,6 @@ public sealed class ContactFormController(
     [HttpPost("send")]
     [IgnoreAntiforgeryToken]
     [Consumes("multipart/form-data")]
-    [RequestSizeLimit(20L * 1024 * 1024)]
     public async Task<IActionResult> Send([FromForm] ContactFormModel model, CancellationToken cancellationToken)
     {
         if (!string.IsNullOrWhiteSpace(model.Location))
