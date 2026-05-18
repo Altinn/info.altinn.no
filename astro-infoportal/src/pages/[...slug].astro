@@ -9,11 +9,13 @@ import { getGlobalData } from '@constants/globalData';
 import { pageCacheControl } from '@constants/cache';
 import { buildMetadata } from '@constants/metadata';
 import { resolveRouteOverride } from '@constants/routeOverrides';
+import { resolveRedirect } from '@constants/routeOverrides';
 import { resolveEnvironment } from '@api/altinn/environments';
 import type { Locale } from '@i18n/index';
 
 
-const path = Astro.url.pathname;
+let path = Astro.url.pathname;
+const search = Astro.url.search;
 const locale = (Astro.currentLocale || "nb") as Locale;
 const altinnEndpoints = resolveEnvironment(Astro.url.hostname);
 const isNorwegianStartRoot = /^\/(no|nb)\/?$/.test(path);
@@ -29,6 +31,11 @@ if (
   return new Response(null, { status: 404 });
 }
 
+if (path.startsWith("/Pages/") || path.startsWith("/pages/")) {
+  const altinn2Url = "https://altinn.no" + path + search;
+  return Astro.redirect(altinn2Url, 302);
+}
+
 if (shouldFetchFromOldPortal(path)) {
     try {
         const bytes = await fetchFromOldPortal(path);
@@ -42,11 +49,17 @@ if (path.startsWith('/api/') || path.match(/\.[a-zA-Z0-9]+$/)) {
   return new Response(null, { status: 404 });
 }
 
-const redirectTarget = resolveRouteOverride(path);
+
+const redirectTarget = resolveRedirect(path);
 if (redirectTarget && redirectTarget !== path) {
   const redirectUrl = new URL(redirectTarget, Astro.url);
   redirectUrl.search = Astro.url.search;
   return Astro.redirect(redirectUrl.toString(), 302);
+}
+
+const contentUrl = resolveRouteOverride(path);
+if (contentUrl && contentUrl !== path) {
+  path = contentUrl;
 }
 
 
