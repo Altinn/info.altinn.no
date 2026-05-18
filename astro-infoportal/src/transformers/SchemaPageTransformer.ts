@@ -7,6 +7,7 @@ import {
   fetchUmbracoContent,
   resolveBlockReferences,
 } from "../api/umbraco/client";
+import { buildMunicipalitySearch } from "../api/umbraco/municipalitySearch";
 import { BlockTransformer } from "./BlockTransformer";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
 import type { IJSONTransformer } from "./IJSONTransformer";
@@ -51,8 +52,14 @@ export class SchemaPageTransformer implements IJSONTransformer {
       item.translatedHeading = t(item.translatedHeading, locale);
     });
 
-    const isCounty = !!props.areThereCounties;
-    const hasMunicipalityOrCounty = props.areThereMunicipalities || isCounty;
+    const searchKind = (
+      await buildMunicipalitySearch(cmsPageData.route?.path, locale)
+    ).kind;
+    const isCountySearch = searchKind === "county";
+    const hasMunicipalityOrCounty = searchKind !== null;
+    const apiSourceUrl = hasMunicipalityOrCounty
+      ? `/api/schema/municipalities?path=${encodeURIComponent(cmsPageData.route?.path ?? "")}&locale=${encodeURIComponent(locale)}`
+      : undefined;
 
     // The schema's `providers` is a Content Picker. The Delivery API only returns
     // reference metadata, so resolve each ref via path→id fallback before reading
@@ -228,15 +235,18 @@ export class SchemaPageTransformer implements IJSONTransformer {
       shallowLinkText,
       promoArea,
       breadcrumb,
-      areThereMunicipalities: props.areThereMunicipalities || false,
-      areThereCounties: props.areThereCounties || false,
-      apiSourceUrl: props.apiSourceUrl || undefined,
+      areThereMunicipalities: hasMunicipalityOrCounty && !isCountySearch,
+      areThereCounties: isCountySearch,
+      apiSourceUrl,
       whatMunicipalityCountyText: hasMunicipalityOrCounty
-        ? t(isCounty ? "schema.whatCounty" : "schema.whatMunicipality", locale)
+        ? t(
+            isCountySearch ? "schema.whatCounty" : "schema.whatMunicipality",
+            locale,
+          )
         : undefined,
       searchForMunicipalityCountyText: hasMunicipalityOrCounty
         ? t(
-            isCounty
+            isCountySearch
               ? "schema.searchForCounty"
               : "schema.searchForMunicipality",
             locale,
