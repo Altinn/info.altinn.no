@@ -211,20 +211,50 @@ public class RichTextPropertyConverter : IPropertyValueConverter
                 return item;
             }
 
-            RichTextEditorValue rteValue = (RichTextEditorValue) property.GetDeliveryApiValue(true);
 
-            if (rteValue is null)
+            object value = property.GetDeliveryApiValue(true);
+
+            if (value is null)
             {
                 return item;
             }
 
-            item.Add("html", rteValue.Markup);
+            if (value is JsonObject jsonObject) {
+                item.Add("html", GetMarkup(jsonObject));
+            } else if (value is RichTextEditorValue rteValue) {
+                item.Add("html", rteValue.Markup);
+            }
         } else {
             item.Add("componentName", Capitalize(content.ContentType.Alias));
             item = AddContentProperties(item, content);    
         }
         return item;
     }
+
+    private string? GetMarkup(JsonObject jsonObject)
+    {
+
+        string content = jsonObject.GetPropertyAsString("content");
+        if (!string.IsNullOrEmpty(content))
+        {
+            return content;
+        }
+
+        JsonArray values = jsonObject.GetPropertyAsArray("values");
+
+        foreach (JsonObject value in values.Cast<JsonObject>())
+        {
+            if ("content".Equals(value.GetPropertyAsString("alias")))
+            {
+                string richTextJsonString = value.GetPropertyAsString("value");
+
+                JsonObject richText = JsonSerializer.Deserialize<JsonObject>(richTextJsonString);
+                return richText.GetPropertyAsString("markup");
+            }
+        }
+
+        return null;
+    }       
 
     private JsonObject AddContentProperties(JsonObject jsonObject, IPublishedContent content)
     {
