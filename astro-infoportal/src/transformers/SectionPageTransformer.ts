@@ -73,26 +73,11 @@ async function buildLatestNewsItems(
   blockData: any,
   locale: Locale,
   contentLocale: Locale,
-  startPageData?: any,
 ) {
   const newsLocation = blockData.properties?.newsLocation?.[0]?.route?.path;
 
   if (!newsLocation) {
-    const fallbackRefs = (startPageData?.properties?.latestNewsContentArea ?? []).filter(
-      isNewsArticle,
-    );
-
-    return await Promise.all(
-      fallbackRefs.map(async (item: any) => {
-        const fullArticle = await fetchUmbracoContent(item.id ?? item.route?.path, contentLocale);
-        return {
-          pageName: fullArticle.name,
-          url: fullArticle.route?.path,
-          mainIntro: fullArticle.properties?.mainIntro ?? "",
-          language: locale,
-        };
-      }),
-    );
+    return [];
   }
 
   const limit = blockData.properties?.displayLimit ?? 3;
@@ -165,7 +150,7 @@ async function transformSectionContentItem(
             ? "LatestNewsBlockV2"
             : "LatestNewsBlock",
         heading: props.heading ?? t("news.latestNews", locale),
-        news: await buildLatestNewsItems(blockData, locale, contentLocale, startPageData),
+        news: await buildLatestNewsItems(blockData, locale, contentLocale),
         archiveLink,
       };
     }
