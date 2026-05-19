@@ -110,18 +110,21 @@ export class SchemaPageTransformer implements IJSONTransformer {
 
     // `promoArea` (editor label "Faglig brukerstøtte") is a Block List. Items wrap
     // each block as `{ content: { contentType, id, properties }, settings }`, with
-    // properties inline (no picker hydration needed). The `formElementContactFreetext`
-    // element type maps to ProviderContactInformationBlock; other block types fall
-    // back to BlockTransformer's contentType-keyed registry.
+    // properties inline (no picker hydration needed). Both `formElementContactFreetext`
+    // and the legacy `formElementContact` (no `heading` field) map to
+    // ProviderContactInformationBlock; other block types fall back to
+    // BlockTransformer's contentType-keyed registry.
     const promoBlockItems: any[] = Array.isArray(props.promoArea?.items)
       ? props.promoArea.items
       : [];
-    const defaultProvider = providerPages[0];
     const promoItems = promoBlockItems
       .map((wrapper: any) => {
         const content = wrapper?.content ?? wrapper;
         const blockProps = content?.properties ?? {};
-        if (content?.contentType === "formElementContactFreetext") {
+        if (
+          content?.contentType === "formElementContactFreetext" ||
+          content?.contentType === "formElementContact"
+        ) {
           return {
             componentName: "ProviderContactInformationBlock",
             body: blockProps.body ?? undefined,
@@ -131,17 +134,10 @@ export class SchemaPageTransformer implements IJSONTransformer {
             telephoneLabel: blockProps.telephoneLabel ?? "",
             email: blockProps.email ?? "",
             emailTitle: blockProps.emailTitle ?? "",
-            pageName: blockProps.heading || defaultProvider?.name || "",
-            // Only show the provider emblem when we fell back to the provider
-            // name as the heading. If the editor supplied a `heading`, the
-            // card stands on its own without the org logo.
-            providerIcon:
-              !blockProps.heading && defaultProvider?.providerIcon
-                ? {
-                    name: defaultProvider.providerIcon.name,
-                    imageUrl: defaultProvider.providerIcon.imageUrl,
-                  }
-                : undefined,
+            // schemaPage shows only the editor-supplied heading; no provider
+            // name / emblem fallback (providerPage handles the fallback case).
+            pageName: blockProps.heading || "",
+            providerIcon: undefined,
           };
         }
         return BlockTransformer.TransformBlocks([content]).items[0];
