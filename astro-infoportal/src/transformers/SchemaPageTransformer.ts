@@ -16,6 +16,28 @@ import type { IJSONTransformer } from "./IJSONTransformer";
 const richTextOrText = (rich: any, text: any) =>
   rich?.items?.length ? rich : text || undefined;
 
+// Altinn2 form deeplinks must stay environment-relative — an absolute URL like
+// `https://www.altinn.no/Pages/...` saved by an editor in tt02 sends users into
+// production (issue #673). When the URL is absolute, points at an altinn.no host,
+// and its path looks like an Altinn2 form (/Pages/* or /ui/*), strip the origin
+// so the browser resolves it against the current environment's host. Other URLs
+// (external systems, Altinn3 apps under apps.altinn.no, already-relative paths)
+// pass through unchanged.
+function normalizeAltinnFormDeeplink(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  try {
+    const url = new URL(raw);
+    const isAltinnHost = /(^|\.)altinn\.no$/i.test(url.hostname);
+    const isAltinn2Path = /^\/(pages|ui)(\/|$)/i.test(url.pathname);
+    if (isAltinnHost && isAltinn2Path) {
+      return `${url.pathname}${url.search}${url.hash}`;
+    }
+  } catch {
+    // Already relative — nothing to strip.
+  }
+  return raw;
+}
+
 export class SchemaPageTransformer implements IJSONTransformer {
   public async Transform(
     cmsPageData: any,
@@ -217,7 +239,7 @@ export class SchemaPageTransformer implements IJSONTransformer {
       schemaCode: props.schemaCode,
       mainBody,
       operationalMessages: props.operationalMessages || [],
-      startSchemaLink: props.deeplink || undefined,
+      startSchemaLink: normalizeAltinnFormDeeplink(props.deeplink),
       startSchemaLinkText: t("schema.startSchema", locale),
       buttonInboxText: t("schema.buttonInbox", locale),
       accordianList: props.accordianList,
