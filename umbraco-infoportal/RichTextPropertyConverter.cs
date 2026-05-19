@@ -233,8 +233,6 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
     private string? GetMarkup(JsonObject jsonObject)
     {
-
-        Console.WriteLine(jsonObject.ToString());
         JsonArray items = jsonObject.GetPropertyAsArray("items");
         
         foreach (JsonObject item in items)
