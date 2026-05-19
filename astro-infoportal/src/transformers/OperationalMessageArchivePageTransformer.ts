@@ -8,12 +8,13 @@ import type { Locale } from "@i18n/index";
 export class OperationalMessageArchivePageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
     const locale: Locale = globalData?.locale || "nb";
+    const contentLocale: Locale = globalData?.contentLocale || locale;
     const props = cmsPageData.properties ?? {};
     const path = cmsPageData.route?.path;
 
     const [ancestors, children] = await Promise.all([
-      path ? fetchUmbracoAncestors(path, locale) : Promise.resolve([]),
-      path ? fetchUmbracoChildren(path, 100, locale) : Promise.resolve([]),
+      path ? fetchUmbracoAncestors(path, contentLocale) : Promise.resolve([]),
+      path ? fetchUmbracoChildren(path, 100, contentLocale) : Promise.resolve([]),
     ]);
 
     const articles = children

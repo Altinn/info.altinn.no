@@ -23,9 +23,10 @@ export class SchemaPageTransformer implements IJSONTransformer {
   ): Promise<SchemaPageProps> {
     const props = cmsPageData.properties ?? {};
     const locale: Locale = globalData?.locale || "nb";
+    const contentLocale: Locale = globalData?.contentLocale || locale;
     const resolver = await ProviderResolver.create();
 
-    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, locale);
+    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, contentLocale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
     const mainBody = props.mainIntro?.items?.length
@@ -53,7 +54,7 @@ export class SchemaPageTransformer implements IJSONTransformer {
     });
 
     const searchKind = (
-      await buildMunicipalitySearch(cmsPageData.route?.path, locale)
+      await buildMunicipalitySearch(cmsPageData.route?.path, contentLocale)
     ).kind;
     const isCountySearch = searchKind === "county";
     const hasMunicipalityOrCounty = searchKind !== null;
@@ -66,7 +67,7 @@ export class SchemaPageTransformer implements IJSONTransformer {
     // providerAcronym/providerOrgNr from the populated properties.
     const resolvedProviderRefs = await resolveBlockReferences(
       props.providers,
-      locale,
+      contentLocale,
     );
     const providerPages = resolvedProviderRefs.map((ref: any) => {
       const name = ref?.name ?? "";
@@ -166,7 +167,7 @@ export class SchemaPageTransformer implements IJSONTransformer {
 
       let parentCategory: any;
       try {
-        parentCategory = await fetchUmbracoContent(parentCategoryPath, locale);
+        parentCategory = await fetchUmbracoContent(parentCategoryPath, contentLocale);
       } catch {
         // Category fetch failed — render no sidebar rather than a broken one.
       }
@@ -180,7 +181,7 @@ export class SchemaPageTransformer implements IJSONTransformer {
             ? name.slice(categoryPrefix.length)
             : name;
 
-        const siblings = await fetchUmbracoChildren(parentCategory.route.path);
+        const siblings = await fetchUmbracoChildren(parentCategory.route.path, 100, contentLocale);
         const subItems = siblings
           .filter((sub: any) => sub.contentType === "subCategoryPage")
           .map((sub: any) => ({

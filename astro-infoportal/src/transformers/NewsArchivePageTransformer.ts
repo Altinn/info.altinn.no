@@ -17,10 +17,11 @@ function parsePageNumber(rawValue?: string) {
 export class NewsArchivePageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
     const locale: Locale = globalData?.locale || "nb";
+    const contentLocale: Locale = globalData?.contentLocale || locale;
     const allChildren = await fetchUmbracoChildren(
       cmsPageData.route.path,
       500,
-      locale,
+      contentLocale,
       "updateDate:desc",
     );
     const newsChildren = allChildren.filter(isNewsArticle);
@@ -31,7 +32,7 @@ export class NewsArchivePageTransformer implements IJSONTransformer {
     const startIndex = (currentPageNumber - 1) * PAGE_SIZE;
     const paginatedArticles = newsChildren.slice(startIndex, startIndex + PAGE_SIZE);
 
-    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, locale);
+    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, contentLocale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
     const newsArticles = paginatedArticles.map((child: any) => {

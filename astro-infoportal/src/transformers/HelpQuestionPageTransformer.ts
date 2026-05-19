@@ -7,12 +7,13 @@ import type { Locale } from "@i18n/index";
 export class HelpQuestionPageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
     const locale: Locale = globalData?.locale ?? "nb";
-    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, locale);
+    const contentLocale: Locale = globalData?.contentLocale ?? locale;
+    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, contentLocale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
     const pageSidebarViewModel = await buildHelpSidebarViewModel(
       cmsPageData,
       ancestors,
-      locale,
+      contentLocale,
     );
 
     return {

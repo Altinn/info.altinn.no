@@ -7,7 +7,8 @@ import { t, type Locale } from "@i18n/index";
 export class SubsidyOverviewPageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<SubsidyOverviewPageProps> {
     const locale: Locale = globalData?.locale || "nb";
-    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, locale);
+    const contentLocale: Locale = globalData?.contentLocale || locale;
+    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, contentLocale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
     return {

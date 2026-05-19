@@ -15,11 +15,12 @@ export class SchemaAttachmentPageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
     const props = cmsPageData.properties ?? {};
     const locale: Locale = globalData?.locale || "nb";
+    const contentLocale: Locale = globalData?.contentLocale || locale;
     const resolver = await ProviderResolver.create();
 
     const ancestors = await fetchUmbracoAncestors(
       cmsPageData.route.path,
-      locale,
+      contentLocale,
     );
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
@@ -53,12 +54,12 @@ export class SchemaAttachmentPageTransformer implements IJSONTransformer {
       ? BlockTransformer.TransformBlocks(props.promoArea)
       : undefined;
 
-    const resolvedSchemas = await resolveBlockReferences(props.schemas, locale);
+    const resolvedSchemas = await resolveBlockReferences(props.schemas, contentLocale);
     const relatedSchemas = await Promise.all(
       resolvedSchemas.map(async (schema: any) => {
         const schemaPath = schema?.route?.path;
         const schemaAncestors = schemaPath
-          ? await fetchUmbracoAncestors(schemaPath, locale)
+          ? await fetchUmbracoAncestors(schemaPath, contentLocale)
           : [];
         const providers: ProviderInfo[] = schemaAncestors
           .filter((a: any) => a.contentType === "providerPage")

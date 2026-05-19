@@ -42,6 +42,7 @@ export function getGlobalData(
   startPage?: { properties?: Record<string, unknown> },
   currentPageContentType?: string,
   currentPath?: string,
+  contentLocale: Locale = locale,
 ) {
   const afBase = endpoints.afBaseUrl.replace(/\/$/, "");
   const amUiBase = endpoints.amUiBaseUrl.replace(/\/$/, "");
@@ -130,5 +131,6 @@ export function getGlobalData(
     },
     skipLinkText: t("common.skipToContent", locale),
     locale,
+    contentLocale,
   };
 }

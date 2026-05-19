@@ -16,20 +16,21 @@ export class SchemaOverviewPageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
     const props = cmsPageData.properties ?? {};
     const locale: Locale = globalData?.locale || "nb";
+    const contentLocale: Locale = globalData?.contentLocale || locale;
     const resolver = await ProviderResolver.create();
 
     const ancestors = await fetchUmbracoAncestors(
       cmsPageData.route.path,
-      locale,
+      contentLocale,
     );
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
     let categories = await fetchUmbracoChildren(
       "7be52f06-4b7f-43e3-be3e-7871e56c27fc",
       100,
-      locale,
+      contentLocale,
     );
-    if (categories.length === 0 && locale !== "nb") {
+    if (categories.length === 0 && contentLocale !== "nb") {
       categories = await fetchUmbracoChildren(
         "7be52f06-4b7f-43e3-be3e-7871e56c27fc",
       );
@@ -47,7 +48,7 @@ export class SchemaOverviewPageTransformer implements IJSONTransformer {
     const providers = await fetchUmbracoChildren(
       cmsPageData.route.path,
       100,
-      locale,
+      contentLocale,
     );
 
     const sortedProviders = providers
@@ -86,10 +87,10 @@ export class SchemaOverviewPageTransformer implements IJSONTransformer {
       (props.recommendedSchemas ?? []).map(async (item: any) => {
         let icons: ProviderInfo[] = [];
         try {
-          const fullPage = await fetchUmbracoContent(item.route?.path, locale);
+          const fullPage = await fetchUmbracoContent(item.route?.path, contentLocale);
           const resolvedRefs = await resolveBlockReferences(
             fullPage.properties?.providers,
-            locale,
+            contentLocale,
           );
           icons = resolvedRefs.map((ref: any) => {
             const name = ref?.name ?? "";
