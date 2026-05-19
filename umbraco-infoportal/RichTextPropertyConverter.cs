@@ -234,23 +234,12 @@ public class RichTextPropertyConverter : IPropertyValueConverter
     private string? GetMarkup(JsonObject jsonObject)
     {
 
-        string content = jsonObject.GetPropertyAsString("content");
-        if (!string.IsNullOrEmpty(content))
+        Console.WriteLine(jsonObject.ToString());
+        JsonArray items = jsonObject.GetPropertyAsArray("items");
+        
+        foreach (JsonObject item in items)
         {
-            return content;
-        }
-
-        JsonArray values = jsonObject.GetPropertyAsArray("values");
-
-        foreach (JsonObject value in values.Cast<JsonObject>())
-        {
-            if ("content".Equals(value.GetPropertyAsString("alias")))
-            {
-                string richTextJsonString = value.GetPropertyAsString("value");
-
-                JsonObject richText = JsonSerializer.Deserialize<JsonObject>(richTextJsonString);
-                return richText.GetPropertyAsString("markup");
-            }
+            return item.GetPropertyAsString("html");
         }
 
         return null;
