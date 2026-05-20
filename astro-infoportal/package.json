@@ -11,43 +11,45 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@altinn/altinn-components": "^0.61.2",
-    "@astrojs/cloudflare": "^13.2.1",
-    "@astrojs/react": "^5.0.4",
-    "@digdir/designsystemet-css": "^1.13.3",
-    "@digdir/designsystemet-react": "^1.13.3",
+    "@altinn/altinn-components": "^0.63.3",
+    "@astrojs/cloudflare": "^13.5.1",
+    "@astrojs/react": "^5.0.5",
+    "@digdir/designsystemet-css": "^1.14.0",
+    "@digdir/designsystemet-react": "^1.14.0",
     "@digdir/designsystemet-theme": "^1.11.0",
-    "@navikt/aksel-icons": "^8.10.2",
-    "astro": "^6.1.9",
+    "@navikt/aksel-icons": "^8.10.5",
+    "astro": "^6.3.3",
     "lodash.debounce": "^4.0.8",
     "message-channel": "^2.0.0",
     "node-html-parser": "^7.1.0",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.29.2",
+    "@babel/preset-env": "^7.29.5",
     "@babel/preset-react": "^7.28.5",
     "@babel/preset-typescript": "^7.28.5",
-    "@biomejs/biome": "^2.4.13",
-    "@chromatic-com/storybook": "^5.1.2",
-    "@storybook/addon-docs": "^10.3.5",
-    "@storybook/addon-onboarding": "^10.3.5",
-    "@storybook/react-vite": "^10.3.5",
+    "@biomejs/biome": "^2.4.15",
+    "@chromatic-com/storybook": "^5.2.1",
+    "@storybook/addon-docs": "^10.4.0",
+    "@storybook/addon-onboarding": "^10.4.0",
+    "@storybook/react-vite": "^10.4.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "lint-staged": "^16.4.0",
-    "postcss-preset-env": "^11.2.1",
+    "postcss-preset-env": "^11.3.0",
     "prettier": "^3.8.3",
     "sass": "^1.99.0",
-    "storybook": "^10.3.5",
+    "storybook": "^10.4.0",
     "typescript": "^6.0.3",
-    "wrangler": "^4.85.0"
+    "wrangler": "^4.91.0"
   },
   "overrides": {
-    "undici": "^8.1.0",
+    "undici": "^8.3.0",
     "picomatch": ">=4.0.4",
     "uuid": "^14.0.0",
-    "postcss": "^8.5.12"
+    "postcss": "^8.5.14",
+    "@babel/plugin-transform-modules-systemjs": "^7.29.4",
+    "devalue": "^5.8.1"
   }
 }

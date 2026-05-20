@@ -34,7 +34,7 @@ const START_AND_RUN_GUIDES_PATH = "/starte-og-drive/starte/guider/";
 
 async function resolveSectionFeaturedLink(
   cmsPageData: any,
-  locale: Locale,
+  contentLocale: Locale,
   link: any,
   fallbackText?: string,
 ) {
@@ -53,7 +53,7 @@ async function resolveSectionFeaturedLink(
   }
 
   try {
-    const guidesPage = await fetchUmbracoContent(START_AND_RUN_GUIDES_PATH, locale);
+    const guidesPage = await fetchUmbracoContent(START_AND_RUN_GUIDES_PATH, contentLocale);
     const guidesUrl = guidesPage.route?.path;
 
     if (!guidesUrl) {
@@ -72,35 +72,21 @@ async function resolveSectionFeaturedLink(
 async function buildLatestNewsItems(
   blockData: any,
   locale: Locale,
-  startPageData?: any,
+  contentLocale: Locale,
 ) {
   const newsLocation = blockData.properties?.newsLocation?.[0]?.route?.path;
 
   if (!newsLocation) {
-    const fallbackRefs = (startPageData?.properties?.latestNewsContentArea ?? []).filter(
-      isNewsArticle,
-    );
-
-    return await Promise.all(
-      fallbackRefs.map(async (item: any) => {
-        const fullArticle = await fetchUmbracoContent(item.id ?? item.route?.path, locale);
-        return {
-          pageName: fullArticle.name,
-          url: fullArticle.route?.path,
-          mainIntro: fullArticle.properties?.mainIntro ?? "",
-          language: locale,
-        };
-      }),
-    );
+    return [];
   }
 
   const limit = blockData.properties?.displayLimit ?? 3;
-  const children = await fetchUmbracoChildren(newsLocation, limit + 10, locale);
+  const children = await fetchUmbracoChildren(newsLocation, limit + 10, contentLocale);
   const newsArticles = children.filter(isNewsArticle).slice(0, limit);
 
   return await Promise.all(
     newsArticles.map(async (item: any) => {
-      const fullArticle = await fetchUmbracoContent(item.id ?? item.route?.path, locale);
+      const fullArticle = await fetchUmbracoContent(item.id ?? item.route?.path, contentLocale);
       return {
         pageName: fullArticle.name,
         url: fullArticle.route?.path,
@@ -114,9 +100,10 @@ async function buildLatestNewsItems(
 async function transformSectionContentItem(
   item: any,
   locale: Locale,
+  contentLocale: Locale,
   startPageData?: any,
 ) {
-  const blockData = await fetchUmbracoContent(item.id ?? item.route?.path, locale);
+  const blockData = await fetchUmbracoContent(item.id ?? item.route?.path, contentLocale);
   const props = blockData.properties ?? {};
 
   switch (blockData.contentType) {
@@ -163,7 +150,7 @@ async function transformSectionContentItem(
             ? "LatestNewsBlockV2"
             : "LatestNewsBlock",
         heading: props.heading ?? t("news.latestNews", locale),
-        news: await buildLatestNewsItems(blockData, locale, startPageData),
+        news: await buildLatestNewsItems(blockData, locale, contentLocale),
         archiveLink,
       };
     }
@@ -187,11 +174,12 @@ async function transformSectionContentItem(
 async function transformSectionContentArea(
   area: any,
   locale: Locale,
+  contentLocale: Locale,
   startPageData?: any,
 ) {
   const items = await Promise.all(
     area.map((item: any) =>
-      transformSectionContentItem(item, locale, startPageData).catch(() => null),
+      transformSectionContentItem(item, locale, contentLocale, startPageData).catch(() => null),
     ),
   );
 
@@ -210,6 +198,7 @@ export class SectionPageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<SectionPageProps> {
     const props = cmsPageData.properties ?? {};
     const locale = (globalData?.locale as Locale | undefined) ?? "nb";
+    const contentLocale = (globalData?.contentLocale as Locale | undefined) ?? locale;
     const bottomAreaItems = Array.isArray(props.bottomArea) ? props.bottomArea : [];
     const needsStartPageData = bottomAreaItems.some((item: any) =>
       ["doYouNeedHelpBlock", "latestNewsBlock", "latestNewsBlockV2"].includes(
@@ -233,7 +222,7 @@ export class SectionPageTransformer implements IJSONTransformer {
 
     const normalizedGoToLink = await resolveSectionFeaturedLink(
       cmsPageData,
-      locale,
+      contentLocale,
       props.goToLinkLocation,
       props.goToLinkText,
     );
@@ -260,7 +249,7 @@ export class SectionPageTransformer implements IJSONTransformer {
       : undefined;
 
     const bottomArea = props.bottomArea
-      ? await transformSectionContentArea(props.bottomArea, locale, startPageData)
+      ? await transformSectionContentArea(props.bottomArea, locale, contentLocale, startPageData)
       : undefined;
 
     return {

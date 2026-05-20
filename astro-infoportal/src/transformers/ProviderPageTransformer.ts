@@ -12,9 +12,10 @@ export class ProviderPageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
     const props = cmsPageData.properties ?? {};
     const locale: Locale = globalData?.locale || "nb";
+    const contentLocale: Locale = globalData?.contentLocale || locale;
     const resolver = await ProviderResolver.create();
 
-    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, locale);
+    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, contentLocale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
     const providerImageUrl = resolver.resolveImageUrl(
@@ -32,14 +33,14 @@ export class ProviderPageTransformer implements IJSONTransformer {
     // Each schema's `providers` is a Content Picker; the Delivery API only returns
     // reference metadata, so we resolve each ref via path→id fallback (see
     // .claude/docs/architecture.md).
-    const children = await fetchUmbracoChildren(cmsPageData.route.path, 100, locale);
+    const children = await fetchUmbracoChildren(cmsPageData.route.path, 100, contentLocale);
     const schemaPages = children.filter((c: any) => c.contentType === "schemaPage");
 
     const schemas = await Promise.all(
       schemaPages.map(async (schema: any) => {
         const resolvedRefs = await resolveBlockReferences(
           schema.properties?.providers,
-          locale,
+          contentLocale,
         );
         const providers = resolvedRefs.map((ref: any) => {
           const name = ref?.name ?? "";
@@ -68,15 +69,21 @@ export class ProviderPageTransformer implements IJSONTransformer {
     // `promoArea` (editor label "Faglig brukerstøtte") is a Block List. Items
     // wrap each block as `{ content: { contentType, properties }, settings }`
     // with inline properties (no picker hydration needed). We map the first
-    // `formElementContactFreetext` block to a ProviderContactInformationBlock
-    // view-model — same shape as on schemaPage.
+    // `formElementContactFreetext` (or legacy `formElementContact`, which has
+    // no `heading` field) block to a ProviderContactInformationBlock view-model
+    // — same shape as on schemaPage.
     const promoBlockItems: any[] = Array.isArray(props.promoArea?.items)
       ? props.promoArea.items
       : [];
     let contactInfo: any;
     for (const wrapper of promoBlockItems) {
       const content = wrapper?.content ?? wrapper;
-      if (content?.contentType !== "formElementContactFreetext") continue;
+      if (
+        content?.contentType !== "formElementContactFreetext" &&
+        content?.contentType !== "formElementContact"
+      ) {
+        continue;
+      }
       const bp = content.properties ?? {};
       contactInfo = {
         componentName: "ProviderContactInformationBlock",

@@ -76,22 +76,19 @@ public class RichTextPropertyConverter : IPropertyValueConverter
                 return null;
             }
 
-
             if (!raw.StartsWith('{'))
             {
-                return new RichTextEditorValue()
+                JsonArray items = [];
+                items.Add(new JsonObject
                 {
-                    Markup = raw
-                };
+                    { "html", raw },
+                    { "componentName", "RichText" }
+                });
+
+                return new JsonObject { { "items", items } };
             }
 
-            RichTextEditorValue? rteValue = _json.Deserialize<RichTextEditorValue>(raw);
-
-            if (rteValue is null || rteValue.Markup is null)
-            {
-                return null;
-            }
-            return new JsonObject { { "items", ParseRichText(rteValue) } };
+            return new JsonObject { { "items", ParseRichText(raw) } };
         }
         else
         {
@@ -99,11 +96,15 @@ public class RichTextPropertyConverter : IPropertyValueConverter
         }
     }
 
-    private JsonArray ParseRichText(RichTextEditorValue rteValue)
+    private JsonArray ParseRichText(string rawValue)
     {
         string pattern = @"<umb-rte-block data-content-key=""(?<contentguid>[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})""></umb-rte-block>";
+
+        JsonObject rteValue = JsonSerializer.Deserialize<JsonNode>(rawValue).AsObject();
+
         JsonArray items = [];
-        string markup = rteValue.Markup;
+        string markup = rteValue.GetPropertyAsString("markup");
+
         Match match = Regex.Match(markup, pattern);
 
         while (match.Success)
@@ -119,10 +120,12 @@ public class RichTextPropertyConverter : IPropertyValueConverter
             }
 
             Guid blockGuid = Guid.Parse(match.Groups["contentguid"].Value);
-            BlockItemData blockItemData = GetBlockItemData(blockGuid, rteValue);
-            BlockPropertyValue blockPropertyValue = blockItemData.Values[0];
 
-            JsonObject jsonObject = ConvertPickerBlock(blockPropertyValue);
+            JsonObject blockItemData = GetContentDataItem(blockGuid, rteValue);
+
+            string blockPickerValue = blockItemData.GetPropertyAsString("blockPicker");
+
+            JsonObject jsonObject = ConvertPickerBlock(blockPickerValue);
             items.Add(jsonObject);
 
             if (markup.Length > match.Length)
@@ -159,44 +162,86 @@ public class RichTextPropertyConverter : IPropertyValueConverter
         return string.IsNullOrWhiteSpace(stripped);
     }
 
-    private BlockItemData? GetBlockItemData(Guid guid, RichTextEditorValue rteValue)
+    private JsonObject GetContentDataItem(Guid guid, JsonObject rteValue)
     {
-        RichTextBlockValue? rteBlockValue = rteValue.Blocks;
-        if (rteBlockValue is null)
+        JsonObject blocks = rteValue.GetPropertyAsObject("blocks");
+
+        if (blocks is null)
         {
             return null;
         }
-        foreach (BlockItemData blockItemData in rteBlockValue.ContentData)
+
+        
+        JsonArray contentData = blocks.GetPropertyAsArray("contentData");
+        if (contentData is null)
         {
-            if (blockItemData.Key == guid)
+            return null;
+        }
+
+        foreach (JsonNode contentDataItem in contentData)
+        {
+            string udiString = contentDataItem.AsObject().GetPropertyAsString("udi");            
+            Uri uri = new Uri(udiString);
+            Guid currentGuid = new GuidUdi(uri).Guid;
+
+            if (currentGuid.Equals(guid))
             {
-                return blockItemData;
+                return contentDataItem.AsObject();
             }
         }
 
         return null;
     }
 
-    private JsonObject ConvertPickerBlock(ValueModelBase blockPropertyValue)
+    private JsonObject ConvertPickerBlock(string blockPickerValue)
     {
-
         JsonObject item = new JsonObject();
-        string pickerName = blockPropertyValue.Alias;
-        string blockName = Capitalize(pickerName.Replace("Picker", ""));
-        item.Add("componentName", blockName);
-
-        string? uriString = blockPropertyValue.Value?.ToString();
-        if (string.IsNullOrEmpty(uriString))
-        {
-            return item;
-        }
-        Uri uri = new Uri(uriString);
+        
+        Uri uri = new Uri(blockPickerValue);
 
         IPublishedContent? content = _publishedContentCache.GetById(new GuidUdi(uri).Guid);
+        
+        if ("tableBlock".Equals(content.ContentType.Alias))
+        {
+            item.Add("componentName", "RichText");
+            IPublishedProperty property = content.GetProperty("table");
 
-        item = AddContentProperties(item, content);
+            if (property is null)
+            {
+                return item;
+            }
+
+
+            object value = property.GetDeliveryApiValue(true);
+
+            if (value is null)
+            {
+                return item;
+            }
+
+            if (value is JsonObject jsonObject) {
+                item.Add("html", GetMarkup(jsonObject));
+            } else if (value is RichTextEditorValue rteValue) {
+                item.Add("html", rteValue.Markup);
+            }
+        } else {
+            item.Add("componentName", Capitalize(content.ContentType.Alias));
+            item = AddContentProperties(item, content);    
+        }
         return item;
     }
+
+    private string? GetMarkup(JsonObject jsonObject)
+    {
+        JsonArray items = jsonObject.GetPropertyAsArray("items");
+        
+        foreach (JsonObject item in items)
+        {
+            return item.GetPropertyAsString("html");
+        }
+
+        return null;
+    }       
 
     private JsonObject AddContentProperties(JsonObject jsonObject, IPublishedContent content)
     {

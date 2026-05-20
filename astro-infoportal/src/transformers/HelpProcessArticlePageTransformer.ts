@@ -17,7 +17,8 @@ export class HelpProcessArticlePageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
     const props = cmsPageData?.properties ?? {};
     const locale: Locale = globalData?.locale ?? "nb";
-    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, locale);
+    const contentLocale: Locale = globalData?.contentLocale ?? locale;
+    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, contentLocale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
     const lastUpdatedDateString = formatDate(
@@ -29,9 +30,9 @@ export class HelpProcessArticlePageTransformer implements IJSONTransformer {
 
     const [bottomContentArea, pageSidebarViewModel] = await Promise.all([
       props.bottomContentArea
-        ? hydrateContentAreaItems(props.bottomContentArea, locale)
+        ? hydrateContentAreaItems(props.bottomContentArea, contentLocale)
         : Promise.resolve(undefined),
-      buildHelpSidebarViewModel(cmsPageData, ancestors, locale),
+      buildHelpSidebarViewModel(cmsPageData, ancestors, contentLocale),
     ]);
 
     return {

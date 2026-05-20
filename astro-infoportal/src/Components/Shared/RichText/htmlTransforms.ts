@@ -25,6 +25,44 @@ export function transformRichTextHtml(
   return root.toString();
 }
 
+/**
+ * Walks a JSON-shaped tree and rewrites `RichText.html` inside every
+ * `RichTextArea` node using {@link transformRichTextHtml}. Must run server-side
+ * only (e.g. from the JSON transformer pipeline) — running it again on the
+ * client would re-parse already-transformed HTML and risks producing a
+ * different string due to environment-specific `node-html-parser` behavior,
+ * which is exactly the React hydration mismatch this is here to prevent.
+ */
+export function walkAndTransformRichText(node: unknown): void {
+  if (!node || typeof node !== "object") return;
+
+  if (Array.isArray(node)) {
+    for (const item of node) walkAndTransformRichText(item);
+    return;
+  }
+
+  const obj = node as Record<string, unknown>;
+
+  if (obj.componentName === "RichTextArea" && Array.isArray(obj.items)) {
+    const addAnchors = obj.addAnchors === true;
+    const usedIds = new Set<string>();
+    for (const item of obj.items as Array<Record<string, unknown>>) {
+      if (
+        item &&
+        typeof item === "object" &&
+        item.componentName === "RichText" &&
+        typeof item.html === "string"
+      ) {
+        item.html = transformRichTextHtml(item.html, { usedIds, addAnchors });
+      }
+    }
+  }
+
+  for (const value of Object.values(obj)) {
+    walkAndTransformRichText(value);
+  }
+}
+
 function addHeadingAnchors(root: HTMLElement, usedIds: Set<string>): void {
   const headings = root.querySelectorAll("h2");
   for (const h of headings) {

@@ -35,12 +35,13 @@ export class CategoryPageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
     const props = cmsPageData.properties ?? {};
     const locale = globalData?.locale ?? "nb";
+    const contentLocale = globalData?.contentLocale ?? locale;
 
-    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, locale);
+    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, contentLocale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
     // Subcategories: direct children of this category page
-    const children = await fetchUmbracoChildren(cmsPageData.route.path);
+    const children = await fetchUmbracoChildren(cmsPageData.route.path, 100, contentLocale);
     const categoryPrefix = `${cmsPageData.name} - `;
     const schemaCounts = await fetchSchemaCountsByUrl();
     const subCategories = children
@@ -60,7 +61,7 @@ export class CategoryPageTransformer implements IJSONTransformer {
     const segments = cmsPageData.route.path.split("/").filter(Boolean);
     segments.pop(); // remove current category slug → "skjemaoversikt/kategori"
     const parentPath = segments.join("/");
-    const allCategories = await fetchUmbracoChildren(parentPath);
+    const allCategories = await fetchUmbracoChildren(parentPath, 100, contentLocale);
 
     const pageSidebarViewModel = {
       titleItem: {

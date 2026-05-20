@@ -19,8 +19,9 @@ export class SubsidyPageTransformer implements IJSONTransformer {
   ): Promise<SubsidyPageProps> {
     const props = cmsPageData.properties ?? {};
     const locale: Locale = globalData?.locale ?? "nb";
+    const contentLocale: Locale = globalData?.contentLocale ?? locale;
 
-    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, locale);
+    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, contentLocale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
     const mainBody = props.mainBody;
