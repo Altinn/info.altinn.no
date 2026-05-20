@@ -67,7 +67,8 @@ export class SubCategoryPageTransformer implements IJSONTransformer {
             };
           });
         } catch {
-          // Schema fetch failed — emit without icons.
+          // Schema fetch failed in both the requested locale and NB — emit
+          // the row without icons rather than dropping it entirely.
         }
 
         const title = schemaCode ? `${s.name} (${schemaCode})` : s.name;
