@@ -94,7 +94,8 @@ if (!string.IsNullOrWhiteSpace(otlpEndpoint))
                         && !host.Equals("login.microsoftonline.com", StringComparison.OrdinalIgnoreCase)
                         && !host.Equals("login.windows.net", StringComparison.OrdinalIgnoreCase)
                         && !host.EndsWith("our.umbraco.com", StringComparison.OrdinalIgnoreCase)
-                        && !host.EndsWith("telemetry.umbraco.com", StringComparison.OrdinalIgnoreCase);
+                        && !host.EndsWith("telemetry.umbraco.com", StringComparison.OrdinalIgnoreCase)
+                        && !host.Equals(builder.Configuration["Cloudflare:ApiHost"], StringComparison.OrdinalIgnoreCase);
                 };
             })
             .AddOtlpExporter(opt => opt.Endpoint = otlpUri));

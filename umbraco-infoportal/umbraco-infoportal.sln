@@ -9,6 +9,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Adapters", "Adapters", "{09
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infoportal.Adapters.Elasticsearch", "..\Adapters\Infoportal.Adapters.Elasticsearch\Infoportal.Adapters.Elasticsearch.csproj", "{78237625-338F-43EC-97A5-40BCA4AE7259}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infoportal.Adapters.Cloudflare", "..\Adapters\Infoportal.Adapters.Cloudflare\Infoportal.Adapters.Cloudflare.csproj", "{99F1F05B-CBC4-429E-BB32-55CD474358EE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,6 +45,18 @@ Global
 		{78237625-338F-43EC-97A5-40BCA4AE7259}.Release|x64.Build.0 = Release|Any CPU
 		{78237625-338F-43EC-97A5-40BCA4AE7259}.Release|x86.ActiveCfg = Release|Any CPU
 		{78237625-338F-43EC-97A5-40BCA4AE7259}.Release|x86.Build.0 = Release|Any CPU
+		{99F1F05B-CBC4-429E-BB32-55CD474358EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{99F1F05B-CBC4-429E-BB32-55CD474358EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{99F1F05B-CBC4-429E-BB32-55CD474358EE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{99F1F05B-CBC4-429E-BB32-55CD474358EE}.Debug|x64.Build.0 = Debug|Any CPU
+		{99F1F05B-CBC4-429E-BB32-55CD474358EE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{99F1F05B-CBC4-429E-BB32-55CD474358EE}.Debug|x86.Build.0 = Debug|Any CPU
+		{99F1F05B-CBC4-429E-BB32-55CD474358EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{99F1F05B-CBC4-429E-BB32-55CD474358EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{99F1F05B-CBC4-429E-BB32-55CD474358EE}.Release|x64.ActiveCfg = Release|Any CPU
+		{99F1F05B-CBC4-429E-BB32-55CD474358EE}.Release|x64.Build.0 = Release|Any CPU
+		{99F1F05B-CBC4-429E-BB32-55CD474358EE}.Release|x86.ActiveCfg = Release|Any CPU
+		{99F1F05B-CBC4-429E-BB32-55CD474358EE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
