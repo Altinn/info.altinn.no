@@ -3,6 +3,7 @@ kind: Vault
 metadata:
   name: umbraco
 spec:
+  externalSecrets: true
   serviceAccountRef:
     name: umbraco
   groupObjectId: 42688626-6503-4d1d-8aa4-e1e5fef2b4be
