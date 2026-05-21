@@ -7,6 +7,7 @@ import {
 } from "../api/umbraco/client";
 import type { SectionPageProps } from "@components/Pages/SectionPage/SectionPage.types";
 import { resolveRouteOverride } from "@constants/routeOverrides";
+import { sortNewsByEffectiveDateDesc } from "./newsSort";
 import { type Locale, t } from "@i18n/index";
 
 function isNewsArticle(item: any) {
@@ -82,7 +83,9 @@ async function buildLatestNewsItems(
 
   const limit = blockData.properties?.displayLimit ?? 3;
   const children = await fetchUmbracoChildren(newsLocation, limit + 10, contentLocale);
-  const newsArticles = children.filter(isNewsArticle).slice(0, limit);
+  const newsArticles = sortNewsByEffectiveDateDesc(
+    children.filter(isNewsArticle),
+  ).slice(0, limit);
 
   return await Promise.all(
     newsArticles.map(async (item: any) => {

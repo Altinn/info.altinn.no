@@ -178,26 +178,33 @@ export class StartPageTransformer implements IJSONTransformer {
     const companyTitle = companyRef ? t("start.companyTitle", locale) : null;
     const companyText = companyRef ? t("start.companyText", locale) : null;
 
-    // --- News list (fetch each article for mainIntro) ---
+    // --- News list (fetch each article for mainIntro + lastChanged) ---
+    // Sort by the editor-managed `lastChanged` (fallback `updateDate`) so the
+    // start page lines up with the archive and section "Siste nytt" block.
     const newsRefs: any[] = p.latestNewsContentArea ?? [];
-    const newsList = await Promise.all(
+    const newsListUnsorted = await Promise.all(
       newsRefs.map(async (ref: any) => {
-        let mainIntro = "";
+        let full: any = null;
         try {
-          const full = await fetchUmbracoContent(ref.route?.path, contentLocale);
-          mainIntro = full.properties?.mainIntro ?? "";
+          full = await fetchUmbracoContent(ref.route?.path, contentLocale);
         } catch {
-          /* no intro */
+          /* fall back to ref-level fields below */
         }
+        const dateRaw =
+          full?.properties?.lastChanged ?? ref.updateDate ?? "";
         return {
           componentName: "NewsArticleItem",
           pageName: ref.name ?? "",
-          mainIntro,
+          mainIntro: full?.properties?.mainIntro ?? "",
           url: ref.route?.path ?? "",
-          lastChanged: formatDate(ref.updateDate ?? ""),
+          lastChanged: formatDate(dateRaw),
+          _sortKey: Date.parse(dateRaw) || 0,
         };
       }),
     );
+    const newsList = newsListUnsorted
+      .sort((a, b) => b._sortKey - a._sortKey)
+      .map(({ _sortKey, ...item }) => item);
 
     // --- News archive ---
     const newsArchiveRef = p.newsArchiveLocation?.[0];
