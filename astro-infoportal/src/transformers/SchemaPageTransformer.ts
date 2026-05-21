@@ -10,6 +10,7 @@ import {
 import { buildMunicipalitySearch } from "../api/umbraco/municipalitySearch";
 import { BlockTransformer } from "./BlockTransformer";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
+import { stripCategoryPrefix } from "./categoryPrefix";
 import type { IJSONTransformer } from "./IJSONTransformer";
 
 // Prefer rich text when an editor has populated it; fall back to the legacy plain-text field.
@@ -178,10 +179,13 @@ export class SchemaPageTransformer implements IJSONTransformer {
 
     let pageSidebarViewModel: any;
     if (primarySubCategory?.route?.path) {
+      // The category page is the subcategory's tree parent — drop the
+      // subcategory's own slug. slice(0, -1) is locale-agnostic; a
+      // hardcoded slice(0, 3) skips the /nn/ or /en/ prefix.
       const subSegments = primarySubCategory.route.path
         .split("/")
         .filter(Boolean);
-      const parentCategoryPath = `/${subSegments.slice(0, 3).join("/")}/`;
+      const parentCategoryPath = `/${subSegments.slice(0, -1).join("/")}/`;
 
       let parentCategory: any;
       try {
@@ -191,19 +195,11 @@ export class SchemaPageTransformer implements IJSONTransformer {
       }
 
       if (parentCategory) {
-        const categoryPrefix = parentCategory.name
-          ? `${parentCategory.name} - `
-          : "";
-        const stripPrefix = (name: string) =>
-          categoryPrefix && name.startsWith(categoryPrefix)
-            ? name.slice(categoryPrefix.length)
-            : name;
-
         const siblings = await fetchUmbracoChildren(parentCategory.route.path, 100, contentLocale);
         const subItems = siblings
           .filter((sub: any) => sub.contentType === "subCategoryPage")
           .map((sub: any) => ({
-            label: stripPrefix(sub.name),
+            label: stripCategoryPrefix(sub.name),
             url: sub.route?.path,
             current: sub.id === primarySubCategory.id,
           }))
