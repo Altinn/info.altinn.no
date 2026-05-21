@@ -205,7 +205,7 @@ public class BlockListPropertyConverter : IPropertyValueConverter
             {
                 string richTextJsonString = value.GetPropertyAsString("value");
 
-                if (string.IsNullOrEmpty(content))
+                if (string.IsNullOrEmpty(richTextJsonString))
                 {
                     return null;
                 }                
