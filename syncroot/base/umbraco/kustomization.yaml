@@ -13,3 +13,4 @@ resources:
   - service.yaml
   - httproute.yaml
   - network-policies.yaml
+  - cloudflare-secrets.yaml

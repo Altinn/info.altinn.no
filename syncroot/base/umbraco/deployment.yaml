@@ -53,6 +53,16 @@ spec:
                   fieldPath: metadata.uid
             - name: OTEL_RESOURCE_ATTRIBUTES
               value: "k8s.pod.uid=$(POD_UID)"
+            - name: Cloudflare__ZoneId
+              valueFrom:
+                secretKeyRef:
+                  name: cloudflare
+                  key: Cloudflare--ZoneId
+            - name: Cloudflare__ApiToken
+              valueFrom:
+                secretKeyRef:
+                  name: cloudflare
+                  key: Cloudflare--ApiToken
           ports:
             - name: http
               containerPort: 8080
