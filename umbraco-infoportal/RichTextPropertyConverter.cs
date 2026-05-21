@@ -224,8 +224,21 @@ public class RichTextPropertyConverter : IPropertyValueConverter
             } else if (value is RichTextEditorValue rteValue) {
                 item.Add("html", rteValue.Markup);
             }
+        } else if ("linkBlock".Equals(content.ContentType.Alias))
+        {
+            item.Add("componentName", "LinkBlock");
+            item = AddContentProperties(item, content);
+            string url = item.GetPropertyAsString("urlBlock");
+            string linkText = item.GetPropertyAsString("extraTitle");
+            JsonObject linkObject = [];
+            linkObject["url"] = url;
+            linkObject["openInNewWindow"] = true;
+            linkObject["componentName"] = "UrlBlock";
+            linkObject["linkText"] = linkText;
+            item["link"] = linkObject;
         } else {
             item.Add("componentName", Capitalize(content.ContentType.Alias));
+           
             item = AddContentProperties(item, content);    
         }
         return item;
