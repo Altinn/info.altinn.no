@@ -82,7 +82,11 @@ async function buildLatestNewsItems(
   }
 
   const limit = blockData.properties?.displayLimit ?? 3;
-  const children = await fetchUmbracoChildren(newsLocation, limit + 10, contentLocale);
+  const children = await fetchUmbracoChildren(
+    newsLocation,
+    2147483647,
+    contentLocale,
+  );
   const newsArticles = sortNewsByEffectiveDateDesc(
     children.filter(isNewsArticle),
   ).slice(0, limit);
