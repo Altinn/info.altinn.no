@@ -117,8 +117,6 @@ public class RichTextPropertyConverter : IPropertyValueConverter
         markup = ReplaceImages(markup);
         markup = ReplaceMediaLinks(markup);
 
-        Console.WriteLine("Markup: " + markup);
-
         Match match = Regex.Match(markup, pattern);
 
         while (match.Success)
@@ -161,17 +159,23 @@ public class RichTextPropertyConverter : IPropertyValueConverter
                 { "componentName", "RichText" }
             });
         }
+
+        Console.WriteLine("Markup: " + markup);
         return items;
     }
 
     private string ReplaceImages(string markup)
     {
-        string pattern = @"<img data-udi=""(?<udi>[0-9a-fA-F]{32})"" src=""(?<src>[^""]+)";
+        string pattern = @"<img data-udi=""umb://media/(?<udi>[0-9a-fA-F]{32})"" src=""(?<src>[^""]+)";
+
+        Console.WriteLine("Pattern: " + pattern);
+         
         Match match = Regex.Match(markup, pattern);
 
         while (match.Success)
         {
-            string udiString =  match.Groups["udi"].Value;
+            Console.WriteLine("Match!");
+            string udiString = "umb://media/" + match.Groups["udi"].Value;
             GuidUdi guidUdi = (GuidUdi) UdiParser.Parse(udiString);
             string? url = ResolveMediaUrl(guidUdi.Guid);
             string src = match.Groups["src"].Value;
