@@ -407,3 +407,14 @@ export async function fetchUmbracoRelated(
 
   return items;
 }
+
+export async function fetchUmbracoMedia(path: string) {
+  const url = `${env.UMBRACO_API_URL}${path}`;
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch media from Umbraco: ${response.statusText} ${url}`);
+  }
+
+  return await response.bytes();
+}

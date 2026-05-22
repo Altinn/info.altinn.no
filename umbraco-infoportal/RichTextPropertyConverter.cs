@@ -9,9 +9,14 @@ using System.Text.RegularExpressions;
 using System.Text.Json;
 using uSync.Core.Extensions;
 using Umbraco.Cms.Core.Models.DeliveryApi;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Models.ContentEditing;
 using Umbraco.Cms.Infrastructure.Migrations.Upgrade.V_15_0_0;
 using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Web.Common.UmbracoContext;
+using Umbraco.Cms.Infrastructure.Migrations.Upgrade.V_15_0_0.LocalLinks;
+using Examine;
 
 // Injecting the IPublishedContentCache for fetching content from the Umbraco cache
 public class RichTextPropertyConverter : IPropertyValueConverter
@@ -20,12 +25,17 @@ public class RichTextPropertyConverter : IPropertyValueConverter
     private readonly ILogger<RichTextPropertyConverter> _logger;
 
     private readonly IPublishedContentCache _publishedContentCache;
+    private readonly IMediaService _mediaService;
 
-    public RichTextPropertyConverter(IJsonSerializer json, ILogger<RichTextPropertyConverter> logger, IPublishedContentCache publishedContentCache)
+    //private readonly IMediaUrlGenerator _mediaUrlGenerator;
+
+    public RichTextPropertyConverter(IJsonSerializer json, ILogger<RichTextPropertyConverter> logger, IPublishedContentCache publishedContentCache, IMediaService mediaService)
     {
         _json = json;
         _logger = logger;
         _publishedContentCache = publishedContentCache;
+        _mediaService = mediaService;
+        //_mediaUrlGenerator = mediaUrlGenerator;
     }
 
     // Make sure the Property Value Converter only applies to the RichText property editor
@@ -104,6 +114,10 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
         JsonArray items = [];
         string markup = rteValue.GetPropertyAsString("markup");
+        markup = ReplaceImages(markup);
+        markup = ReplaceMediaLinks(markup);
+
+        Console.WriteLine("Markup: " + markup);
 
         Match match = Regex.Match(markup, pattern);
 
@@ -148,6 +162,67 @@ public class RichTextPropertyConverter : IPropertyValueConverter
             });
         }
         return items;
+    }
+
+    private string ReplaceImages(string markup)
+    {
+        string pattern = @"<img data-udi=""(?<udi>[0-9a-fA-F]{32})"" src=""(?<src>[^""]+)";
+        Match match = Regex.Match(markup, pattern);
+
+        while (match.Success)
+        {
+            string udiString = "umb://media/" + match.Groups["udi"].Value;
+            GuidUdi guidUdi = (GuidUdi) UdiParser.Parse(udiString);
+            string? url = ResolveMediaUrl(guidUdi.Guid);
+            string src = match.Groups["src"].Value;
+
+            markup = markup.Replace($" data-udi=\"{udiString}\"", "");
+            markup = markup.Replace(src, url);
+
+            match = Regex.Match(markup, pattern);
+        }
+
+        return markup;
+    }
+
+    private string ReplaceMediaLinks(string markup)
+    {
+        string pattern = @"href=""/{localLink:(?<contentguid>[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})}""";
+
+        Match match = Regex.Match(markup, pattern);
+
+        while (match.Success)
+        {
+            string contentGUID = match.Groups["contentguid"].Value;
+
+            Guid guid = Guid.Parse(contentGUID);
+            string url = ResolveMediaUrl(guid);
+            markup = markup.Replace("/{localLink:" + contentGUID + "}", url);
+
+            match = Regex.Match(markup, pattern);
+        }
+
+        return markup;        
+    }
+
+    private string? ResolveMediaUrl(Guid guid)
+    {
+        IMedia media = _mediaService.GetById(guid);
+
+        if (media is null)
+        {
+            return null;
+        }
+
+        string? umbracoFileJson = media.GetValue<string>("umbracoFile");
+
+        if (umbracoFileJson is null)
+        {
+            return null;
+        }
+
+        JsonObject umbracoFile = JsonSerializer.Deserialize<JsonObject>(umbracoFileJson);
+        return umbracoFile.GetPropertyAsString("src");
     }
 
     private static bool IsEmptyHtml(string? html)
