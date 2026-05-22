@@ -171,7 +171,7 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
         while (match.Success)
         {
-            string udiString = "umb://media/" + match.Groups["udi"].Value;
+            string udiString =  match.Groups["udi"].Value;
             GuidUdi guidUdi = (GuidUdi) UdiParser.Parse(udiString);
             string? url = ResolveMediaUrl(guidUdi.Guid);
             string src = match.Groups["src"].Value;
