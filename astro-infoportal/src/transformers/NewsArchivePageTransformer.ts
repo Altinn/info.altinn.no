@@ -21,9 +21,8 @@ export class NewsArchivePageTransformer implements IJSONTransformer {
     const contentLocale: Locale = globalData?.contentLocale || locale;
     const allChildren = await fetchUmbracoChildren(
       cmsPageData.route.path,
-      500,
+      2147483647,
       contentLocale,
-      "updateDate:desc",
     );
     const newsChildren = sortNewsByEffectiveDateDesc(
       allChildren.filter(isNewsArticle),

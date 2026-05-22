@@ -6,7 +6,7 @@ import {
 import {
   fetchUmbracoAncestors,
   fetchUmbracoChildren,
-  fetchUmbracoContent,
+  fetchUmbracoContentById,
   fetchUmbracoRelated,
   resolveBlockReferences,
 } from "../api/umbraco/client";
@@ -47,11 +47,12 @@ export class SubCategoryPageTransformer implements IJSONTransformer {
         let providers: ProviderInfo[] = [];
         let schemaCode: string | null = null;
 
+        let fullSchema: any = null;
         try {
-          const fullSchema = await fetchUmbracoContent(s.route?.path, contentLocale);
-          schemaCode = fullSchema.properties?.schemaCode || null;
+          fullSchema = await fetchUmbracoContentById(s.id, contentLocale);
+          schemaCode = fullSchema?.properties?.schemaCode || null;
           const resolvedRefs = await resolveBlockReferences(
-            fullSchema.properties?.providers,
+            fullSchema?.properties?.providers,
             contentLocale,
           );
           providers = resolvedRefs.map((ref: any) => {
@@ -72,11 +73,13 @@ export class SubCategoryPageTransformer implements IJSONTransformer {
           // the row without icons rather than dropping it entirely.
         }
 
-        const title = schemaCode ? `${s.name} (${schemaCode})` : s.name;
+        const name = fullSchema?.name ?? s.name;
+        const url = fullSchema?.route?.path ?? s.route?.path;
+        const title = schemaCode ? `${name} (${schemaCode})` : name;
         return {
           id: s.id,
           title,
-          url: s.route?.path,
+          url,
           providers,
           componentName: "SchemaData",
         };
