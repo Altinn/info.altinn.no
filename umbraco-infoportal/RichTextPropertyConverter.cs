@@ -168,13 +168,10 @@ public class RichTextPropertyConverter : IPropertyValueConverter
     {
         string pattern = @"<img data-udi=""umb://media/(?<udi>[0-9a-fA-F]{32})"" src=""(?<src>[^""]+)";
 
-        Console.WriteLine("Pattern: " + pattern);
-         
         Match match = Regex.Match(markup, pattern);
 
         while (match.Success)
         {
-            Console.WriteLine("Match!");
             string udiString = "umb://media/" + match.Groups["udi"].Value;
             GuidUdi guidUdi = (GuidUdi) UdiParser.Parse(udiString);
             string? url = ResolveMediaUrl(guidUdi.Guid);
