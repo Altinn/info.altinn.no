@@ -37,8 +37,9 @@ if (path.startsWith("/Pages/") || path.startsWith("/pages/")) {
 }
 
 if (path.startsWith("/media/")) {
-  return fetchUmbracoMedia(path + search);
-}
+   const bytes = await fetchUmbracoMedia(path + search);
+   return new Response(bytes);
+ }
 
 if (shouldFetchFromOldPortal(path)) {
     try {
