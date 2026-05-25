@@ -84,6 +84,12 @@ public class BlockListPropertyConverter : IPropertyValueConverter
                 {
                     string uriString = jsonObject.GetPropertyAsString("blockPicker");
                     // Regular SchemaAccordianBlock
+
+                    if (string.IsNullOrEmpty(uriString))
+                    {
+                        return null;
+                    }
+                    
                     IPublishedContent? block = _publishedContentCache.GetById(new GuidUdi(new Uri(uriString)).Guid);
 
                     JsonObject blockObject = new JsonObject();
