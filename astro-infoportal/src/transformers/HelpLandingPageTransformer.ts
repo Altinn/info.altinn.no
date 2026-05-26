@@ -2,24 +2,43 @@ import type { IJSONTransformer } from "./IJSONTransformer";
 import {
   fetchUmbracoAncestors,
   fetchUmbracoChildrenInEditorOrder,
+  fetchUmbracoContentWithLocaleFallback,
 } from "../api/umbraco/client";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
 import { hydrateContentAreaItems } from "./contentArea";
 import { buildHelpSidebarViewModel } from "./helpSidebar";
 import type { Locale } from "@i18n/index";
 
-function mapChildPage(item: any) {
-  const ct = item?.contentType;
-  if (ct !== "helpQuestionPage" && ct !== "helpProcessArticlePage") {
-    return null;
-  }
-  return {
-    pageName: item?.name,
-    pageType:
-      ct === "helpQuestionPage" ? "HelpQuestionPage" : "HelpProcessArticlePage",
-    url: item?.route?.path,
-    body: item?.properties?.mainBody ?? undefined,
-  };
+async function getChildPages(children: any, contentLocale: Locale) {
+    const childPages = [];
+    for (const child of children) {
+        childPages.push(await getChildPage(child, contentLocale));
+    }
+    return childPages;
+}
+
+async function getChildPage(child: any, contentLocale: Locale) {
+    const ct = child?.contentType;
+    if (ct !== "helpQuestionPage" && ct !== "helpProcessArticlePage") {
+      return null;
+    }
+
+    // Should body be fetched from other page? (Replacing shortcut feature in old CMS)
+    const cp = child?.properties.contentPage;
+    const body = (cp && cp.length > 0) ? 
+        await fetchBodyFromOtherPage(cp[0].id, contentLocale) : child?.properties?.mainBody;
+
+    return {
+      pageName: child?.name,
+      pageType: ct === "helpQuestionPage" ? "HelpQuestionPage" : "HelpProcessArticlePage",
+      url: child?.route?.path,
+      body,
+    };
+}
+
+async function fetchBodyFromOtherPage(pageId: string, contentLocale: Locale) {
+    const contentFromOtherPage = await fetchUmbracoContentWithLocaleFallback(pageId, contentLocale);
+    return contentFromOtherPage?.properties?.mainBody;
 }
 
 export class HelpLandingPageTransformer implements IJSONTransformer {
@@ -35,9 +54,7 @@ export class HelpLandingPageTransformer implements IJSONTransformer {
 
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
-    const childPages = (children ?? [])
-      .map(mapChildPage)
-      .filter((p: any) => p !== null);
+    const childPages = await getChildPages(children, contentLocale);
 
     const [bottomContentArea, pageSidebarViewModel] = await Promise.all([
       props.bottomContentArea
