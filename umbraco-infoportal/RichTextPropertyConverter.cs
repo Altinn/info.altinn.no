@@ -256,7 +256,13 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
         foreach (JsonNode contentDataItem in contentData)
         {
-            string udiString = contentDataItem.AsObject().GetPropertyAsString("udi");            
+            string udiString = contentDataItem.AsObject().GetPropertyAsString("udi");
+
+            if (string.IsNullOrEmpty(udiString))
+            {
+                return null;
+            }
+
             Uri uri = new Uri(udiString);
             Guid currentGuid = new GuidUdi(uri).Guid;
 
@@ -273,7 +279,13 @@ public class RichTextPropertyConverter : IPropertyValueConverter
     {
         JsonObject item = new JsonObject();
         
+
         Uri uri = new Uri(blockPickerValue);
+
+        if (string.IsNullOrEmpty(blockPickerValue))
+        {
+            return item;
+        }
 
         IPublishedContent? content = _publishedContentCache.GetById(new GuidUdi(uri).Guid);
         
