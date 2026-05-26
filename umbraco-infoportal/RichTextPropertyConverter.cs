@@ -135,6 +135,11 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
             JsonObject blockItemData = GetContentDataItem(blockGuid, rteValue);
 
+            if (blockItemData is null)
+            {
+                return items;
+            }
+
             string blockPickerValue = blockItemData.GetPropertyAsString("blockPicker");
 
             JsonObject jsonObject = ConvertPickerBlock(blockPickerValue);
