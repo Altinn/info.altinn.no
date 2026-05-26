@@ -8,6 +8,10 @@ export interface AltinnPlatformConfig {
   subscriptionKeyHeaderName: string;
   jwtCookieName: string;
   partyUuidCookieName: string;
+  // Feature flags, set via wrangler/env vars (mirror AM UI's per-env FeatureFlags).
+  useNewActorList: boolean;
+  // Turn off after the Altinn 2 shutdown (2026-06-19).
+  routeChangeReporteeViaAltinn2: boolean;
 }
 
 export function getAltinnPlatformConfig(
@@ -21,6 +25,9 @@ export function getAltinnPlatformConfig(
       env.ALTINN_SUBSCRIPTION_KEY_HEADER_NAME || "Ocp-Apim-Subscription-Key",
     jwtCookieName: env.ALTINN_JWT_COOKIE_NAME || "AltinnStudioRuntime",
     partyUuidCookieName: env.ALTINN_PARTY_UUID_COOKIE_NAME || "AltinnPartyUuid",
+    useNewActorList: env.USE_NEW_ACTOR_LIST === "true",
+    routeChangeReporteeViaAltinn2:
+      env.ROUTE_CHANGE_REPORTEE_VIA_ALTINN2 !== "false",
   };
 }
 

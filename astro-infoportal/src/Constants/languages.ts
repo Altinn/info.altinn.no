@@ -76,9 +76,11 @@ export function buildMenuLanguageList(
   currentPath?: string,
 ) {
   const nbPath =
-    cultures.nb?.path ?? (currentPath ? stripLocalePrefix(currentPath) : undefined);
+    cultures.nb?.path ??
+    (currentPath ? stripLocalePrefix(currentPath) : undefined);
 
   return SUPPORTED_LOCALES.map((l) => ({
+    locale: l.locale,
     pageUrl:
       cultures[l.locale]?.path ??
       (nbPath ? deriveLocaleUrl(nbPath, l.locale) : LOCALE_HOME[l.locale]),
@@ -87,4 +89,58 @@ export function buildMenuLanguageList(
     languageName: l.languageName,
     selected: l.locale === currentLocale,
   }));
+}
+
+// Cross-Altinn UI-language cookie value per locale (read by other Altinn apps).
+export const LOCALE_TO_PERSISTENT_CONTEXT: Record<Locale, string> = {
+  nb: "UL=1044",
+  nn: "UL=2068",
+  en: "UL=1033",
+};
+
+// Type guard for the locale literal union (narrow after validation).
+export function isLocale(value: unknown): value is Locale {
+  return value === "nb" || value === "nn" || value === "en";
+}
+
+// Profile language → site locale (profile stores nb/nn/en; fallback nb).
+export function resolveLocale(value?: string | null): Locale {
+  return isLocale(value) ? value : "nb";
+}
+
+export function detectLocaleFromPath(path: string): Locale {
+  if (path === "/nn" || path.startsWith("/nn/")) return "nn";
+  if (path === "/en" || path.startsWith("/en/")) return "en";
+  return "nb";
+}
+
+const SEARCH_SLUGS: Record<Locale, string> = {
+  nb: "/sok/",
+  nn: "/nn/sok/",
+  en: "/en/search/",
+};
+
+type LocaleMenuEntry = { locale: Locale; pageUrl: string };
+
+// Navigate to the same page in another locale (CMS pageUrls + search slugs).
+export function navigateToLocale(
+  targetLocale: Locale,
+  menuLanguageList: LocaleMenuEntry[] | undefined,
+  currentPath: string,
+): boolean {
+  const searchSlugSet = new Set(
+    Object.values(SEARCH_SLUGS).flatMap((s) => [s, s.replace(/\/$/, "")]),
+  );
+  const target = searchSlugSet.has(currentPath)
+    ? SEARCH_SLUGS[targetLocale]
+    : menuLanguageList?.find((l) => l.locale === targetLocale)?.pageUrl;
+
+  // Relative same-origin only (open-redirect guard).
+  if (!target || /^[a-z]+:/i.test(target) || target.startsWith("//")) {
+    return false;
+  }
+  if (typeof window !== "undefined") {
+    window.location.assign(target);
+  }
+  return true;
 }
