@@ -6,12 +6,13 @@ import {
 import {
   fetchUmbracoAncestors,
   fetchUmbracoChildren,
-  fetchUmbracoContent,
+  fetchUmbracoContentById,
   fetchUmbracoRelated,
   resolveBlockReferences,
 } from "../api/umbraco/client";
 import { BlockTransformer } from "./BlockTransformer";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
+import { stripCategoryPrefix } from "./categoryPrefix";
 import type { IJSONTransformer } from "./IJSONTransformer";
 
 export class SubCategoryPageTransformer implements IJSONTransformer {
@@ -46,11 +47,12 @@ export class SubCategoryPageTransformer implements IJSONTransformer {
         let providers: ProviderInfo[] = [];
         let schemaCode: string | null = null;
 
+        let fullSchema: any = null;
         try {
-          const fullSchema = await fetchUmbracoContent(s.route?.path, contentLocale);
-          schemaCode = fullSchema.properties?.schemaCode || null;
+          fullSchema = await fetchUmbracoContentById(s.id, contentLocale);
+          schemaCode = fullSchema?.properties?.schemaCode || null;
           const resolvedRefs = await resolveBlockReferences(
-            fullSchema.properties?.providers,
+            fullSchema?.properties?.providers,
             contentLocale,
           );
           providers = resolvedRefs.map((ref: any) => {
@@ -67,14 +69,17 @@ export class SubCategoryPageTransformer implements IJSONTransformer {
             };
           });
         } catch {
-          // Schema fetch failed — emit without icons.
+          // Schema fetch failed in both the requested locale and NB — emit
+          // the row without icons rather than dropping it entirely.
         }
 
-        const title = schemaCode ? `${s.name} (${schemaCode})` : s.name;
+        const name = fullSchema?.name ?? s.name;
+        const url = fullSchema?.route?.path ?? s.route?.path;
+        const title = schemaCode ? `${name} (${schemaCode})` : name;
         return {
           id: s.id,
           title,
-          url: s.route?.path,
+          url,
           providers,
           componentName: "SchemaData",
         };
@@ -83,21 +88,12 @@ export class SubCategoryPageTransformer implements IJSONTransformer {
 
     // Sidebar: "Alle tjenester" title, parent category as selected mainItem,
     // sibling subcategories as subItems with category prefix stripped.
-    const segments = cmsPageData.route.path.split("/").filter(Boolean);
-    const parentCategoryPath = segments.slice(0, 3).join("/");
-
-    const parentCategory = ancestors.find((a: any) => {
-      const aPath = (a.route?.path || "").replace(/^\/|\/$/g, "");
-      return aPath === parentCategoryPath;
-    });
-
-    const categoryPrefix = parentCategory?.name
-      ? `${parentCategory.name} - `
-      : "";
-    const stripPrefix = (name: string) =>
-      categoryPrefix && name.startsWith(categoryPrefix)
-        ? name.slice(categoryPrefix.length)
-        : name;
+    // The parent is always the categoryPage ancestor — looking it up by
+    // contentType avoids path-string matching, which breaks on NN/EN where
+    // route.path carries a locale prefix (e.g. /nn/skjemaoversikt/...).
+    const parentCategory = ancestors.find(
+      (a: any) => a.contentType === "categoryPage",
+    );
 
     let subItems: any[] = [];
     if (parentCategory) {
@@ -105,7 +101,7 @@ export class SubCategoryPageTransformer implements IJSONTransformer {
       subItems = siblings
         .filter((sub: any) => sub.contentType === "subCategoryPage")
         .map((sub: any) => ({
-          label: stripPrefix(sub.name),
+          label: stripCategoryPrefix(sub.name),
           url: sub.route?.path,
           current: sub.id === cmsPageData.id,
         }))
@@ -131,7 +127,7 @@ export class SubCategoryPageTransformer implements IJSONTransformer {
 
     return {
       componentName: "SubCategoryPage",
-      pageName: cmsPageData.name,
+      pageName: stripCategoryPrefix(cmsPageData.name),
       description: props.description || undefined,
       breadcrumb,
       schemas,

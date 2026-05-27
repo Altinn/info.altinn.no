@@ -7,6 +7,7 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["umbraco-infoportal/umbraco-infoportal.csproj", "umbraco-infoportal/"]
 COPY ["Adapters/Infoportal.Adapters.Elasticsearch/Infoportal.Adapters.Elasticsearch.csproj", "Adapters/Infoportal.Adapters.Elasticsearch/"]
+COPY ["Adapters/Infoportal.Adapters.Cloudflare/Infoportal.Adapters.Cloudflare.csproj", "Adapters/Infoportal.Adapters.Cloudflare/"]
 RUN dotnet restore "umbraco-infoportal/umbraco-infoportal.csproj"
 COPY . .
 WORKDIR "/src/umbraco-infoportal"

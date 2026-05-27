@@ -7,6 +7,7 @@ import {
 } from "../api/umbraco/client";
 import type { SectionPageProps } from "@components/Pages/SectionPage/SectionPage.types";
 import { resolveRouteOverride } from "@constants/routeOverrides";
+import { sortNewsByEffectiveDateDesc } from "./newsSort";
 import { type Locale, t } from "@i18n/index";
 
 function isNewsArticle(item: any) {
@@ -73,31 +74,22 @@ async function buildLatestNewsItems(
   blockData: any,
   locale: Locale,
   contentLocale: Locale,
-  startPageData?: any,
 ) {
   const newsLocation = blockData.properties?.newsLocation?.[0]?.route?.path;
 
   if (!newsLocation) {
-    const fallbackRefs = (startPageData?.properties?.latestNewsContentArea ?? []).filter(
-      isNewsArticle,
-    );
-
-    return await Promise.all(
-      fallbackRefs.map(async (item: any) => {
-        const fullArticle = await fetchUmbracoContent(item.id ?? item.route?.path, contentLocale);
-        return {
-          pageName: fullArticle.name,
-          url: fullArticle.route?.path,
-          mainIntro: fullArticle.properties?.mainIntro ?? "",
-          language: locale,
-        };
-      }),
-    );
+    return [];
   }
 
   const limit = blockData.properties?.displayLimit ?? 3;
-  const children = await fetchUmbracoChildren(newsLocation, limit + 10, contentLocale);
-  const newsArticles = children.filter(isNewsArticle).slice(0, limit);
+  const children = await fetchUmbracoChildren(
+    newsLocation,
+    2147483647,
+    contentLocale,
+  );
+  const newsArticles = sortNewsByEffectiveDateDesc(
+    children.filter(isNewsArticle),
+  ).slice(0, limit);
 
   return await Promise.all(
     newsArticles.map(async (item: any) => {
@@ -165,7 +157,7 @@ async function transformSectionContentItem(
             ? "LatestNewsBlockV2"
             : "LatestNewsBlock",
         heading: props.heading ?? t("news.latestNews", locale),
-        news: await buildLatestNewsItems(blockData, locale, contentLocale, startPageData),
+        news: await buildLatestNewsItems(blockData, locale, contentLocale),
         archiveLink,
       };
     }

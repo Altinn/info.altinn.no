@@ -35,6 +35,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Adapters\Infoportal.Adapters.Elasticsearch\Infoportal.Adapters.Elasticsearch.csproj" />
+    <ProjectReference Include="..\Adapters\Infoportal.Adapters.Cloudflare\Infoportal.Adapters.Cloudflare.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

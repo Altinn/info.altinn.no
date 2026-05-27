@@ -1,5 +1,5 @@
 import type { MunicipalityItem } from "../../Models/Local/MunicipalityItem";
-import { fetchUmbracoChildren } from "./client";
+import { fetchUmbracoChildren, fetchUmbracoContent } from "./client";
 
 export type MunicipalitySearchKind = "municipality" | "county" | null;
 
@@ -18,30 +18,11 @@ function toItem(node: any, parent: string): MunicipalityItem {
   };
 }
 
-/**
- * Walk the Umbraco subtree below `currentPagePath` to determine whether the
- * schema page should expose a municipality or county search, and return the
- * search items in legacy `{name, url, parent}` shape.
- *
- * Three branches:
- *  - Direct `schemaMunicipalityPage` children → municipality search.
- *  - `schemaCountyPage` children with no municipality grandchildren → county search.
- *  - `schemaCountyPage` children whose first county has municipality grandchildren
- *    → municipality search, flattened across counties with `parent=county.name`.
- *
- * Returns `{kind: null, items: []}` for pages with no relevant descendants.
- */
-export async function buildMunicipalitySearch(
-  currentPagePath: string | undefined,
+async function searchByRoot(
+  rootRef: string,
   locale: string,
 ): Promise<MunicipalitySearchData> {
-  if (!currentPagePath) return EMPTY;
-
-  const directChildren = await fetchUmbracoChildren(
-    currentPagePath,
-    500,
-    locale,
-  );
+  const directChildren = await fetchUmbracoChildren(rootRef, 500, locale);
 
   const countyChildren = directChildren.filter(
     (c: any) => c.contentType === "schemaCountyPage" && c.route?.path,
@@ -92,4 +73,25 @@ export async function buildMunicipalitySearch(
     kind: "municipality",
     items: allMunis.flat(),
   };
+}
+
+
+export async function buildMunicipalitySearch(
+  currentPagePath: string | undefined,
+  locale: string,
+): Promise<MunicipalitySearchData> {
+  if (!currentPagePath) return EMPTY;
+
+  const primary = await searchByRoot(currentPagePath, locale);
+  if (primary.kind !== null || locale === "nb") return primary;
+
+  try {
+    const page = await fetchUmbracoContent(currentPagePath, locale);
+    if (page?.id) {
+      return await searchByRoot(page.id, "nb");
+    }
+  } catch {
+    // Page lookup failed — return EMPTY rather than throwing.
+  }
+  return EMPTY;
 }

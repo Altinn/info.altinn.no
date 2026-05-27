@@ -9,9 +9,14 @@ using System.Text.RegularExpressions;
 using System.Text.Json;
 using uSync.Core.Extensions;
 using Umbraco.Cms.Core.Models.DeliveryApi;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Models.ContentEditing;
 using Umbraco.Cms.Infrastructure.Migrations.Upgrade.V_15_0_0;
 using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Web.Common.UmbracoContext;
+using Umbraco.Cms.Infrastructure.Migrations.Upgrade.V_15_0_0.LocalLinks;
+using Examine;
 
 // Injecting the IPublishedContentCache for fetching content from the Umbraco cache
 public class RichTextPropertyConverter : IPropertyValueConverter
@@ -20,12 +25,17 @@ public class RichTextPropertyConverter : IPropertyValueConverter
     private readonly ILogger<RichTextPropertyConverter> _logger;
 
     private readonly IPublishedContentCache _publishedContentCache;
+    private readonly IMediaService _mediaService;
 
-    public RichTextPropertyConverter(IJsonSerializer json, ILogger<RichTextPropertyConverter> logger, IPublishedContentCache publishedContentCache)
+    //private readonly IMediaUrlGenerator _mediaUrlGenerator;
+
+    public RichTextPropertyConverter(IJsonSerializer json, ILogger<RichTextPropertyConverter> logger, IPublishedContentCache publishedContentCache, IMediaService mediaService)
     {
         _json = json;
         _logger = logger;
         _publishedContentCache = publishedContentCache;
+        _mediaService = mediaService;
+        //_mediaUrlGenerator = mediaUrlGenerator;
     }
 
     // Make sure the Property Value Converter only applies to the RichText property editor
@@ -104,6 +114,8 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
         JsonArray items = [];
         string markup = rteValue.GetPropertyAsString("markup");
+        markup = ReplaceImages(markup);
+        markup = ReplaceMediaLinks(markup);
 
         Match match = Regex.Match(markup, pattern);
 
@@ -122,6 +134,11 @@ public class RichTextPropertyConverter : IPropertyValueConverter
             Guid blockGuid = Guid.Parse(match.Groups["contentguid"].Value);
 
             JsonObject blockItemData = GetContentDataItem(blockGuid, rteValue);
+
+            if (blockItemData is null)
+            {
+                return items;
+            }
 
             string blockPickerValue = blockItemData.GetPropertyAsString("blockPicker");
 
@@ -147,7 +164,71 @@ public class RichTextPropertyConverter : IPropertyValueConverter
                 { "componentName", "RichText" }
             });
         }
+
+        Console.WriteLine("Markup: " + markup);
         return items;
+    }
+
+    private string ReplaceImages(string markup)
+    {
+        string pattern = @"<img data-udi=""umb://media/(?<udi>[0-9a-fA-F]{32})"" src=""(?<src>[^""]+)";
+
+        Match match = Regex.Match(markup, pattern);
+
+        while (match.Success)
+        {
+            string udiString = "umb://media/" + match.Groups["udi"].Value;
+            GuidUdi guidUdi = (GuidUdi) UdiParser.Parse(udiString);
+            string? url = ResolveMediaUrl(guidUdi.Guid);
+            string src = match.Groups["src"].Value;
+
+            markup = markup.Replace($" data-udi=\"{udiString}\"", "");
+            markup = markup.Replace(src, url);
+
+            match = Regex.Match(markup, pattern);
+        }
+
+        return markup;
+    }
+
+    private string ReplaceMediaLinks(string markup)
+    {
+        string pattern = @"href=""/{localLink:(?<contentguid>[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})}""";
+
+        Match match = Regex.Match(markup, pattern);
+
+        while (match.Success)
+        {
+            string contentGUID = match.Groups["contentguid"].Value;
+
+            Guid guid = Guid.Parse(contentGUID);
+            string url = ResolveMediaUrl(guid);
+            markup = markup.Replace("/{localLink:" + contentGUID + "}", url);
+
+            match = Regex.Match(markup, pattern);
+        }
+
+        return markup;        
+    }
+
+    private string? ResolveMediaUrl(Guid guid)
+    {
+        IMedia media = _mediaService.GetById(guid);
+
+        if (media is null)
+        {
+            return null;
+        }
+
+        string? umbracoFileJson = media.GetValue<string>("umbracoFile");
+
+        if (umbracoFileJson is null)
+        {
+            return null;
+        }
+
+        JsonObject umbracoFile = JsonSerializer.Deserialize<JsonObject>(umbracoFileJson);
+        return umbracoFile.GetPropertyAsString("src");
     }
 
     private static bool IsEmptyHtml(string? html)
@@ -180,7 +261,13 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
         foreach (JsonNode contentDataItem in contentData)
         {
-            string udiString = contentDataItem.AsObject().GetPropertyAsString("udi");            
+            string udiString = contentDataItem.AsObject().GetPropertyAsString("udi");
+
+            if (string.IsNullOrEmpty(udiString))
+            {
+                return null;
+            }
+
             Uri uri = new Uri(udiString);
             Guid currentGuid = new GuidUdi(uri).Guid;
 
@@ -197,7 +284,13 @@ public class RichTextPropertyConverter : IPropertyValueConverter
     {
         JsonObject item = new JsonObject();
         
+
         Uri uri = new Uri(blockPickerValue);
+
+        if (string.IsNullOrEmpty(blockPickerValue))
+        {
+            return item;
+        }
 
         IPublishedContent? content = _publishedContentCache.GetById(new GuidUdi(uri).Guid);
         
@@ -211,20 +304,50 @@ public class RichTextPropertyConverter : IPropertyValueConverter
                 return item;
             }
 
-            RichTextEditorValue rteValue = (RichTextEditorValue) property.GetDeliveryApiValue(true);
 
-            if (rteValue is null)
+            object value = property.GetDeliveryApiValue(true);
+
+            if (value is null)
             {
                 return item;
             }
 
-            item.Add("html", rteValue.Markup);
+            if (value is JsonObject jsonObject) {
+                item.Add("html", GetMarkup(jsonObject));
+            } else if (value is RichTextEditorValue rteValue) {
+                item.Add("html", rteValue.Markup);
+            }
+        } else if ("linkBlock".Equals(content.ContentType.Alias))
+        {
+            item.Add("componentName", "LinkBlock");
+            item = AddContentProperties(item, content);
+            string url = item.GetPropertyAsString("urlBlock");
+            string linkText = item.GetPropertyAsString("extraTitle");
+            JsonObject linkObject = [];
+            linkObject["url"] = url;
+            linkObject["openInNewWindow"] = true;
+            linkObject["componentName"] = "UrlBlock";
+            linkObject["linkText"] = linkText;
+            item["link"] = linkObject;
         } else {
             item.Add("componentName", Capitalize(content.ContentType.Alias));
+           
             item = AddContentProperties(item, content);    
         }
         return item;
     }
+
+    private string? GetMarkup(JsonObject jsonObject)
+    {
+        JsonArray items = jsonObject.GetPropertyAsArray("items");
+        
+        foreach (JsonObject item in items)
+        {
+            return item.GetPropertyAsString("html");
+        }
+
+        return null;
+    }       
 
     private JsonObject AddContentProperties(JsonObject jsonObject, IPublishedContent content)
     {

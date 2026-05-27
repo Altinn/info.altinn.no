@@ -1,6 +1,7 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
 import { fetchUmbracoAncestors, fetchUmbracoChildren } from "../api/umbraco/client";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
+import { sortNewsByEffectiveDateDesc } from "./newsSort";
 import { type Locale, t } from "@i18n/index";
 
 const PAGE_SIZE = 5;
@@ -20,11 +21,12 @@ export class NewsArchivePageTransformer implements IJSONTransformer {
     const contentLocale: Locale = globalData?.contentLocale || locale;
     const allChildren = await fetchUmbracoChildren(
       cmsPageData.route.path,
-      500,
+      2147483647,
       contentLocale,
-      "updateDate:desc",
     );
-    const newsChildren = allChildren.filter(isNewsArticle);
+    const newsChildren = sortNewsByEffectiveDateDesc(
+      allChildren.filter(isNewsArticle),
+    );
 
     const requestedPageNumber = parsePageNumber(globalData?.query?.pagenumber);
     const totalPages = Math.max(1, Math.ceil(newsChildren.length / PAGE_SIZE));

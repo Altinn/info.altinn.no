@@ -33,8 +33,20 @@ export class ProviderPageTransformer implements IJSONTransformer {
     // Each schema's `providers` is a Content Picker; the Delivery API only returns
     // reference metadata, so we resolve each ref via path→id fallback (see
     // .claude/docs/architecture.md).
-    const children = await fetchUmbracoChildren(cmsPageData.route.path, 100, contentLocale);
-    const schemaPages = children.filter((c: any) => c.contentType === "schemaPage");
+    // Some providers (e.g. Skatteetaten) have >100 child schemas; take is the
+    // API's max int. schemaAttachmentPage is a sibling content type — same
+    // editorial role as schemaPage (a service the provider offers, with
+    // schemaCode/providers/URL), so it must be listed too.
+    const children = await fetchUmbracoChildren(
+      cmsPageData.route.path,
+      2147483647,
+      contentLocale,
+    );
+    const schemaPages = children.filter(
+      (c: any) =>
+        c.contentType === "schemaPage" ||
+        c.contentType === "schemaAttachmentPage",
+    );
 
     const schemas = await Promise.all(
       schemaPages.map(async (schema: any) => {
@@ -69,15 +81,21 @@ export class ProviderPageTransformer implements IJSONTransformer {
     // `promoArea` (editor label "Faglig brukerstøtte") is a Block List. Items
     // wrap each block as `{ content: { contentType, properties }, settings }`
     // with inline properties (no picker hydration needed). We map the first
-    // `formElementContactFreetext` block to a ProviderContactInformationBlock
-    // view-model — same shape as on schemaPage.
+    // `formElementContactFreetext` (or legacy `formElementContact`, which has
+    // no `heading` field) block to a ProviderContactInformationBlock view-model
+    // — same shape as on schemaPage.
     const promoBlockItems: any[] = Array.isArray(props.promoArea?.items)
       ? props.promoArea.items
       : [];
     let contactInfo: any;
     for (const wrapper of promoBlockItems) {
       const content = wrapper?.content ?? wrapper;
-      if (content?.contentType !== "formElementContactFreetext") continue;
+      if (
+        content?.contentType !== "formElementContactFreetext" &&
+        content?.contentType !== "formElementContact"
+      ) {
+        continue;
+      }
       const bp = content.properties ?? {};
       contactInfo = {
         componentName: "ProviderContactInformationBlock",

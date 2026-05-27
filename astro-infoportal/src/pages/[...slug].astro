@@ -1,6 +1,6 @@
 ---
 
-import { fetchUmbracoContentWithLocaleFallback, fetchUmbracoErrorPage, fetchUmbracoStartPage } from '@api/umbraco/client';
+import { fetchUmbracoContentWithLocaleFallback, fetchUmbracoErrorPage, fetchUmbracoStartPage, fetchUmbracoMedia } from '@api/umbraco/client';
 import { fetchFromOldPortal } from '@api/oldportal/client';
 import { shouldFetchFromOldPortal } from '@api/oldportal/client';
 import AstroSiteLayout from '@layouts/AstroSiteLayout.astro';
@@ -35,6 +35,11 @@ if (path.startsWith("/Pages/") || path.startsWith("/pages/")) {
   const altinn2Url = "https://altinn.no" + path + search;
   return Astro.redirect(altinn2Url, 302);
 }
+
+if (path.startsWith("/media/")) {
+   const bytes = await fetchUmbracoMedia(path + search);
+   return new Response(bytes);
+ }
 
 if (shouldFetchFromOldPortal(path)) {
     try {

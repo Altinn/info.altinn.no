@@ -1,3 +1,5 @@
+import { stripCategoryPrefix } from "./categoryPrefix";
+
 const BREADCRUMB_URL_OVERRIDES: Array<{
   currentPath: string;
   ancestorPath: string;
@@ -76,10 +78,18 @@ export class BreadcrumbsTransformer {
         }
     });
 
+    // subCategoryPage names carry a "<Category> - " prefix that the
+    // editorial team hasn't always re-translated; strip it so the leaf
+    // text is the subcategory's own name.
+    const leafText =
+      cmsPageData.contentType === "subCategoryPage"
+        ? stripCategoryPrefix(cmsPageData.name)
+        : cmsPageData.name;
+
     breadcrumbs.push(
       {
         linkItem: {
-          text: cmsPageData.name,
+          text: leafText,
           url: cmsPageData.route.path,
           componentName: "LinkItem"
         }

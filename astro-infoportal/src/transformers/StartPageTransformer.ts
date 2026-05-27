@@ -178,23 +178,24 @@ export class StartPageTransformer implements IJSONTransformer {
     const companyTitle = companyRef ? t("start.companyTitle", locale) : null;
     const companyText = companyRef ? t("start.companyText", locale) : null;
 
-    // --- News list (fetch each article for mainIntro) ---
+    // --- News list (fetch each article for mainIntro + lastChanged) ---
     const newsRefs: any[] = p.latestNewsContentArea ?? [];
     const newsList = await Promise.all(
       newsRefs.map(async (ref: any) => {
-        let mainIntro = "";
+        let full: any = null;
         try {
-          const full = await fetchUmbracoContent(ref.route?.path, contentLocale);
-          mainIntro = full.properties?.mainIntro ?? "";
+          full = await fetchUmbracoContent(ref.route?.path, contentLocale);
         } catch {
-          /* no intro */
+          /* fall back to ref-level fields below */
         }
+        const dateRaw =
+          full?.properties?.lastChanged ?? ref.updateDate ?? "";
         return {
           componentName: "NewsArticleItem",
           pageName: ref.name ?? "",
-          mainIntro,
+          mainIntro: full?.properties?.mainIntro ?? "",
           url: ref.route?.path ?? "",
-          lastChanged: formatDate(ref.updateDate ?? ""),
+          lastChanged: formatDate(dateRaw),
         };
       }),
     );

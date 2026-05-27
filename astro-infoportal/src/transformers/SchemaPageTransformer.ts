@@ -10,11 +10,34 @@ import {
 import { buildMunicipalitySearch } from "../api/umbraco/municipalitySearch";
 import { BlockTransformer } from "./BlockTransformer";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
+import { stripCategoryPrefix } from "./categoryPrefix";
 import type { IJSONTransformer } from "./IJSONTransformer";
 
 // Prefer rich text when an editor has populated it; fall back to the legacy plain-text field.
 const richTextOrText = (rich: any, text: any) =>
   rich?.items?.length ? rich : text || undefined;
+
+// Altinn2 form deeplinks must stay environment-relative — an absolute URL like
+// `https://www.altinn.no/Pages/...` saved by an editor in tt02 sends users into
+// production (issue #673). When the URL is absolute, points at an altinn.no host,
+// and its path looks like an Altinn2 form (/Pages/* or /ui/*), strip the origin
+// so the browser resolves it against the current environment's host. Other URLs
+// (external systems, Altinn3 apps under apps.altinn.no, already-relative paths)
+// pass through unchanged.
+function normalizeAltinnFormDeeplink(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  try {
+    const url = new URL(raw);
+    const isAltinnHost = /(^|\.)altinn\.no$/i.test(url.hostname);
+    const isAltinn2Path = /^\/(pages|ui)(\/|$)/i.test(url.pathname);
+    if (isAltinnHost && isAltinn2Path) {
+      return `${url.pathname}${url.search}${url.hash}`;
+    }
+  } catch {
+    // Already relative — nothing to strip.
+  }
+  return raw;
+}
 
 export class SchemaPageTransformer implements IJSONTransformer {
   public async Transform(
@@ -88,18 +111,21 @@ export class SchemaPageTransformer implements IJSONTransformer {
 
     // `promoArea` (editor label "Faglig brukerstøtte") is a Block List. Items wrap
     // each block as `{ content: { contentType, id, properties }, settings }`, with
-    // properties inline (no picker hydration needed). The `formElementContactFreetext`
-    // element type maps to ProviderContactInformationBlock; other block types fall
-    // back to BlockTransformer's contentType-keyed registry.
+    // properties inline (no picker hydration needed). Both `formElementContactFreetext`
+    // and the legacy `formElementContact` (no `heading` field) map to
+    // ProviderContactInformationBlock; other block types fall back to
+    // BlockTransformer's contentType-keyed registry.
     const promoBlockItems: any[] = Array.isArray(props.promoArea?.items)
       ? props.promoArea.items
       : [];
-    const defaultProvider = providerPages[0];
     const promoItems = promoBlockItems
       .map((wrapper: any) => {
         const content = wrapper?.content ?? wrapper;
         const blockProps = content?.properties ?? {};
-        if (content?.contentType === "formElementContactFreetext") {
+        if (
+          content?.contentType === "formElementContactFreetext" ||
+          content?.contentType === "formElementContact"
+        ) {
           return {
             componentName: "ProviderContactInformationBlock",
             body: blockProps.body ?? undefined,
@@ -109,17 +135,10 @@ export class SchemaPageTransformer implements IJSONTransformer {
             telephoneLabel: blockProps.telephoneLabel ?? "",
             email: blockProps.email ?? "",
             emailTitle: blockProps.emailTitle ?? "",
-            pageName: blockProps.heading || defaultProvider?.name || "",
-            // Only show the provider emblem when we fell back to the provider
-            // name as the heading. If the editor supplied a `heading`, the
-            // card stands on its own without the org logo.
-            providerIcon:
-              !blockProps.heading && defaultProvider?.providerIcon
-                ? {
-                    name: defaultProvider.providerIcon.name,
-                    imageUrl: defaultProvider.providerIcon.imageUrl,
-                  }
-                : undefined,
+            // schemaPage shows only the editor-supplied heading; no provider
+            // name / emblem fallback (providerPage handles the fallback case).
+            pageName: blockProps.heading || "",
+            providerIcon: undefined,
           };
         }
         return BlockTransformer.TransformBlocks([content]).items[0];
@@ -160,10 +179,13 @@ export class SchemaPageTransformer implements IJSONTransformer {
 
     let pageSidebarViewModel: any;
     if (primarySubCategory?.route?.path) {
+      // The category page is the subcategory's tree parent — drop the
+      // subcategory's own slug. slice(0, -1) is locale-agnostic; a
+      // hardcoded slice(0, 3) skips the /nn/ or /en/ prefix.
       const subSegments = primarySubCategory.route.path
         .split("/")
         .filter(Boolean);
-      const parentCategoryPath = `/${subSegments.slice(0, 3).join("/")}/`;
+      const parentCategoryPath = `/${subSegments.slice(0, -1).join("/")}/`;
 
       let parentCategory: any;
       try {
@@ -173,19 +195,11 @@ export class SchemaPageTransformer implements IJSONTransformer {
       }
 
       if (parentCategory) {
-        const categoryPrefix = parentCategory.name
-          ? `${parentCategory.name} - `
-          : "";
-        const stripPrefix = (name: string) =>
-          categoryPrefix && name.startsWith(categoryPrefix)
-            ? name.slice(categoryPrefix.length)
-            : name;
-
         const siblings = await fetchUmbracoChildren(parentCategory.route.path, 100, contentLocale);
         const subItems = siblings
           .filter((sub: any) => sub.contentType === "subCategoryPage")
           .map((sub: any) => ({
-            label: stripPrefix(sub.name),
+            label: stripCategoryPrefix(sub.name),
             url: sub.route?.path,
             current: sub.id === primarySubCategory.id,
           }))
@@ -217,7 +231,7 @@ export class SchemaPageTransformer implements IJSONTransformer {
       schemaCode: props.schemaCode,
       mainBody,
       operationalMessages: props.operationalMessages || [],
-      startSchemaLink: props.deeplink || undefined,
+      startSchemaLink: normalizeAltinnFormDeeplink(props.deeplink),
       startSchemaLinkText: t("schema.startSchema", locale),
       buttonInboxText: t("schema.buttonInbox", locale),
       accordianList: props.accordianList,
