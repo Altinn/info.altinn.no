@@ -19,6 +19,7 @@ export const GET: APIRoute = async ({ request }) => {
     const body: CurrentUserResponse = {
       selfAccountUuid: null,
       currentAccountUuid: null,
+      language: null,
     };
     return jsonResponse(body);
   }
@@ -40,6 +41,7 @@ export const GET: APIRoute = async ({ request }) => {
       currentAccountUuid: auth.partyUuid,
       showDeletedEntities:
         profile?.profileSettingPreference?.shouldShowDeletedEntities ?? null,
+      language: profile?.profileSettingPreference?.language ?? null,
     };
     return jsonResponse(body);
   } catch {

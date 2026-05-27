@@ -1,15 +1,25 @@
 import type {
-  AuthorizedParty as LibAuthorizedParty,
   GlobalHeaderProps,
+  AuthorizedParty as LibAuthorizedParty,
 } from "@altinn/altinn-components";
 import { useAccountSelector } from "@altinn/altinn-components";
 import "@altinn/altinn-components/dist/global.css";
+import { isLocale, navigateToLocale } from "@constants/languages";
+import type { Locale } from "@i18n/index";
 import { useEffect, useMemo, useState } from "react";
 // import { useSearchSuggestions } from "./hooks/useSearchSuggestions";
 import { buildDesktopMenu } from "./builders/menuBuilder";
+import { fetchCurrentUserOnce } from "./hooks/useCurrentUser";
 import { useFavorites } from "./hooks/useFavorites";
+import { suppressLanguageRedirect } from "./hooks/useLanguagePreference";
 import type { MenuPages } from "./types/headerTypes";
 import { isBrowser } from "./utils/browserUtils";
+
+// Local UUID guard — can't import from api/altinn/client (it pulls in
+// cloudflare:workers, which must not enter the browser bundle). Hardening only.
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isValidUuid = (value: string): boolean => UUID_RE.test(value);
 
 // Determines the visual theme for the header and layout
 const getAccountColor = (
@@ -56,27 +66,39 @@ const useHeaderConfig = (
     searchTextPlaceholder,
     menuLanguageList,
     chooseLanguageText,
-    hostBaseUrl,
     backButtonText,
     logOutPage,
     aboutNewAltinnPage,
     profilePage,
     loggedInAsText,
-    startPage
+    startPage,
     // useSearchSuggestions: useSuggestionsEnabled,
   }: any,
   languageCode: "nb" | "nn" | "en" = "nb",
 ): { headerProps: GlobalHeaderProps; color: "person" | "company" } => {
   // State management for user session data
-  const [currentAccountUuid, setCurrentAccountUuid] = useState<string | undefined>(undefined);
-  const [selfAccountUuid, setSelfAccountUuid] = useState<string | undefined>(undefined);
-  const [authorizedParties, setAuthorizedParties] = useState<AuthorizedPartyData[]>([]);
+  const [currentAccountUuid, setCurrentAccountUuid] = useState<
+    string | undefined
+  >(undefined);
+  const [selfAccountUuid, setSelfAccountUuid] = useState<string | undefined>(
+    undefined,
+  );
+  const [authorizedParties, setAuthorizedParties] = useState<
+    AuthorizedPartyData[]
+  >([]);
   const [currentPath, setCurrentPath] = useState<string>("");
-  const [shouldShowDeletedUnits, setShouldShowDeletedUnits] = useState<boolean | undefined>(undefined);
+  const [shouldShowDeletedUnits, setShouldShowDeletedUnits] = useState<
+    boolean | undefined
+  >(undefined);
   const [isDataLoading, setIsDataLoading] = useState(isBrowser);
 
   // Custom hooks
-  const { favorites, isLoading: isFavoritesLoading, addFavorite, removeFavorite } = useFavorites();
+  const {
+    favorites,
+    isLoading: isFavoritesLoading,
+    addFavorite,
+    removeFavorite,
+  } = useFavorites();
 
   // Fetch user data and authorized parties on mount
   useEffect(() => {
@@ -90,30 +112,25 @@ const useHeaderConfig = (
 
     const fetchUserData = async () => {
       try {
-        // Fetch both user data and authorized parties in parallel
-        const [userResponse, partiesResponse] = await Promise.all([
-          fetch("/api/users/current", {
-            credentials: "include",
-            cache: "no-store",
-          }),
+        // Current-user fetch is shared with useLanguagePreference (one request).
+        const [userData, partiesResponse] = await Promise.all([
+          fetchCurrentUserOnce(),
           fetch("/api/users/authorized-parties", {
             credentials: "include",
             cache: "no-store",
           }),
         ]);
 
-        // Only update if both requests succeeded
-        if (userResponse.ok && partiesResponse.ok) {
-          const userData = await userResponse.json();
+        if (partiesResponse.ok) {
           const partiesData = await partiesResponse.json();
-
-          // Update state with user session data
-          setSelfAccountUuid(userData.selfAccountUuid);
-          setCurrentAccountUuid(userData.currentAccountUuid);
+          setSelfAccountUuid(userData.selfAccountUuid ?? undefined);
+          setCurrentAccountUuid(userData.currentAccountUuid ?? undefined);
           setAuthorizedParties(partiesData);
 
-          // Update show deleted units preference
-          if (userData.showDeletedEntities !== undefined) {
+          if (
+            userData.showDeletedEntities !== undefined &&
+            userData.showDeletedEntities !== null
+          ) {
             setShouldShowDeletedUnits(userData.showDeletedEntities);
           }
         }
@@ -147,15 +164,16 @@ const useHeaderConfig = (
   };
 
   // Find the main user and build menu - memoized to avoid recalculation
-  const currentUser = useMemo(() =>
-    authorizedParties.find(p => p.partyUuid === currentAccountUuid),
-    [authorizedParties, currentAccountUuid]
+  const currentUser = useMemo(
+    () => authorizedParties.find((p) => p.partyUuid === currentAccountUuid),
+    [authorizedParties, currentAccountUuid],
   );
 
   const userType = useMemo(() => {
-    if (!currentUser)
-      return "person";
-    return currentUser.type === 1 || currentUser.type === "Person" ? "person" : "company";
+    if (!currentUser) return "person";
+    return currentUser.type === 1 || currentUser.type === "Person"
+      ? "person"
+      : "company";
   }, [currentUser]);
 
   const accountColor = useMemo(
@@ -163,16 +181,24 @@ const useHeaderConfig = (
     [currentUser?.type, isLoggedIn],
   );
 
-  const desktopMenu = useMemo(() =>
-    buildDesktopMenu(
+  const desktopMenu = useMemo(
+    () =>
+      buildDesktopMenu(
+        pages,
+        isLoggedIn,
+        loggedInAsText || "",
+        currentUser?.name || "",
+        userType,
+        currentPath,
+      ),
+    [
       pages,
       isLoggedIn,
-      loggedInAsText || "",
-      currentUser?.name || "",
+      loggedInAsText,
+      currentUser?.name,
       userType,
       currentPath,
-    ),
-    [pages, isLoggedIn, loggedInAsText, currentUser?.name, userType, currentPath]
+    ],
   );
 
   const transformParty = (party: AuthorizedPartyData): LibAuthorizedParty => {
@@ -187,8 +213,12 @@ const useHeaderConfig = (
       onlyHierarchyElementWithNoAccess: party.onlyHierarchyElementWithNoAccess,
       authorizedResources: party.authorizedResources,
       authorizedRoles: party.authorizedRoles,
-      ...(party.dateOfBirth && isPerson ? { dateOfBirth: party.dateOfBirth } : {}),
-      ...(party.organizationNumber && !isPerson ? { organizationNumber: party.organizationNumber } : {}),
+      ...(party.dateOfBirth && isPerson
+        ? { dateOfBirth: party.dateOfBirth }
+        : {}),
+      ...(party.organizationNumber && !isPerson
+        ? { organizationNumber: party.organizationNumber }
+        : {}),
       ...(party.unitType ? { unitType: party.unitType } : {}),
       subunits: party.subunits?.map(transformParty) || [],
     };
@@ -199,12 +229,15 @@ const useHeaderConfig = (
   // Callback to update show deleted units preference
   const onShowDeletedUnitsChange = async (shouldShowDeleted: boolean) => {
     try {
-      const response = await fetch("/api/users/preferences/show-deleted-entities", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(shouldShowDeleted),
-      });
+      const response = await fetch(
+        "/api/users/preferences/show-deleted-entities",
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(shouldShowDeleted),
+        },
+      );
       if (response.ok) {
         const data = await response.json();
         setShouldShowDeletedUnits(data.shouldShowDeletedEntities);
@@ -232,13 +265,15 @@ const useHeaderConfig = (
       }
     },
     onSelectAccount: (accountId: string) => {
+      if (!isBrowser || !isValidUuid(accountId)) return;
       setCurrentAccountUuid(accountId);
-      const redirectUrl = window.location.href;
+      // Altinn 3 reportee switch via our own Worker route.
       const changeUrl = new URL(
-        `${hostBaseUrl}ui/Reportee/ChangeReporteeAndRedirect/`,
+        "/api/users/change-party",
+        window.location.origin,
       );
-      changeUrl.searchParams.set("P", accountId);
-      changeUrl.searchParams.set("goTo", redirectUrl);
+      changeUrl.searchParams.set("partyUuid", accountId);
+      changeUrl.searchParams.set("goTo", window.location.href);
       (window as Window).open(changeUrl.toString(), "_self");
     },
   });
@@ -255,53 +290,43 @@ const useHeaderConfig = (
 
   const currentLangCode = detectCurrentLang();
 
-  const langCodeMap: Record<string, string> = {
-    "Bokmål": "nb",
-    "Nynorsk": "nn",
-    "English": "en",
-  };
-
-  const localeSwitcher = menuLanguageList && menuLanguageList.length > 0
-    ? {
-        title: chooseLanguageText || "Språk/language",
-        options: menuLanguageList.map((lang: any) => {
-          const code = lang.languageCode || langCodeMap[lang.languageName] || lang.languageName;
-          return {
-            id: lang.languageName,
-            title: lang.languageName,
-            value: code,
-            checked: code === currentLangCode,
-          };
-        }),
-        onSelect: (value: string) => {
-          if (!isBrowser) return;
-          const lang = menuLanguageList.find((l: any) =>
-            (l.languageCode || langCodeMap[l.languageName] || l.languageName) === value
-          );
-          if (!lang) return;
-
-          // Search pages have different slugs per language — handle them explicitly
-          const searchSlugMap: Record<string, string> = {
-            nb: "/sok/",
-            nn: "/nn/sok/",
-            en: "/en/search/",
-          };
-          const searchSlugs = new Set(Object.values(searchSlugMap).flatMap(s => [s, s.replace(/\/$/, "")]));
-          const currentPath = window.location.pathname;
-          const targetLangCode = value;
-
-          if (searchSlugs.has(currentPath) && searchSlugMap[targetLangCode]) {
-            window.location.assign(searchSlugMap[targetLangCode]);
-            return;
-          }
-
-          // For Umbraco pages, use the CMS-provided pageUrl
-          if (lang.pageUrl) {
-            window.location.assign(lang.pageUrl);
-          }
-        },
-      }
-    : undefined;
+  const localeSwitcher =
+    menuLanguageList && menuLanguageList.length > 0
+      ? {
+          title: chooseLanguageText || "Språk/language",
+          options: menuLanguageList.map(
+            (lang: { locale: Locale; languageName: string }) => ({
+              id: lang.languageName,
+              title: lang.languageName,
+              value: lang.locale,
+              checked: lang.locale === currentLangCode,
+            }),
+          ),
+          onSelect: async (value: string) => {
+            if (!isBrowser || !isLocale(value)) return;
+            const locale = value;
+            suppressLanguageRedirect();
+            // Persist the choice to the profile (logged-in only).
+            if (isLoggedIn) {
+              try {
+                await fetch("/api/users/preferences/language", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  credentials: "include",
+                  body: JSON.stringify({ languageCode: locale }),
+                });
+              } catch {
+                // Non-blocking — still navigate.
+              }
+            }
+            navigateToLocale(
+              locale,
+              menuLanguageList,
+              window.location.pathname,
+            );
+          },
+        }
+      : undefined;
 
   const globalHeaderProps: GlobalHeaderProps = {
     globalMenu: {
@@ -311,16 +336,17 @@ const useHeaderConfig = (
       ...(isLoggedIn && {
         backLabel: backButtonText,
       }),
-      ...(isLoggedIn && logOutPage && {
-        logoutButton: {
-          label: logOutPage.text || "",
-          onClick: () => {
-            if (isBrowser && logOutPage.url) {
-              location.assign(logOutPage.url);
-            }
+      ...(isLoggedIn &&
+        logOutPage && {
+          logoutButton: {
+            label: logOutPage.text || "",
+            onClick: () => {
+              if (isBrowser && logOutPage.url) {
+                location.assign(logOutPage.url);
+              }
+            },
           },
-        },
-      }),
+        }),
     },
     ...(startPage?.url && {
       logo: { href: startPage.url },
@@ -333,8 +359,8 @@ const useHeaderConfig = (
     },
     onLoginClick: !isLoggedIn
       ? () => {
-        if (isBrowser) location.assign(loginPage?.url ?? "#");
-      }
+          if (isBrowser) location.assign(loginPage?.url ?? "#");
+        }
       : undefined,
   };
 
