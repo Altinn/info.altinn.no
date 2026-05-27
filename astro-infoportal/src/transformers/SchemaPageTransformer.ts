@@ -151,9 +151,12 @@ export class SchemaPageTransformer implements IJSONTransformer {
     // Sidebar: schema's tree parent is a providerPage (URL: /skjemaoversikt/<provider>/<schema>/),
     // so the category/subcategory comes from the `subCategories` Content Picker property.
     // Schemas can belong to multiple subcategories; prefer the one the user came from
-    // (server-side Referer header), falling back to subCategories[0] (editorial primary).
-    // Subcategory URLs look like /skjemaoversikt/kategori/<categorySlug>/<subCategorySlug>/,
-    // so the parent category is segments.slice(0, 3) of the subcategory's route.path.
+    // (server-side Referer header), otherwise fall back to the LAST entry — Optimizely
+    // had a single subcategory per schema, and during the migration the legacy
+    // categorization was preserved at the end of the array while newer classifications
+    // (e.g. "Authorizations and qualifications" with NACE-like A–N letters) were
+    // prepended at index 0. Picking the last entry matches the legacy "primary"
+    // subcategory for migrated schemas and is a no-op for schemas with only one entry.
     const subCategoryRefs = Array.isArray(props.subCategories)
       ? props.subCategories
       : [];
@@ -175,7 +178,7 @@ export class SchemaPageTransformer implements IJSONTransformer {
         ? subCategoryRefs.find(
             (s: any) => normalizePath(s?.route?.path) === refererPath,
           )
-        : undefined) ?? subCategoryRefs[0];
+        : undefined) ?? subCategoryRefs[subCategoryRefs.length - 1];
 
     let pageSidebarViewModel: any;
     if (primarySubCategory?.route?.path) {
