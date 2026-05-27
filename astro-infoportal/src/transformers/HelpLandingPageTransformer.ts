@@ -19,7 +19,7 @@ async function getChildPages(children: any, contentLocale: Locale) {
 
 async function getChildPage(child: any, contentLocale: Locale) {
     const ct = child?.contentType;
-    if (ct !== "helpQuestionPage" && ct !== "helpProcessArticlePage") {
+    if (ct !== "helpQuestionPage" && ct !== "helpProcessArticlePage" && ct !== "placeholder") {
       return null;
     }
 
