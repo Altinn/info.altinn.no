@@ -7,6 +7,7 @@ import type {SiteLayoutProps} from './SiteLayout.types';
 import useSidebarConfig from '../../Shared/PageSidebar/useSidebarConfig';
 import useFooterConfig from '../Footer/useFooterConfig';
 import useHeaderConfig from '../Header/useHeaderConfig';
+import {useLanguagePreference} from '../Header/hooks/useLanguagePreference';
 import './SiteLayout.scss';
 import {SkipLink} from '@digdir/designsystemet-react';
 import BannerBlock from '../../../Components/Blocks/BannerBlock/BannerBlock';
@@ -62,6 +63,9 @@ const SiteLayout = ({
     headerViewModel || ({} as any),
     languageCode,
   );
+
+  // Client-side locale auto-select from the profile (never SSR — cached per URL).
+  useLanguagePreference(headerViewModel?.menuLanguageList);
   const footerProps = useFooterConfig(footerViewModel || ({} as any));
   const sidebarConfig = useSidebarConfig(pageSidebarViewModel);
 
