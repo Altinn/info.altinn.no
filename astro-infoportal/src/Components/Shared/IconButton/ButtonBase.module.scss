@@ -159,10 +159,12 @@
   }
 }
 
-// Theme color override for BannerBlock
+// Theme color override for BannerBlock — inherit the banner's variant
+// text color (e.g. --ds-color-warning-text-default) so the close icon
+// matches the tinted-surface foreground regardless of variant.
 .button[data-theme-color] {
   background: transparent !important;
-  color: var(--ds-color-base-contrast-default) !important;
+  color: inherit !important;
   border: none !important;
 
   &:hover {
