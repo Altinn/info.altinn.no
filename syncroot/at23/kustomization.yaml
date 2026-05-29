@@ -25,7 +25,7 @@ patches:
         path: /spec/template/spec/containers/0/env/-
         value:
           name: Umbraco__CMS__WebRouting__UmbracoApplicationUrl
-          value: https://infoportal.at23.dis-core.altinn.cloud
+          value: https://cms.at23.altinn.info
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
