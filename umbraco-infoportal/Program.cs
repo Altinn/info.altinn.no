@@ -116,6 +116,25 @@ await app.BootUmbracoAsync();
 
 app.UseForwardedHeaders();
 
+// The cluster gateway does not forward X-Forwarded-Host, so Request.Host is always
+// the internal hostname (infoportal.*.dis-core.altinn.cloud). Umbraco builds OAuth
+// redirects and media URLs from Request.Host, which breaks login and thumbnails in
+// environments where the internal hostname is IP-filtered (prod) or differs from the
+// public hostname. Override Host to BackOfficeHost so all URL generation is correct.
+string? configuredBackOfficeHost = app.Configuration["Umbraco:CMS:Security:BackOfficeHost"];
+if (!string.IsNullOrEmpty(configuredBackOfficeHost) &&
+    Uri.TryCreate(configuredBackOfficeHost, UriKind.Absolute, out Uri? backOfficeUri))
+{
+    app.Use(async (context, next) =>
+    {
+        if (!context.Request.Host.Host.Equals(backOfficeUri.Host, StringComparison.OrdinalIgnoreCase))
+        {
+            context.Request.Host = new HostString(backOfficeUri.Host);
+        }
+        await next(context);
+    });
+}
+
 app.UseUmbraco()
     .WithMiddleware(u =>
     {
