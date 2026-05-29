@@ -1,5 +1,5 @@
 const SHORT_CMS_CACHE =
-  "public, max-age=0, s-maxage=300, stale-while-revalidate=86400";
+  "public, max-age=1440, s-maxage=86400, stale-while-revalidate=86400";
 
 function isLocalHost(hostname: string): boolean {
   return (

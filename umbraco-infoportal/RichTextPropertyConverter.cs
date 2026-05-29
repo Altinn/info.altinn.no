@@ -165,7 +165,6 @@ public class RichTextPropertyConverter : IPropertyValueConverter
             });
         }
 
-        Console.WriteLine("Markup: " + markup);
         return items;
     }
 

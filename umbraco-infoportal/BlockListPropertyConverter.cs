@@ -82,10 +82,11 @@ public class BlockListPropertyConverter : IPropertyValueConverter
 
                 if ("4c7190f5-ea4b-488e-a6ae-83c11d70d861".Equals(contentTypeKey))
                 {
-                    string uriString = jsonObject.GetPropertyAsString("blockPicker");
                     // Regular SchemaAccordianBlock
 
-                    if (string.IsNullOrEmpty(uriString))
+                    string uriString = GetBlockPickerUri(jsonObject);
+
+                    if (uriString is null)
                     {
                         return null;
                     }
@@ -96,6 +97,12 @@ public class BlockListPropertyConverter : IPropertyValueConverter
 
                     blockObject = AddContentProperties(blockObject, block);
                     JsonObject description = blockObject.GetPropertyAsObject("description");
+
+                    if (description == null)
+                    {
+                        return null;
+                    }
+
                     JsonArray blockItems = description.GetPropertyAsArray("items");
                     string content = blockItems.ElementAt(0).AsObject().GetPropertyAsString("html");
 
@@ -171,6 +178,27 @@ public class BlockListPropertyConverter : IPropertyValueConverter
         {
             return null;
         }
+    }
+
+    private string GetBlockPickerUri(JsonObject contentDataItem)
+    {
+        // Imported JSON format
+        string uriString = contentDataItem.GetPropertyAsString("blockPicker");
+
+        if (!string.IsNullOrEmpty(uriString))
+        {
+            return uriString;
+        }
+
+        // JSON format after republishing
+        JsonArray values = contentDataItem.GetPropertyAsArray("values");
+
+        foreach (JsonObject valueObject in values.Cast<JsonObject>())
+        {
+            return valueObject.GetPropertyAsString("value");
+        }
+
+        return null;
     }
 
     private string? GetHeading(JsonObject jsonObject)

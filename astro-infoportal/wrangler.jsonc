@@ -30,7 +30,7 @@
 				"UMBRACO_API_URL": "https://infoportal.prod.dis-core.altinn.cloud/",
 				"ELASTICSEARCH_URL": "https://infoportal-search-prod-adac85.es.germanywestcentral.azure.elastic.cloud",
 				"ELASTICSEARCH_INDEX_PREFIX": "infoportal",
-				"PAGES_FROM_OLD_PORTAL": "/inforportalapi/,/ui,/hjelp,/en/help,/nn/hjelp,/starte-og-drive,/nn/starte-og-drive,/en/start-and-run-business",
+				"PAGES_FROM_OLD_PORTAL": "/inforportalapi/,/ui",
 				"OLD_PORTAL": "https://prod.info.altinn.no",
 				"USE_NEW_ACTOR_LIST": "false",
 				"ROUTE_CHANGE_REPORTEE_VIA_ALTINN2": "true"
