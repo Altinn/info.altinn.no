@@ -120,6 +120,7 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
             }
         };
 
-        options.DenyLocalLogin = false;
+        options.DenyLocalLogin = true;
+        options.AutoRedirectLoginToExternalProvider = true;
     }
 }
