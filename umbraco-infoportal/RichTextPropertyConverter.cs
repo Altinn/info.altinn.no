@@ -140,9 +140,9 @@ public class RichTextPropertyConverter : IPropertyValueConverter
                 return items;
             }
 
-            string blockPickerValue = blockItemData.GetPropertyAsString("blockPicker");
+            string uriString = GetBlockPickerUri(blockItemData);
 
-            JsonObject jsonObject = ConvertPickerBlock(blockPickerValue);
+            JsonObject jsonObject = ConvertPickerBlock(uriString);
             items.Add(jsonObject);
 
             if (markup.Length > match.Length)
@@ -189,6 +189,27 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
         return markup;
     }
+
+    private string GetBlockPickerUri(JsonObject contentDataItem)
+    {
+        // Imported JSON format
+        string uriString = contentDataItem.GetPropertyAsString("blockPicker");
+
+        if (!string.IsNullOrEmpty(uriString))
+        {
+            return uriString;
+        }
+
+        // JSON format after republishing
+        JsonArray values = contentDataItem.GetPropertyAsArray("values");
+
+        foreach (JsonObject valueObject in values.Cast<JsonObject>())
+        {
+            return valueObject.GetPropertyAsString("value");
+        }
+
+        return null;
+    }    
 
     private string ReplaceMediaLinks(string markup)
     {
@@ -260,15 +281,7 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
         foreach (JsonNode contentDataItem in contentData)
         {
-            string udiString = contentDataItem.AsObject().GetPropertyAsString("udi");
-
-            if (string.IsNullOrEmpty(udiString))
-            {
-                return null;
-            }
-
-            Uri uri = new Uri(udiString);
-            Guid currentGuid = new GuidUdi(uri).Guid;
+            Guid? currentGuid = GetGuidFromContentDataItem(contentDataItem.AsObject());
 
             if (currentGuid.Equals(guid))
             {
@@ -279,20 +292,32 @@ public class RichTextPropertyConverter : IPropertyValueConverter
         return null;
     }
 
-    private JsonObject ConvertPickerBlock(string blockPickerValue)
+    private Guid? GetGuidFromContentDataItem(JsonObject contentDataItem)
+    {
+        string udiString = contentDataItem.GetPropertyAsString("udi");
+
+        if (!string.IsNullOrEmpty(udiString))
+        {
+            return new GuidUdi(new Uri(udiString)).Guid;
+        } 
+        else 
+        {
+            string key = contentDataItem.GetPropertyAsString("key");
+            return key != null ? Guid.Parse(key) : null;
+        }
+    }
+
+    private JsonObject ConvertPickerBlock(string uriString)
     {
         JsonObject item = new JsonObject();
         
-
-        Uri uri = new Uri(blockPickerValue);
-
-        if (string.IsNullOrEmpty(blockPickerValue))
+        if (string.IsNullOrEmpty(uriString))
         {
             return item;
         }
 
-        IPublishedContent? content = _publishedContentCache.GetById(new GuidUdi(uri).Guid);
-        
+        IPublishedContent? content = _publishedContentCache.GetById(new GuidUdi(new Uri(uriString)).Guid);
+       
         if ("tableBlock".Equals(content.ContentType.Alias))
         {
             item.Add("componentName", "RichText");
