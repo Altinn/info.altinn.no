@@ -34,33 +34,40 @@ export function transformRichTextHtml(
  * which is exactly the React hydration mismatch this is here to prevent.
  */
 export function walkAndTransformRichText(node: unknown): void {
-  if (!node || typeof node !== "object") return;
-
   if (Array.isArray(node)) {
     for (const item of node) walkAndTransformRichText(item);
     return;
   }
+  if (typeof node !== "object" || node === null) return;
 
-  const obj = node as Record<string, unknown>;
-
-  if (obj.componentName === "RichTextArea" && Array.isArray(obj.items)) {
-    const addAnchors = obj.addAnchors === true;
+  // Match the leaf "RichText" items, not a container "RichTextArea" tag (only
+  // present at a few sites); `addAnchors` is read from the container.
+  if ("items" in node && Array.isArray(node.items)) {
+    const addAnchors = "addAnchors" in node && node.addAnchors === true;
     const usedIds = new Set<string>();
-    for (const item of obj.items as Array<Record<string, unknown>>) {
-      if (
-        item &&
-        typeof item === "object" &&
-        item.componentName === "RichText" &&
-        typeof item.html === "string"
-      ) {
+    for (const item of node.items) {
+      if (isRichTextItem(item)) {
         item.html = transformRichTextHtml(item.html, { usedIds, addAnchors });
       }
     }
   }
 
-  for (const value of Object.values(obj)) {
+  for (const value of Object.values(node)) {
     walkAndTransformRichText(value);
   }
+}
+
+function isRichTextItem(
+  value: unknown,
+): value is { componentName: string; html: string } {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "componentName" in value &&
+    value.componentName === "RichText" &&
+    "html" in value &&
+    typeof value.html === "string"
+  );
 }
 
 function addHeadingAnchors(root: HTMLElement, usedIds: Set<string>): void {
