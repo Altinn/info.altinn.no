@@ -1,6 +1,4 @@
-import { env } from "cloudflare:workers";
 import type { APIRoute } from "astro";
-import { shouldFetchFromOldPortal } from "../../api/oldportal/client";
 import { UMBRACO_API_URL } from "../../api/umbraco/client";
 
 function resolveBackend(refererHeader: string | null): string {
@@ -13,10 +11,6 @@ function resolveBackend(refererHeader: string | null): string {
     refererPath = new URL(refererHeader).pathname;
   } catch {
     return UMBRACO_API_URL;
-  }
-
-  if (shouldFetchFromOldPortal(refererPath) && env.OLD_PORTAL) {
-    return env.OLD_PORTAL;
   }
 
   return UMBRACO_API_URL;
