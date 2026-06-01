@@ -125,7 +125,8 @@ const REDIRECTS: Record<string, string> = {
   "/en/help/tilgangsstyring/": "/en/help/",
   "/quickhelp/": "/hjelp/",
   "/help/tilgangsstyring/": "/hjelp/",
-  "/nn/help/tilgangsstyring/": "/nn/hjelp/"
+  "/nn/help/tilgangsstyring/": "/nn/hjelp/",
+  "/hjelp/innlogging/Slik-logger-du-inn-i-Altinn/logg-inn-i-altinn/": "/hjelp/innlogging/slik-logger-du-inn-i-altinn/"
 }
 
 function normalizePath(path?: string) {
