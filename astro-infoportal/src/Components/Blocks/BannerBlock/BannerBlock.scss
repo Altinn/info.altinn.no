@@ -13,28 +13,28 @@
 
   // Color themes
   &[data-color="accent"] {
-    background-color: #232C3C;
-    color: white;
+    background-color: var(--ds-color-accent-surface-tinted);
+    color: var(--ds-color-accent-text-default);
   }
 
   &[data-color="success"] {
-    background-color: rgb(6, 135, 24);
-    color: white;
+    background-color: var(--ds-color-success-surface-tinted);
+    color: var(--ds-color-success-text-default);
   }
 
   &[data-color="warning"] {
-    background-color: rgb(234, 155, 27);
-    color: black;
+    background-color: var(--ds-color-warning-surface-tinted);
+    color: var(--ds-color-warning-text-default);
   }
 
   &[data-color="danger"] {
-    background-color: rgb(192, 27, 27);
-    color: white;
+    background-color: var(--ds-color-danger-surface-tinted);
+    color: var(--ds-color-danger-text-default);
   }
 
   &[data-color="info"] {
-    background-color: rgb(10, 113, 192);
-    color: white;
+    background-color: var(--ds-color-info-surface-tinted);
+    color: var(--ds-color-info-text-default);
   }
 
   &__content {
@@ -71,11 +71,12 @@
     }
   }
 
-  // Fix: Override link colors to use contrast color
-  // Typography component uses var(--ds-color-base-default) which inherits
-  // the banner's theme color, making links invisible on colored backgrounds
+  // Override Typography's link color, which defaults to --ds-color-base-default
+  // (the page-level base color, not the banner variant). Inheriting from the
+  // banner-block element instead picks up --ds-color-<variant>-text-default,
+  // keeping the link readable on the variant's tinted surface.
   &.banner-block a {
-    color: var(--ds-color-base-contrast-default);
+    color: currentColor;
     text-decoration: underline;
     opacity: 1;
 
