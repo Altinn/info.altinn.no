@@ -21,9 +21,9 @@ jobs:
         id: update
         run: |
           python3 - <<'EOF'
-          import urllib.request, re
+          import json, re, urllib.request
 
-          new_ips = urllib.request.urlopen('https://www.cloudflare.com/ips-v4').read().decode().strip().splitlines()
+          new_ips = json.loads(urllib.request.urlopen('https://api.cloudflare.com/client/v4/ips').read())['result']['ipv4_cidrs']
 
           paths = [
             'infrastructure/altinn-portaler-prod/infoportal-elasticsearch-prod/terraform.tfvars',
