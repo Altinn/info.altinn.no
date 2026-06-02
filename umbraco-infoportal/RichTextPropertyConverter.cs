@@ -170,16 +170,37 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
     private string ReplaceImages(string markup)
     {
-        string pattern = @"<img data-udi=""umb://media/(?<udi>[0-9a-fA-F]{32})"" src=""(?<src>[^""]+)";
+        //string pattern = @"<img  data-udi=""umb://media/(?<udi>[0-9a-fA-F]{32})"" src=""(?<src>[^""]+)";
+        string pattern = @"<img [^>]+>";
 
         Match match = Regex.Match(markup, pattern);
 
         while (match.Success)
         {
-            string udiString = "umb://media/" + match.Groups["udi"].Value;
+            string imgTag = match.Value;
+            string udiString = GetUdiFromImageTag(imgTag);
+
+            if (string.IsNullOrEmpty(udiString))
+            {
+                continue;
+            }
+
+            string src = GetSrcFromImageTag(imgTag);
+
+            if (string.IsNullOrEmpty(src))
+            {
+                continue;
+            }
+
+            string parameters = GetUrlParams(src);
+            
             GuidUdi guidUdi = (GuidUdi) UdiParser.Parse(udiString);
             string? url = ResolveMediaUrl(guidUdi.Guid);
-            string src = match.Groups["src"].Value;
+
+            if (!string.IsNullOrEmpty(parameters))
+            {
+                url += "?" + parameters;
+            }
 
             markup = markup.Replace($" data-udi=\"{udiString}\"", "");
             markup = markup.Replace(src, url);
@@ -188,6 +209,44 @@ public class RichTextPropertyConverter : IPropertyValueConverter
         }
 
         return markup;
+    }
+
+    private string GetUrlParams(string url)
+    {
+        if (!url.Contains("?"))
+        {
+            return null;
+        }
+
+        return url.Substring(url.IndexOf("?"));
+    }
+
+    private string GetUdiFromImageTag(string imageTag)
+    {
+        string pattern = @"data-udi=""umb://media/(?<udi>[0-9a-fA-F]{32})""";
+
+        Match match = Regex.Match(imageTag, pattern);
+
+        if (match.Success)
+        {
+            return "umb://media/" + match.Groups["udi"].Value;
+        }
+
+        return null;
+    }
+
+    private string GetSrcFromImageTag(string imageTag)
+    {
+        string pattern = @"src=""(?<src>[^""]+)""";
+        
+        Match match = Regex.Match(imageTag, pattern);
+
+        if (match.Success)
+        {
+            return match.Groups["src"].Value;
+        }
+
+        return null;
     }
 
     private string GetBlockPickerUri(JsonObject contentDataItem)
