@@ -54,7 +54,6 @@ export const buildMenuItems = (pages: MenuPages, isLoggedIn: boolean, currentPat
       href: pages.inboxPage.url,
       icon: { svgElement: InboxFillIcon, theme: "surface" },
       size: "lg" as const,
-      badge: { variant: 'base', color: 'neutral' },
       selected: isCurrentPage(currentPath, pages.inboxPage.url),
     });
   }
@@ -67,7 +66,6 @@ export const buildMenuItems = (pages: MenuPages, isLoggedIn: boolean, currentPat
       href: pages.accessManagementPage.url,
       icon: { svgElement: PadlockLockedFillIcon, theme: "surface" },
       size: "lg" as const,
-      badge: { variant: 'base', color: 'neutral' },
       selected: isCurrentPage(currentPath, pages.accessManagementPage.url),
     });
   }
