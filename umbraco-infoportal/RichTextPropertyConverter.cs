@@ -170,8 +170,8 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
     private string ReplaceImages(string markup)
     {
-        //string pattern = @"<img  data-udi=""umb://media/(?<udi>[0-9a-fA-F]{32})"" src=""(?<src>[^""]+)";
         string pattern = @"<img [^>]+>";
+        string resultMarkup = markup;
 
         Match match = Regex.Match(markup, pattern);
 
@@ -202,11 +202,11 @@ public class RichTextPropertyConverter : IPropertyValueConverter
                 url += "?" + parameters;
             }
 
-            markup = markup.Replace($" data-udi=\"{udiString}\"", "");
-            markup = markup.Replace(src, url);
+            resultMarkup = resultMarkup.Replace($" data-udi=\"{udiString}\"", "");
+            resultMarkup = resultMarkup.Replace(src, url);
         }
 
-        return markup;
+        return resultMarkup;
     }
 
     private string GetUrlParams(string url)
