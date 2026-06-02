@@ -62,7 +62,7 @@ function entityToAuthorizedParty(
       ? null
       : (entity.organizationIdentifier ?? null),
     dateOfBirth: isPerson ? (entity.dateOfBirth ?? null) : null,
-    partyId: entity.partyId ?? 0,
+    partyId: entity.partyid ?? 0,
     type: isPerson ? "Person" : "Organization",
     unitType: entity.variant ?? null,
     isDeleted: entity.isDeleted,
@@ -107,8 +107,10 @@ async function fetchNewActorList(
   if (!response || !response.ok) {
     throw new Error("connections request failed");
   }
-  const data = (await response.json()) as PaginatedResult<Connection> | null;
-  return (data?.items ?? []).map((connection) =>
+  // Spec wraps the array in `data` (ConnectionDtoPaginatedResult).
+  const parsed = (await response.json()) as PaginatedResult<Connection> | null;
+  const list = parsed?.data ?? [];
+  return list.map((connection) =>
     entityToAuthorizedParty(connection.party, connection.roles),
   );
 }

@@ -18,7 +18,7 @@
 		"UMBRACO_API_URL": "https://infoportal.at22.dis-core.altinn.cloud/",
 		"ELASTICSEARCH_URL": "https://infoportal-search-at22-f6bd85.es.germanywestcentral.azure.elastic.cloud",
 		"ELASTICSEARCH_INDEX_PREFIX": "infoportal",
-		"USE_NEW_ACTOR_LIST": "true",
+		"USE_NEW_ACTOR_LIST": "false",
 		"ROUTE_CHANGE_REPORTEE_VIA_ALTINN2": "false"
 	},
 	"env": {
@@ -28,7 +28,7 @@
 				"UMBRACO_API_URL": "https://infoportal.prod.dis-core.altinn.cloud/",
 				"ELASTICSEARCH_URL": "https://infoportal-search-prod-adac85.es.germanywestcentral.azure.elastic.cloud",
 				"ELASTICSEARCH_INDEX_PREFIX": "infoportal",
-				"USE_NEW_ACTOR_LIST": "true",
+				"USE_NEW_ACTOR_LIST": "false",
 				"ROUTE_CHANGE_REPORTEE_VIA_ALTINN2": "false"
 			}
 		},
@@ -38,7 +38,7 @@
 				"UMBRACO_API_URL": "https://infoportal.at22.dis-core.altinn.cloud/",
 				"ELASTICSEARCH_URL": "https://infoportal-search-at22-f6bd85.es.germanywestcentral.azure.elastic.cloud",
 				"ELASTICSEARCH_INDEX_PREFIX": "infoportal",
-				"USE_NEW_ACTOR_LIST": "true",
+				"USE_NEW_ACTOR_LIST": "false",
 				"ROUTE_CHANGE_REPORTEE_VIA_ALTINN2": "false"
 			}
 		},
@@ -48,7 +48,7 @@
 				"UMBRACO_API_URL": "https://infoportal.at23.dis-core.altinn.cloud/",
 				"ELASTICSEARCH_URL": "https://infoportal-search-at22-f6bd85.es.germanywestcentral.azure.elastic.cloud",
 				"ELASTICSEARCH_INDEX_PREFIX": "infoportal",
-				"USE_NEW_ACTOR_LIST": "true",
+				"USE_NEW_ACTOR_LIST": "false",
 				"ROUTE_CHANGE_REPORTEE_VIA_ALTINN2": "false"
 			}
 		},
@@ -58,7 +58,7 @@
 				"UMBRACO_API_URL": "https://infoportal.tt02.dis-core.altinn.cloud/",
 				"ELASTICSEARCH_URL": "https://infoportal-search-tt02-ec939c.es.germanywestcentral.azure.elastic.cloud",
 				"ELASTICSEARCH_INDEX_PREFIX": "infoportal",
-				"USE_NEW_ACTOR_LIST": "true",
+				"USE_NEW_ACTOR_LIST": "false",
 				"ROUTE_CHANGE_REPORTEE_VIA_ALTINN2": "false"
 			}
 		}
