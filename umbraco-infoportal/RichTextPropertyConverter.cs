@@ -170,8 +170,8 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
     private string ReplaceImages(string markup)
     {
-        //string pattern = @"<img  data-udi=""umb://media/(?<udi>[0-9a-fA-F]{32})"" src=""(?<src>[^""]+)";
         string pattern = @"<img [^>]+>";
+        string resultMarkup = markup;
 
         Match match = Regex.Match(markup, pattern);
 
@@ -202,11 +202,49 @@ public class RichTextPropertyConverter : IPropertyValueConverter
                 url += "?" + parameters;
             }
 
-            markup = markup.Replace($" data-udi=\"{udiString}\"", "");
-            markup = markup.Replace(src, url);
+            resultMarkup = resultMarkup.Replace($" data-udi=\"{udiString}\"", "");
+            resultMarkup = resultMarkup.Replace(src, url);
         }
 
-        return markup;
+        return resultMarkup;
+    }
+
+    private string GetUrlParams(string url)
+    {
+        if (!url.Contains("?"))
+        {
+            return null;
+        }
+
+        return url.Substring(url.IndexOf("?"));
+    }
+
+    private string GetUdiFromImageTag(string imageTag)
+    {
+        string pattern = @"data-udi=""umb://media/(?<udi>[0-9a-fA-F]{32})""";
+
+        Match match = Regex.Match(imageTag, pattern);
+
+        if (match.Success)
+        {
+            return "umb://media/" + match.Groups["udi"].Value;
+        }
+
+        return null;
+    }
+
+    private string GetSrcFromImageTag(string imageTag)
+    {
+        string pattern = @"src=""(?<src>[^""]+)""";
+        
+        Match match = Regex.Match(imageTag, pattern);
+
+        if (match.Success)
+        {
+            return match.Groups["src"].Value;
+        }
+
+        return null;
     }
 
     private string GetUrlParams(string url)
