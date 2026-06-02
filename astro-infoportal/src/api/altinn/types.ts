@@ -69,7 +69,7 @@ export interface ConnectionEntity {
   variant?: string | null;
   parent?: ConnectionEntity | null;
   children?: ConnectionEntity[] | null;
-  partyId?: number | null;
+  partyid?: number | null;
   organizationIdentifier?: string | null;
   dateOfBirth?: string | null;
   isDeleted: boolean;
@@ -88,5 +88,5 @@ export interface Connection {
 
 export interface PaginatedResult<T> {
   links?: { next?: string | null } | null;
-  items: T[];
+  data?: T[];
 }
