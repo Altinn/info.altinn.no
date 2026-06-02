@@ -247,6 +247,44 @@ public class RichTextPropertyConverter : IPropertyValueConverter
         return null;
     }
 
+    private string GetUrlParams(string url)
+    {
+        if (!url.Contains("?"))
+        {
+            return null;
+        }
+
+        return url.Substring(url.IndexOf("?"));
+    }
+
+    private string GetUdiFromImageTag(string imageTag)
+    {
+        string pattern = @"data-udi=""umb://media/(?<udi>[0-9a-fA-F]{32})""";
+
+        Match match = Regex.Match(imageTag, pattern);
+
+        if (match.Success)
+        {
+            return "umb://media/" + match.Groups["udi"].Value;
+        }
+
+        return null;
+    }
+
+    private string GetSrcFromImageTag(string imageTag)
+    {
+        string pattern = @"src=""(?<src>[^""]+)""";
+        
+        Match match = Regex.Match(imageTag, pattern);
+
+        if (match.Success)
+        {
+            return match.Groups["src"].Value;
+        }
+
+        return null;
+    }
+
     private string GetBlockPickerUri(JsonObject contentDataItem)
     {
         // Imported JSON format
