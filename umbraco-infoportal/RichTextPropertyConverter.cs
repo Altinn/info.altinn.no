@@ -173,10 +173,11 @@ public class RichTextPropertyConverter : IPropertyValueConverter
         string pattern = @"<img [^>]+>";
         string resultMarkup = markup;
 
-        Match match = Regex.Match(markup, pattern);
+        MatchCollection matches = Regex.Matches(markup, pattern);
 
-        while (match.Success)
+        foreach (Match match in matches)
         {
+            Console.WriteLine("Found image tag");
             string imgTag = match.Value;
             string udiString = GetUdiFromImageTag(imgTag);
 
