@@ -204,8 +204,6 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
             markup = markup.Replace($" data-udi=\"{udiString}\"", "");
             markup = markup.Replace(src, url);
-
-            match = Regex.Match(markup, pattern);
         }
 
         return markup;
