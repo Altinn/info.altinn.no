@@ -177,7 +177,6 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
         foreach (Match match in matches)
         {
-            Console.WriteLine("Found image tag");
             string imgTag = match.Value;
             string udiString = GetUdiFromImageTag(imgTag);
 
