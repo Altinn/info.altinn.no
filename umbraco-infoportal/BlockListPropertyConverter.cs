@@ -10,22 +10,17 @@ using Umbraco.Cms.Core.Serialization;
 using uSync.Core.Extensions;
 using Umbraco.Cms.Core.Models.ContentEditing;
 using Umbraco.Cms.Core.Models.DeliveryApi;
+using Umbraco.Cms.Core.Services;
 
-
-
-// Injecting the IPublishedContentCache for fetching content from the Umbraco cache
 public class BlockListPropertyConverter : IPropertyValueConverter
 {
-    private readonly IJsonSerializer _json;
-    private readonly ILogger<BlockListPropertyConverter> _logger;
-
     private readonly IPublishedContentCache _publishedContentCache;
+    private readonly MarkupFilter _markupFilter;
 
-    public BlockListPropertyConverter(IJsonSerializer json, ILogger<BlockListPropertyConverter> logger, IPublishedContentCache publishedContentCache)
+    public BlockListPropertyConverter(IPublishedContentCache publishedContentCache, IMediaService mediaService, IVariationContextAccessor variationContextAccessor)
     {
-        _json = json;
-        _logger = logger;
         _publishedContentCache = publishedContentCache;
+        _markupFilter = new MarkupFilter(publishedContentCache, mediaService, variationContextAccessor);
     }
 
     // This converter pre-renders schemaAccordianBlock content into a ContentArea shape
@@ -111,7 +106,7 @@ public class BlockListPropertyConverter : IPropertyValueConverter
                     JsonArray richText = [];
                     richText.Add(new JsonObject
                         {
-                            { "html", content },
+                            { "html", _markupFilter.FilterMarkup(content) },
                             { "componentName", "RichText" }
                         });
 
@@ -137,7 +132,7 @@ public class BlockListPropertyConverter : IPropertyValueConverter
                     JsonArray richText = [];
                     richText.Add(new JsonObject
                         {
-                            { "html", GetMarkup(jsonObject) },
+                            { "html", _markupFilter.FilterMarkup(GetMarkup(jsonObject)) },
                             { "componentName", "RichText" }
                         });
 
