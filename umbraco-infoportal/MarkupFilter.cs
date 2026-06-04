@@ -22,14 +22,18 @@ public class MarkupFilter
         _variationContextAccessor = variationContextAccessor;
     }
 
-    public string FilterMarkup(string markup)
+    public string? FilterMarkup(string markup)
     {
+        if (string.IsNullOrEmpty(markup))
+        {
+            return null;
+        }
+
         markup = ReplaceImages(markup);
         markup = ReplaceMediaLinks(markup);
         markup = ReplaceLegacyLinks(markup);
         return markup;
     }
-
 
     private string ReplaceImages(string markup)
     {
