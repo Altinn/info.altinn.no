@@ -79,4 +79,6 @@ export interface ContactFormLabels {
   successMessage: string;
   errorMessage: string;
   retryButton: string;
+  subjectValidation: string;
+  subjectOptions: string[];
 }
