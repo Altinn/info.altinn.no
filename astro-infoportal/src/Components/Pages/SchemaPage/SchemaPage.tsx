@@ -130,7 +130,8 @@ const SchemaPage = ({
           {owners.length > 0 && <ProvidersInline providers={owners} />}
         </ArticleHeader>
 
-        {orangeMessage && (
+        {(Boolean(orangeMessageTitle?.trim()) ||
+          (orangeMessage?.items?.length ?? 0) > 0) && (
           <Section margin="section">
             <Alert variant="warning" heading={orangeMessageTitle ?? ""}>
               <RichTextArea {...orangeMessage} />
