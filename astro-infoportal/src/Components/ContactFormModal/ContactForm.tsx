@@ -1,8 +1,10 @@
 import {
   Button,
   Field,
+  Fieldset,
   Input,
   Label,
+  Radio,
   Textarea,
   ValidationMessage,
 } from "@digdir/designsystemet-react";
@@ -32,6 +34,9 @@ declare global {
 interface ContactFormProps extends ContactFormModalProps {
   onSuccess: () => void;
   onError: (message: string) => void;
+  // When true, the Subject field renders as a radio group of preset options
+  // (the "Hvordan bruke Altinn" form) instead of a free-text input.
+  useSubjectOptions?: boolean;
 }
 
 const fallbackLocalization = (key: string): string => {
@@ -86,6 +91,7 @@ const ContactForm = ({
   onSuccess,
   onError,
   labels,
+  useSubjectOptions,
 }: ContactFormProps) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -181,6 +187,17 @@ const ContactForm = ({
   };
 
   const validateSubject = () => {
+    if (useSubjectOptions) {
+      if (!subject) {
+        setErrors((prev) => ({
+          ...prev,
+          subject: getLabelValue(labels, "subjectValidation"),
+        }));
+        return false;
+      }
+      setErrors((prev) => ({ ...prev, subject: undefined }));
+      return true;
+    }
     if (!subject || subject.trim().length < 3) {
       setErrors((prev) => ({
         ...prev,
@@ -449,24 +466,47 @@ const ContactForm = ({
           )}
         </Field>
 
-        <Field className="contact-form__field">
-          <Label htmlFor="contact-subject">
-            {getLabelValue(labels, "topicLabel") || ""}
-          </Label>
-          <Input
-            id="contact-subject"
-            type="text"
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            onBlur={validateSubject}
-            placeholder={getLabelValue(labels, "topicPlaceholder") || ""}
-            disabled={isSubmitting}
-            aria-required
-          />
-          {errors.subject && (
-            <ValidationMessage>{errors.subject}</ValidationMessage>
-          )}
-        </Field>
+        {useSubjectOptions ? (
+          <Fieldset className="contact-form__field">
+            <Fieldset.Legend>
+              {getLabelValue(labels, "topicLabel") || ""}
+            </Fieldset.Legend>
+            {(labels?.subjectOptions ?? []).map((option: string) => (
+              <Radio
+                key={option}
+                label={option}
+                name="contact-subject"
+                value={option}
+                checked={subject === option}
+                onChange={() => setSubject(option)}
+                disabled={isSubmitting}
+                aria-required
+              />
+            ))}
+            {errors.subject && (
+              <ValidationMessage>{errors.subject}</ValidationMessage>
+            )}
+          </Fieldset>
+        ) : (
+          <Field className="contact-form__field">
+            <Label htmlFor="contact-subject">
+              {getLabelValue(labels, "topicLabel") || ""}
+            </Label>
+            <Input
+              id="contact-subject"
+              type="text"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              onBlur={validateSubject}
+              placeholder={getLabelValue(labels, "topicPlaceholder") || ""}
+              disabled={isSubmitting}
+              aria-required
+            />
+            {errors.subject && (
+              <ValidationMessage>{errors.subject}</ValidationMessage>
+            )}
+          </Field>
+        )}
 
         <Field className="contact-form__field">
           <Label htmlFor="contact-message">

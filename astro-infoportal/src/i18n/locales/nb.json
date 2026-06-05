@@ -256,6 +256,11 @@
   "contactform.successMessage": "Takk for din henvendelse! Vi vil svare deg så snart som mulig",
   "contactform.errorMessage": "En feil oppstod ved sending av skjema. Vennligst prøv igjen senere",
   "contactform.retryButton": "Prøv igjen",
+  "contactform.subjectInbox": "Innboks",
+  "contactform.subjectAccess": "Tilganger",
+  "contactform.subjectForms": "Skjema",
+  "contactform.subjectNotifications": "Varslinger",
+  "contactform.subjectOther": "Annet",
 
   "subscription.types.newsletterInTitle": "nyhetsbrev",
   "subscription.types.newsletterInIngress": "nyheter",

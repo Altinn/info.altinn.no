@@ -11,7 +11,7 @@
     "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@altinn/altinn-components": "^0.66.0",
+    "@altinn/altinn-components": "^0.67.4",
     "@astrojs/cloudflare": "^13.5.5",
     "@astrojs/react": "^5.0.5",
     "@digdir/designsystemet-css": "^1.15.0",

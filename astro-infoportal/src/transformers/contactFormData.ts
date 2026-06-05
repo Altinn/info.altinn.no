@@ -56,6 +56,14 @@ function buildContactFormLabels(locale: Locale) {
     successMessage: t("contactform.successMessage", locale),
     errorMessage: t("contactform.errorMessage", locale),
     retryButton: t("contactform.retryButton", locale),
+    subjectValidation: t("contactform.topicRequired", locale),
+    subjectOptions: [
+      t("contactform.subjectInbox", locale),
+      t("contactform.subjectAccess", locale),
+      t("contactform.subjectForms", locale),
+      t("contactform.subjectNotifications", locale),
+      t("contactform.subjectOther", locale),
+    ],
   };
 }
 
