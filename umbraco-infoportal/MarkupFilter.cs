@@ -29,11 +29,14 @@ public class MarkupFilter
             return null;
         }
 
+        Console.WriteLine(markup);
+
         markup = ReplaceImages(markup);
-        markup = ReplaceMediaLinks(markup);
+        markup = ReplaceInternalLinks(markup);
         markup = ReplaceLegacyLinks(markup);
         return markup;
     }
+
 
     private string ReplaceImages(string markup)
     {
@@ -114,7 +117,7 @@ public class MarkupFilter
         return null;
     }
 
-    private string ReplaceMediaLinks(string markup)
+    private string ReplaceInternalLinks(string markup)
     {
         string pattern = @"href=""/{localLink:(?<contentguid>[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})}""";
 
@@ -126,7 +129,16 @@ public class MarkupFilter
 
             Guid guid = Guid.Parse(contentGUID);
             string url = ResolveMediaUrl(guid);
-            markup = markup.Replace("/{localLink:" + contentGUID + "}", url);
+
+            if (string.IsNullOrEmpty(url))
+            {
+                url = GetContentUrl(guid);
+            }
+
+            if (!string.IsNullOrEmpty(url))
+            {
+                markup = markup.Replace("/{localLink:" + contentGUID + "}", url);            
+            }
 
             match = Regex.Match(markup, pattern);
         }
@@ -160,6 +172,7 @@ public class MarkupFilter
             return umbracoFile;
         }
     }
+
     private string ReplaceLegacyLinks(string markup)
     {
         string pattern = @"~/link/(?<contentguid>[0-9a-fA-F]+)\.aspx";
@@ -176,15 +189,7 @@ public class MarkupFilter
 
             Guid guid = Guid.Parse(contentGUIDString);
 
-            IPublishedContent content = _publishedContentCache.GetById(guid);
-
-            if (content is null)
-            {
-                continue;
-            }
-
-            string culture = _variationContextAccessor.VariationContext?.Culture;
-            string url = content.Url(culture);
+            string url = GetContentUrl(guid);
 
             if (string.IsNullOrEmpty(url))
             {
@@ -195,6 +200,19 @@ public class MarkupFilter
         }
 
         return result;        
+    }
+
+    private string? GetContentUrl(Guid guid)
+    {
+        IPublishedContent content = _publishedContentCache.GetById(guid);
+
+        if (content is null)
+        {
+            return null;
+        }
+
+        string culture = _variationContextAccessor.VariationContext?.Culture;
+        return content.Url(culture);
     }
 }
 
