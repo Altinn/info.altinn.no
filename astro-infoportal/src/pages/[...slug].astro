@@ -1,8 +1,6 @@
 ---
 
 import { fetchUmbracoContentWithLocaleFallback, fetchUmbracoErrorPage, fetchUmbracoStartPage, fetchUmbracoMedia } from '@api/umbraco/client';
-import { fetchFromOldPortal } from '@api/oldportal/client';
-import { shouldFetchFromOldPortal } from '@api/oldportal/client';
 import AstroSiteLayout from '@layouts/AstroSiteLayout.astro';
 import { JSONTransformer } from '@transformers/JSONTransformer';
 import { getGlobalData } from '@constants/globalData';
@@ -63,7 +61,8 @@ if (redirectTarget && redirectTarget !== path) {
 }
 
 const contentUrl = resolveRouteOverride(path);
-if (contentUrl && contentUrl !== path) {
+const wasRouteOverridden = contentUrl && contentUrl !== path;
+if (contentUrl && wasRouteOverridden) {
   path = contentUrl;
 }
 
@@ -94,6 +93,21 @@ if (pageResult.status === 'rejected') {
 }
 
 const startPageData = startPageResult.status === 'fulfilled' ? startPageResult.value : null;
+
+// When the request URL doesn't match the page's canonical path for the requested
+// locale (e.g. /en/skjemaoversikt/... served via the NB-path fallback even though
+// the page has an EN variant at /en/forms-overview/...), redirect so the URL bar
+// and rendered content agree. Skipped for route overrides which intentionally
+// keep the user URL stable.
+if (!isError && !wasRouteOverridden && !isLocaleRoot) {
+  const canonicalPath = umbracoPageData?.cultures?.[locale]?.path;
+  const withSlash = (p: string) => (p.endsWith("/") ? p : `${p}/`);
+  if (canonicalPath && withSlash(canonicalPath) !== withSlash(Astro.url.pathname)) {
+    const canonicalUrl = new URL(canonicalPath, Astro.url);
+    canonicalUrl.search = Astro.url.search;
+    return Astro.redirect(canonicalUrl.toString(), 301);
+  }
+}
 
 // If the requested locale isn't among the page's variants, Umbraco's Delivery API
 // fell back to nb (see fetchUmbracoContentWithLocaleFallback). Downstream content
