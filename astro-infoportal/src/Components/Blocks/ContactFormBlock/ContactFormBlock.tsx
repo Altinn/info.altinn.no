@@ -8,6 +8,7 @@ const ContactFormBlock = ({
   text,
   schemaId,
   showAttachment,
+  startCompanyFormat,
   useRecaptcha,
   recaptchaSiteKey,
   labels,
@@ -96,6 +97,7 @@ const ContactFormBlock = ({
       <ContactForm
         schemaId={schemaId}
         showAttachment={showAttachment}
+        useSubjectOptions={!startCompanyFormat}
         useRecaptcha={useRecaptcha}
         recaptchaSiteKey={recaptchaSiteKey}
         onSuccess={handleSuccess}

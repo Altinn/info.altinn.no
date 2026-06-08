@@ -29,8 +29,6 @@ public class MarkupFilter
             return null;
         }
 
-        Console.WriteLine(markup);
-
         markup = ReplaceImages(markup);
         markup = ReplaceInternalLinks(markup);
         markup = ReplaceLegacyLinks(markup);

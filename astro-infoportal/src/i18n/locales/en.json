@@ -256,6 +256,11 @@
   "contactform.successMessage": "Thank you for your inquiry! We will respond as soon as possible.",
   "contactform.errorMessage": "An error occurred while submitting the form. Please try again later.",
   "contactform.retryButton": "Try again",
+  "contactform.subjectInbox": "Inbox",
+  "contactform.subjectAccess": "Access management",
+  "contactform.subjectForms": "Forms",
+  "contactform.subjectNotifications": "Notifications",
+  "contactform.subjectOther": "Other",
 
   "subscription.types.newsletterInTitle": "newsletter",
   "subscription.types.newsletterInIngress": "news",

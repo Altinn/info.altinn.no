@@ -247,6 +247,11 @@
   "contactform.successMessage": "Takk for di henvendelse! Vi vil svare deg så snart som mogleg.",
   "contactform.errorMessage": "Ein feil oppstod ved sending av skjema. Ver vennleg og prøv igjen seinare.",
   "contactform.retryButton": "Prøv igjen",
+  "contactform.subjectInbox": "Innboks",
+  "contactform.subjectAccess": "Tilgangar",
+  "contactform.subjectForms": "Skjema",
+  "contactform.subjectNotifications": "Varslingar",
+  "contactform.subjectOther": "Anna",
 
   "subscription.types.newsletterInTitle": "nyheitsbrev",
   "subscription.types.newsletterInIngress": "nyheiter",
