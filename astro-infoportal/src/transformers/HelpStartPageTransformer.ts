@@ -106,7 +106,7 @@ export class HelpStartPageTransformer implements IJSONTransformer {
       mainIntro: props.mainIntro,
       newVersionHeading: props.newDrillDownTitle,
       newDrilldownPages,
-      currentVersionHeading: props.oldDrillDownTitle,
+      currentVersionHeading: props.oldDrilldownTitle,
       oldDrilldownPages,
       questionAreaHeading: props.questionAreaTitle,
       questionArea,

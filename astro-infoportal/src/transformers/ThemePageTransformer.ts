@@ -76,6 +76,11 @@ const contentTypesWithChildLinks = new Set([
   "themeContainerPage",
 ]);
 
+const systemFolderContentTypes = new Set([
+  "sysContentAssetFolder",
+  "sysContentFolder",
+]);
+
 export class ThemePageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
     const props = cmsPageData.properties ?? {};
@@ -87,7 +92,9 @@ export class ThemePageTransformer implements IJSONTransformer {
 
     const allChildren = await fetchUmbracoChildrenInEditorOrder(cmsPageData.route.path, 100, contentLocale);
     const children = allChildren.filter(
-      (c: any) => c.properties?.showInNavigation !== false,
+      (c: any) =>
+        c.properties?.showInNavigation !== false &&
+        !systemFolderContentTypes.has(c.contentType),
     );
 
     const themeGroups = await Promise.all(
