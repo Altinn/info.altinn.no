@@ -17,7 +17,7 @@ spec:
       annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
         linkerd.io/inject: enabled
-        config.linkerd.io/skip-outbound-ports: "443"
+        config.linkerd.io/skip-outbound-ports: "443,587"
     spec:
       serviceAccountName: umbraco
       nodeSelector:
