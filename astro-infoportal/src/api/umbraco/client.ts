@@ -62,9 +62,14 @@ function deliveryUrl(pathname: string, search?: string): string {
   return url.toString();
 }
 
-export async function fetchUmbracoContent(path: string, culture?: string) {
+export async function fetchUmbracoContent(
+  path: string,
+  culture?: string,
+  expand?: string,
+) {
   const url = deliveryUrl(
     `/umbraco/delivery/api/v2/content/item${normalizeDeliveryPath(normalizeItemPath(path))}`,
+    expand ? new URLSearchParams({ expand }).toString() : undefined,
   );
 
   let response = await fetch(url, { headers: cultureHeader(culture) });
@@ -93,16 +98,17 @@ export async function fetchUmbracoContent(path: string, culture?: string) {
 export async function fetchUmbracoContentWithLocaleFallback(
   path: string,
   culture?: string,
+  expand?: string,
 ) {
   try {
-    return await fetchUmbracoContent(path, culture);
+    return await fetchUmbracoContent(path, culture, expand);
   } catch (error) {
     if (culture && culture !== "nb") {
       const normalized = normalizeItemPath(path);
       const prefix = `/${culture}/`;
       if (normalized.startsWith(prefix)) {
         const fallbackPath = normalized.slice(prefix.length - 1) || "/";
-        return await fetchUmbracoContent(fallbackPath, "nb");
+        return await fetchUmbracoContent(fallbackPath, "nb", expand);
       }
     }
     throw error;
@@ -326,6 +332,8 @@ export async function fetchUmbracoStartPage(locale?: string) {
   const params = new URLSearchParams({
     filter: "contentType:startPage",
     take: "1",
+    // expand the banner picker so buildBanner gets the node's properties inline
+    expand: "properties[banner]",
   });
   const url = deliveryUrl("/umbraco/delivery/api/v2/content", params.toString());
 

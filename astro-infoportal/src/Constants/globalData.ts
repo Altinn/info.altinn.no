@@ -13,26 +13,6 @@ import {
 } from "@constants/startPageLinks";
 import { type Locale, t } from "@i18n/index";
 
-function buildAltinnShutdownBanner(closeButtonText: string) {
-  return {
-    message: {
-      items: [
-        {
-          html: '<p>19. juni blir gamle Altinn skrudd av.&nbsp;<a href="/nyheter/sjekk-om-du-ma-gjore-noe-for-vi-slar-av-gamle-altinn/" class="ds-link">Dette m&aring; du passe p&aring;.</a></p>',
-          componentName: "RichText",
-        },
-      ],
-      componentName: "RichTextArea",
-    },
-    isActive: true,
-    colorTheme: "warning",
-    closeButtonText,
-    contentHash: "altinn-shutdown-2026-06-19-v1",
-    localStoragePrefix: "infoportal-banner-dismissed",
-    componentName: "BannerBlock",
-  };
-}
-
 export function getGlobalData(
   locale: Locale = "nb",
   searchPageUrl = "/sok/",
@@ -50,9 +30,7 @@ export function getGlobalData(
 
   return {
     headerViewModel: {
-      banner:
-        buildBanner(p?.banner, t("banner.closeButton", locale)) ??
-        buildAltinnShutdownBanner(t("banner.closeButton", locale)),
+      banner: buildBanner(p?.banner, t("banner.closeButton", locale)),
       startAndRunCompany: buildLink(
         p?.startAndRunCompany,
         t("header.startAndRunCompany", locale),

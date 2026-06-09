@@ -72,7 +72,12 @@ if (contentUrl && wasRouteOverridden) {
 const isLocaleRoot = isNorwegianStartRoot || /^\/(nn|en)\/?$/.test(path);
 const umbracoPath = isNorwegianStartRoot ? "/" : path;
 
-const pagePromise = fetchUmbracoContentWithLocaleFallback(umbracoPath, locale);
+// On a locale root the page IS the startPage — expand the banner picker so buildBanner gets it.
+const pagePromise = fetchUmbracoContentWithLocaleFallback(
+  umbracoPath,
+  locale,
+  isLocaleRoot ? "properties[banner]" : undefined,
+);
 const startPagePromise = isLocaleRoot ? pagePromise : fetchUmbracoStartPage(locale);
 
 const [pageResult, startPageResult] = await Promise.allSettled([
