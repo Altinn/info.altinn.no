@@ -236,6 +236,11 @@ public class RichTextPropertyConverter : IPropertyValueConverter
         }
 
         IPublishedContent? content = _publishedContentCache.GetById(new GuidUdi(new Uri(uriString)).Guid);
+
+        if (content is null) 
+        {
+            return item;
+        }
        
         if ("tableBlock".Equals(content.ContentType.Alias))
         {
