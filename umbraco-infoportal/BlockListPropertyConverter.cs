@@ -58,6 +58,7 @@ public class BlockListPropertyConverter : IPropertyValueConverter
     public object? ConvertIntermediateToObject(IPublishedElement owner, IPublishedPropertyType propertyType,
         PropertyCacheLevel referenceCacheLevel, object? inter, bool preview)
     {
+        
         if (inter != null)
         {
             string raw = inter.ToString() ?? string.Empty;

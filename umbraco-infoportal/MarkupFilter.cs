@@ -41,9 +41,7 @@ public class MarkupFilter
         string pattern = @"<img [^>]+>";
         string resultMarkup = markup;
 
-        MatchCollection matches = Regex.Matches(markup, pattern);
-
-        foreach (Match match in matches)
+        foreach (Match match in Regex.Matches(markup, pattern))
         {
             string imgTag = match.Value;
             string udiString = GetUdiFromImageTag(imgTag);
@@ -119,9 +117,9 @@ public class MarkupFilter
     {
         string pattern = @"href=""/{localLink:(?<contentguid>[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})}""";
 
-        Match match = Regex.Match(markup, pattern);
+        string result = markup;
 
-        while (match.Success)
+        foreach (Match match in Regex.Matches(markup, pattern))
         {
             string contentGUID = match.Groups["contentguid"].Value;
 
@@ -135,13 +133,11 @@ public class MarkupFilter
 
             if (!string.IsNullOrEmpty(url))
             {
-                markup = markup.Replace("/{localLink:" + contentGUID + "}", url);            
+                result = result.Replace("/{localLink:" + contentGUID + "}", url);            
             }
-
-            match = Regex.Match(markup, pattern);
         }
 
-        return markup;        
+        return result;        
     }
 
     private string? ResolveMediaUrl(Guid guid)

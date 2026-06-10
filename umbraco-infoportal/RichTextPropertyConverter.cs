@@ -252,7 +252,6 @@ public class RichTextPropertyConverter : IPropertyValueConverter
                 return item;
             }
 
-
             object value = property.GetDeliveryApiValue(true);
 
             if (value is null)
