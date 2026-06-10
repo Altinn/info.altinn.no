@@ -29,14 +29,6 @@ export function buildLink(
   return { text, url };
 }
 
-type RichTextValue = string | { markup?: string } | undefined | null;
-
-function resolveRichText(value: RichTextValue): string | null {
-  if (!value) return null;
-  if (typeof value === "string") return value;
-  return value.markup ?? null;
-}
-
 // Simple 64-bit FNV-1a hash, rendered as hex. Used to version banner dismissal:
 // when the message changes, the hash changes, so users see the new banner.
 function hashMessage(html: string): string {
@@ -49,23 +41,38 @@ function hashMessage(html: string): string {
   return h.toString(16).padStart(16, "0");
 }
 
-export function buildBanner(pickerValue: unknown, closeButtonText: string) {
-  if (!pickerValue) return null;
-  const first = Array.isArray(pickerValue) ? pickerValue[0] : pickerValue;
-  const props = (first as { properties?: Record<string, unknown> })?.properties;
+// "Banner Color" dropdown labels → Designsystemet roles (BannerBlock.scss keys on these).
+const BANNER_COLOR_BY_LABEL: Record<string, string> = {
+  "blå": "accent",
+  "lyseblå": "info",
+  "grønn": "success",
+  gul: "warning",
+  "rød": "danger",
+};
+
+// `message` arrives pre-shaped as { items: [...] } from the backend RichText converter.
+export function buildBanner(bannerValue: unknown, closeButtonText: string) {
+  const first = Array.isArray(bannerValue) ? bannerValue[0] : bannerValue;
+  const props = (first as { properties?: Record<string, unknown> } | null | undefined)
+    ?.properties;
   if (!props) return null;
 
-  const html = resolveRichText(props.message as RichTextValue);
+  const messageItems = (props.message as { items?: unknown[] } | undefined)?.items;
+  if (!Array.isArray(messageItems) || messageItems.length === 0) return null;
+
+  const html = messageItems
+    .map((item) => (item as { html?: string })?.html ?? "")
+    .join("");
   if (!html) return null;
 
   return {
-    message: {
-      items: [{ html, componentName: "RichText" }],
-      componentName: "RichTextArea",
-    },
+    message: { items: messageItems, componentName: "RichTextArea" },
     isActive: Boolean(props.isActive),
     badgeText: (props.badgeText as string) ?? "",
-    colorTheme: (props.colorTheme as string) ?? "accent",
+    colorTheme:
+      BANNER_COLOR_BY_LABEL[
+        ((props.colorTheme as string) ?? "").trim().toLowerCase()
+      ] ?? "accent",
     closeButtonText,
     contentHash: hashMessage(html),
     localStoragePrefix: "infoportal-banner-dismissed",

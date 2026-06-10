@@ -15,7 +15,8 @@ let umbracoPageData: any = null;
 // Fetch the correct Umbraco path for the locale
 const umbracoPath = locale === "en" ? "/en/" : "/";
 const [pageResult] = await Promise.allSettled([
-  fetchUmbracoContent(umbracoPath, locale),
+  // expand the banner picker so buildBanner gets the node's properties (see fetchUmbracoStartPage)
+  fetchUmbracoContent(umbracoPath, locale, "properties[banner]"),
 ]);
 
 if (pageResult.status === 'rejected') {
