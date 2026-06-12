@@ -46,7 +46,7 @@ public class CachePurgeDispatcher
             contentIds.Add(content.Id);
             try
             {
-                AffectedUrlSet result = _resolver.Resolve(content);
+                AffectedUrlSet result = _resolver.Resolve(content, reason);
                 foreach (string url in result.Urls) urls.Add(url);
                 if (result.ForcePurgeEverything) forcePurgeEverything = true;
             }
