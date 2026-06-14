@@ -35,6 +35,18 @@ public class RuleMapAliasValidator : INotificationHandler<UmbracoApplicationStar
             }
         }
 
+        // The IncludeNearestAncestorOfType target is also an alias that silently no-ops on rename.
+        foreach (ContentTypeRule rule in AffectedUrlResolver.Rules.Values)
+        {
+            if (!string.IsNullOrEmpty(rule.IncludeNearestAncestorOfType)
+                && !knownAliases.Contains(rule.IncludeNearestAncestorOfType))
+            {
+                _logger.LogError(
+                    "Cache-purge IncludeNearestAncestorOfType '{Alias}' not found in content types — ancestor purge will silently no-operation",
+                    rule.IncludeNearestAncestorOfType);
+            }
+        }
+
         _logger.LogInformation(
             "Cache-purge rule-map validated: {Total} rules, {Missing} missing aliases.",
             AffectedUrlResolver.Rules.Count,

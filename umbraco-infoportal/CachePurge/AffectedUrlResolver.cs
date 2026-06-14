@@ -28,6 +28,10 @@ public class ContentTypeRule
 
     // Dirty properties that trigger IncludeAncestorSubtree (empty = always).
     public string[] IncludeAncestorSubtreeOnDirtyProperties { get; init; } = [];
+
+    // Purge the nearest ancestor of this alias (the listing page) — unlike IncludeTreeParent
+    // (first URL-bearing parent), this skips intermediate URL-bearing article levels.
+    public string IncludeNearestAncestorOfType { get; init; } = "";
 }
 
 public class AffectedUrlResolver
@@ -121,10 +125,13 @@ public class AffectedUrlResolver
             IncludeTreeParent = true,
             CrossPagePurgeOnDirtyProperties = ["Name", "mainIntro"],
         },
+        // themePage lists its descendant sectionArticlePages at any depth (children + grandchildren
+        // as links) — purge the ancestor themePage, which IncludeTreeParent alone misses for grandchildren.
         ["sectionArticlePage"] = new ContentTypeRule
         {
             IncludeTreeParent = true,
-            CrossPagePurgeOnDirtyProperties = ["Name", "mainIntro"],
+            CrossPagePurgeOnDirtyProperties = ["Name", "mainIntro", "showInNavigation"],
+            IncludeNearestAncestorOfType = "themePage",
         },
         ["aboutPage"] = new ContentTypeRule
         {
@@ -151,11 +158,14 @@ public class AffectedUrlResolver
             IncludeTreeParent = true,
             CrossPagePurgeOnDirtyProperties = ["Name", "mainBody"],
         },
+        // The sectionPage's "Siste nytt" block lists this archive's newest news (SectionPageTransformer
+        // latestNewsBlock) → purge the ancestor sectionPage too, not just the archive + home.
         ["newsArticlePage"] = new ContentTypeRule
         {
             IncludeTreeParent = true,
             StaticUrls = ["/"],
-            CrossPagePurgeOnDirtyProperties = ["Name", "mainIntro"],
+            IncludeNearestAncestorOfType = "sectionPage",
+            CrossPagePurgeOnDirtyProperties = ["Name", "mainIntro", "lastChanged"],
         },
 
         // No gate — nearly every property feeds the archive + home renders.
@@ -186,7 +196,7 @@ public class AffectedUrlResolver
         _logger = logger;
     }
 
-    public AffectedUrlSet Resolve(IContent content)
+    public AffectedUrlSet Resolve(IContent content, CachePurgeReason reason)
     {
         HashSet<string> urls = new(StringComparer.Ordinal);
 
@@ -212,7 +222,7 @@ public class AffectedUrlResolver
             }
         }
 
-        bool ruleApplied = ApplyRules(content, urls);
+        bool ruleApplied = ApplyRules(content, urls, reason);
 
         if (urls.Count == 0 && !ruleApplied)
         {
@@ -227,13 +237,14 @@ public class AffectedUrlResolver
     }
 
     // Returns true if a rule matched (regardless of whether it added URLs).
-    private bool ApplyRules(IContent content, HashSet<string> urls)
+    private bool ApplyRules(IContent content, HashSet<string> urls, CachePurgeReason reason)
     {
         if (!Rules.TryGetValue(content.ContentType.Alias, out ContentTypeRule? rule))
             return false;
 
-        // Skip cross-page actions unless a gating property changed (own URLs already collected).
-        if (rule.CrossPagePurgeOnDirtyProperties.Length > 0)
+        // Skip cross-page actions only on a Publish with nothing listing-relevant dirty (own URLs
+        // already collected). Removal/reorder (Unpublish/Trash/Sort) always change a listing.
+        if (reason == CachePurgeReason.Publish && rule.CrossPagePurgeOnDirtyProperties.Length > 0)
         {
             bool anyCrossPageDirty = false;
             foreach (string alias in rule.CrossPagePurgeOnDirtyProperties)
@@ -247,7 +258,7 @@ public class AffectedUrlResolver
             if (!anyCrossPageDirty)
             {
                 _logger.LogDebug(
-                    "Content {ContentId} ({Alias}) — no cross-page property dirty, skipping IncludeTreeParent/Siblings/Pickers/StaticUrls",
+                    "Content {ContentId} ({Alias}) — no cross-page property dirty on publish, skipping cross-page actions",
                     content.Id, content.ContentType.Alias);
                 return true;
             }
@@ -276,6 +287,18 @@ public class AffectedUrlResolver
                 }
                 if (parent.ParentId <= 0) break;
                 parent = _contentService.GetById(parent.ParentId);
+            }
+        }
+
+        if (!string.IsNullOrEmpty(rule.IncludeNearestAncestorOfType))
+        {
+            // The listing page renders this node at any depth; IncludeTreeParent stops at the
+            // first URL-bearing parent and misses deeper listings (e.g. themePage grandchildren).
+            IContent? listing = FindAncestorOfType(content, rule.IncludeNearestAncestorOfType);
+            if (listing is not null)
+            {
+                foreach (string u in _urlResolver.GetUrlsForAllCultures(listing))
+                    urls.Add(u);
             }
         }
 
