@@ -1,4 +1,4 @@
-const SHORT_CMS_CACHE =
+const PAGE_CACHE =
   "public, max-age=1440, s-maxage=86400, stale-while-revalidate=86400";
 
 function isLocalHost(hostname: string): boolean {
@@ -10,16 +10,6 @@ function isLocalHost(hostname: string): boolean {
   );
 }
 
-function isNonProductionHost(hostname: string): boolean {
-  return (
-    isLocalHost(hostname) ||
-    hostname.includes("at22") ||
-    hostname.includes("test") ||
-    hostname.endsWith(".workers.dev") ||
-    hostname.endsWith(".pages.dev")
-  );
-}
-
 export function pageCacheControl(hostname: string): string {
-  return isNonProductionHost(hostname) ? "no-store" : SHORT_CMS_CACHE;
+  return isLocalHost(hostname) ? "no-store" : PAGE_CACHE;
 }
