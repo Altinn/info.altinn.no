@@ -28,13 +28,44 @@ public class CloudflareCachePurgeService : ICloudflareCachePurgeService
         CloudflareOptions opts = _options.CurrentValue;
         if (!IsConfigured(opts)) return;
 
-        string[] urls = absoluteUrls?.ToArray() ?? [];
+        // Cloudflare caches /path and /path/ separately, purge both forms.
+        string[] urls = ExpandTrailingSlashVariants(absoluteUrls ?? []).ToArray();
         if (urls.Length == 0) return;
 
         foreach (string[] batch in Chunk(urls, Math.Max(1, opts.MaxUrlsPerRequest)))
         {
             await PostPurgeAsync(opts, new { files = batch }, ct);
         }
+    }
+
+    private static IEnumerable<string> ExpandTrailingSlashVariants(IEnumerable<string> urls)
+    {
+        HashSet<string> seen = new(StringComparer.Ordinal);
+        List<string> result = [];
+        foreach (string url in urls)
+        {
+            if (seen.Add(url)) 
+                result.Add(url);
+                
+            string? alt = TryToggleTrailingSlash(url);
+            if (alt is not null && seen.Add(alt)) 
+                result.Add(alt);
+        }
+        return result;
+    }
+
+    private static string? TryToggleTrailingSlash(string url)
+    {
+        if (!Uri.TryCreate(url, UriKind.Absolute, out Uri? uri)) 
+            return null;
+        
+        string path = uri.AbsolutePath;
+        
+        if (path == "/") 
+            return null;
+
+        string newPath = path.EndsWith('/') ? path.TrimEnd('/') : path + "/";
+        return $"{uri.Scheme}://{uri.Authority}{newPath}{uri.Query}";
     }
 
     public Task PurgeEverythingAsync(CancellationToken ct = default)
