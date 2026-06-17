@@ -73,6 +73,11 @@ export interface ContactFormLabels {
   attachmentDelete: string;
   attachmentSizeError: string;
   attachmentExtensionError: string;
+  // Optional: screen-reader announcements when an attachment is added/removed.
+  attachmentAddedStatus?: string;
+  attachmentRemovedStatus?: string;
+  // Optional: accessible legend for the form-type radio group.
+  formTypeLegend?: string;
   submitButton: string;
   submitting: string;
   closeButton: string;

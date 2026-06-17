@@ -103,9 +103,43 @@ const ContactForm = ({
   const [attachment, setAttachment] = useState<File | undefined>(undefined);
   const [errors, setErrors] = useState<ContactFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [attachmentStatus, setAttachmentStatus] = useState("");
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const uploadButtonRef = useRef<HTMLButtonElement>(null);
+  const deleteButtonRef = useRef<HTMLButtonElement>(null);
+  const hadAttachmentRef = useRef(false);
 
   const emailRegex = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/, []);
+
+  // When an attachment is added the upload button unmounts (and vice-versa on
+  // delete), so move focus to the control that replaces it and announce the
+  // change — otherwise screen-reader focus is dropped to the top of the page.
+  useEffect(() => {
+    const hasAttachment = !!attachment;
+    const had = hadAttachmentRef.current;
+    hadAttachmentRef.current = hasAttachment;
+
+    if (hasAttachment === had) return;
+
+    if (hasAttachment) {
+      // attachmentLabel often already ends in ":" (it's the field label), so
+      // strip a trailing colon before composing to avoid "Vedlegg:: file".
+      const label = (
+        getLabelValue(labels, "attachmentLabel") || "Attachment"
+      ).replace(/[\s:]+$/, "");
+      setAttachmentStatus(
+        getLabelValue(labels, "attachmentAddedStatus") ||
+          `${label}: ${attachment?.name ?? ""}`,
+      );
+      requestAnimationFrame(() => deleteButtonRef.current?.focus());
+    } else {
+      setAttachmentStatus(
+        getLabelValue(labels, "attachmentRemovedStatus") ||
+          "Attachment removed",
+      );
+      requestAnimationFrame(() => uploadButtonRef.current?.focus());
+    }
+  }, [attachment, labels]);
 
   // Re-validate confirm email when email field changes
   useEffect(() => {
@@ -548,6 +582,7 @@ const ContactForm = ({
               />
               {!attachment && (
                 <Button
+                  ref={uploadButtonRef}
                   variant="secondary"
                   className="contact-form__file-button"
                   onClick={() => fileInputRef.current?.click()}
@@ -568,6 +603,7 @@ const ContactForm = ({
                     </span>
                   </div>
                   <Button
+                    ref={deleteButtonRef}
                     type="button"
                     variant="tertiary"
                     className="contact-form__file-delete"
@@ -595,6 +631,13 @@ const ContactForm = ({
             {errors.attachment && (
               <ValidationMessage>{errors.attachment}</ValidationMessage>
             )}
+            <div
+              className="contact-form__sr-status"
+              role="status"
+              aria-live="polite"
+            >
+              {attachmentStatus}
+            </div>
           </Field>
         )}
 

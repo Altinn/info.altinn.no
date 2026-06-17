@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Text.Json;
+using Infoportal.RichText;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.PublishedCache;
@@ -32,6 +33,9 @@ public class MarkupFilter
         markup = ReplaceImages(markup);
         markup = ReplaceInternalLinks(markup);
         markup = ReplaceLegacyLinks(markup);
+        // Accessibility normalisation: collapse stacked <br> and wrap loose link
+        // runs in a <ul>, after internal links/media have been resolved to URLs.
+        markup = RichTextNormalizer.Normalize(markup);
         return markup;
     }
 
