@@ -52,7 +52,13 @@ const HelpStartPage = ({
               {newVersionHeading}
             </Heading>
           )}
-          <Grid color="company" spacing={3} cols={2}>
+          <Grid
+            as="ul"
+            className="help-start-page__drilldown-grid"
+            color="company"
+            spacing={3}
+            cols={2}
+          >
             {newDrilldownPages.map((page: any, idx: number) => {
               const iconName = (page as any).akselIcon;
               const IconComponent = getIcon(iconName);
@@ -81,7 +87,13 @@ const HelpStartPage = ({
               {currentVersionHeading}
             </Heading>
           )}
-          <Grid color="company" spacing={3} cols={2}>
+          <Grid
+            as="ul"
+            className="help-start-page__drilldown-grid"
+            color="company"
+            spacing={3}
+            cols={2}
+          >
             {oldDrilldownPages.map((page: any, idx: number) => {
               const iconName = (page as any).akselIcon;
               const IconComponent = getIcon(iconName);

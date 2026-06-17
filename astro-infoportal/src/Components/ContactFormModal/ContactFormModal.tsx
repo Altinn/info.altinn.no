@@ -329,18 +329,14 @@ const ContactFormModal = ({
                 formTypeArea.items &&
                 formTypeArea.items.length > 0 && (
                   <Fieldset className="contact-form-modal__formtype">
-                    {(teaserText || teaserHeading) && (
+                    <Fieldset.Legend>
+                      {teaserHeading ||
+                        getLabelValue(labels, 'formTypeLegend') ||
+                        headerTitle}
+                    </Fieldset.Legend>
+                    {teaserText && (
                       <Fieldset.Description>
-                        {teaserText && <RichTextArea {...teaserText} />}
-                        {teaserHeading && (
-                          <Heading
-                            as="h2"
-                            size="lg"
-                            style={{marginTop: '2rem'}}
-                          >
-                            {teaserHeading}
-                          </Heading>
-                        )}
+                        <RichTextArea {...teaserText} />
                       </Fieldset.Description>
                     )}
                     {formTypeArea.items.map((item: any, index: number) => (

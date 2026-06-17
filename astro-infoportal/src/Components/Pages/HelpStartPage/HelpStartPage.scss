@@ -19,6 +19,14 @@
     }
   }
 
+  // Rendered as a <ul> (semantic list of drilldown cards) but laid out as a
+  // grid, so strip the default list bullets/indentation.
+  &__drilldown-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
   &__question-section {
     margin-top: 3rem;
 
