@@ -27,12 +27,12 @@ patches:
         path: /spec/template/spec/containers/0/env/-
         value:
           name: Umbraco__CMS__WebRouting__UmbracoApplicationUrl
-          value: https://cms.at22.altinn.info
+          value: https://cms.at22.altinn.no
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
           name: Umbraco__CMS__Security__BackOfficeHost
-          value: https://cms.at22.altinn.info
+          value: https://cms.at22.altinn.no
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
@@ -66,5 +66,5 @@ patches:
       - op: add
         path: /spec/hostnames
         value:
-          - cms.at22.altinn.info
+          - cms.at22.altinn.no
           - infoportal.at22.dis-core.altinn.cloud
