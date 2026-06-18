@@ -27,12 +27,12 @@ patches:
         path: /spec/template/spec/containers/0/env/-
         value:
           name: Umbraco__CMS__WebRouting__UmbracoApplicationUrl
-          value: https://cms.tt02.altinn.info
+          value: https://cms.tt02.altinn.no
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
           name: Umbraco__CMS__Security__BackOfficeHost
-          value: https://cms.tt02.altinn.info
+          value: https://cms.tt02.altinn.no
       - op: add
         path: /spec/template/spec/containers/0/env/-
         value:
@@ -67,4 +67,4 @@ patches:
         path: /spec/hostnames
         value:
           - infoportal.tt02.dis-core.altinn.cloud
-          - cms.tt02.altinn.info
+          - cms.tt02.altinn.no
