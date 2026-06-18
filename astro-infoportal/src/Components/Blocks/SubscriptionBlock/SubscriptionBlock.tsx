@@ -28,7 +28,7 @@ const SubscriptionBlock = ({
           alt=""
         />
         <div className="a-cardImage-text">
-          <h2>{title || ''}</h2>
+          {title && <h2>{title}</h2>}
           <p>{ingress || ''}</p>
 
           <form

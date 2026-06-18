@@ -59,10 +59,12 @@ const ProviderContactInformationBlock = ({
   return (
     <div className="provider-contact-info">
       <ContactCard items={items}>
-        <Heading size="lg" as="h2" className="provider-contact-info__heading">
-          {providerAvatar && <ListItemIcon icon={providerAvatar} />}
-          {pageName || ""}
-        </Heading>
+        {(pageName || providerAvatar) && (
+          <Heading size="lg" as="h2" className="provider-contact-info__heading">
+            {providerAvatar && <ListItemIcon icon={providerAvatar} />}
+            {pageName || ""}
+          </Heading>
+        )}
 
         {body && (
           <div className="provider-contact-info__body">

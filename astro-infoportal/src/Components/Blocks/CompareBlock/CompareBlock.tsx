@@ -19,12 +19,12 @@ const CompareBlock = ({
 
   return (
     <div className="a-compare-category">
-      <h2>{heading || ""}</h2>
+      {heading && <h2>{heading}</h2>}
       <div className="row">
         {hasColumn1 && (
           <div className="a-compare-container col-xs-6 col-md col-max-4">
             <div className="a-compare-element">
-              <h3>{compareHeading1 || ""}</h3>
+              {compareHeading1 && <h3>{compareHeading1}</h3>}
               {compareText1 && <RichTextArea {...compareText1} />}
             </div>
           </div>
@@ -32,7 +32,7 @@ const CompareBlock = ({
         {hasColumn2 && (
           <div className="a-compare-container col-xs-6 col-md col-max-4">
             <div className="a-compare-element">
-              <h3>{compareHeading2 || ""}</h3>
+              {compareHeading2 && <h3>{compareHeading2}</h3>}
               {compareText2 && <RichTextArea {...compareText2} />}
             </div>
           </div>
@@ -40,7 +40,7 @@ const CompareBlock = ({
         {hasColumn3 && (
           <div className="a-compare-container col-xs-6 col-md col-max-4">
             <div className="a-compare-element">
-              <h3>{compareHeading3 || ""}</h3>
+              {compareHeading3 && <h3>{compareHeading3}</h3>}
               {compareText3 && <RichTextArea {...compareText3} />}
             </div>
           </div>
@@ -48,7 +48,7 @@ const CompareBlock = ({
         {hasColumn4 && (
           <div className="a-compare-container col-xs-6 col-md col-max-4">
             <div className="a-compare-element">
-              <h3>{compareHeading4 || ""}</h3>
+              {compareHeading4 && <h3>{compareHeading4}</h3>}
               {compareText4 && <RichTextArea {...compareText4} />}
             </div>
           </div>
