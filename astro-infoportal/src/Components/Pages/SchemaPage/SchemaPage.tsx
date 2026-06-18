@@ -133,7 +133,12 @@ const SchemaPage = ({
         {(Boolean(orangeMessageTitle?.trim()) ||
           (orangeMessage?.items?.length ?? 0) > 0) && (
           <Section margin="section">
-            <Alert variant="warning" heading={orangeMessageTitle ?? ""}>
+            {/* Alert always renders its heading element; normalise a blank
+                title to "" so the empty-heading CSS net (#530) hides it. */}
+            <Alert
+              variant="warning"
+              heading={orangeMessageTitle?.trim() ? orangeMessageTitle : ""}
+            >
               <RichTextArea {...orangeMessage} />
             </Alert>
           </Section>

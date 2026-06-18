@@ -109,6 +109,27 @@ function rewriteTables(root: HTMLElement): void {
     }
 
     promoteFirstRowToHeader(table);
+    downgradeEmptyHeaders(table);
+  }
+}
+
+// A <th> with no text/media is an empty table header (WCAG violation, issue
+// #530). It's not a real header, so downgrade it to a <td>.
+function cellIsEmpty(cell: HTMLElement): boolean {
+  if (cell.querySelector("img, svg, picture, video, iframe")) return false;
+  return !(cell.textContent ?? "").trim();
+}
+
+function downgradeEmptyHeaders(table: HTMLElement): void {
+  for (const th of table.querySelectorAll("th")) {
+    if (!cellIsEmpty(th)) continue;
+    const attrString = Object.entries(th.attributes)
+      .filter(([k]) => k.toLowerCase() !== "scope")
+      .map(([k, v]) => `${k}="${escapeAttr(v)}"`)
+      .join(" ");
+    const td = parse(`<td${attrString ? " " + attrString : ""}></td>`)
+      .firstChild as HTMLElement;
+    th.replaceWith(td);
   }
 }
 
@@ -130,13 +151,21 @@ function promoteFirstRowToHeader(table: HTMLElement): void {
     (n) => (n as HTMLElement).tagName?.toLowerCase() === "td",
   ) as HTMLElement[];
   for (const td of cells) {
+    // Leave blank corner/spacer cells as <td>; an empty <th> is a WCAG
+    // violation (issue #530) and a blank cell isn't a real column header.
+    if (cellIsEmpty(td)) continue;
     const attrs = td.attributes;
     const inner = td.innerHTML;
+    const hasScope = Object.keys(attrs).some(
+      (k) => k.toLowerCase() === "scope",
+    );
     const attrString = Object.entries(attrs)
       .map(([k, v]) => `${k}="${escapeAttr(v)}"`)
       .join(" ");
-    const th = parse(`<th${attrString ? " " + attrString : ""}>${inner}</th>`)
-      .firstChild as HTMLElement;
+    const scopeAttr = hasScope ? "" : ' scope="col"';
+    const th = parse(
+      `<th${scopeAttr}${attrString ? " " + attrString : ""}>${inner}</th>`,
+    ).firstChild as HTMLElement;
     td.replaceWith(th);
   }
 

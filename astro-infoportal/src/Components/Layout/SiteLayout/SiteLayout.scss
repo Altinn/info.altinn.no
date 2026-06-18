@@ -2,6 +2,15 @@ body {
   margin: 0;
 }
 
+/* Accessibility safety net (issue #530): never expose an empty heading to
+   screen readers. Components should avoid rendering headings without text, but
+   this also covers third-party components (e.g. the warning Alert) that always
+   render their heading element. Headings containing an icon/image are not
+   :empty, so they are unaffected. */
+:is(h1, h2, h3, h4, h5, h6):empty {
+  display: none;
+}
+
 /* Sidebar selected item styling */
 .selected {
   font-weight: bold;
