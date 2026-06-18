@@ -102,4 +102,40 @@ public class RichTextNormalizerTests
         const string input = "<p><img src=\"a.jpg\" /> hello <b>world</b></p>";
         Assert.Equal(input, RichTextNormalizer.Normalize(input));
     }
+
+    // --- empty links (#533) ---
+
+    [Fact]
+    public void Removes_a_truly_empty_link_word_artifact()
+    {
+        var output = RichTextNormalizer.Normalize(
+            "<p>x</p><a id=\"_anchor_7\" href=\"#_msocom_7\"></a>");
+        Assert.DoesNotContain("<a", output);
+    }
+
+    [Fact]
+    public void Unwraps_a_link_that_contains_only_a_break()
+    {
+        var output = RichTextNormalizer.Normalize("<a href=\"/x\"><br></a>");
+        Assert.DoesNotContain("<a", output);
+        Assert.Contains("<br", output);
+    }
+
+    [Fact]
+    public void Keeps_a_link_that_has_text()
+    {
+        const string input = "<p>See <a href=\"/x\">link</a></p>";
+        var output = RichTextNormalizer.Normalize(input);
+        Assert.Contains(">link</a>", output);
+        // single link with text: nothing to do, returned verbatim
+        Assert.Equal(input, output);
+    }
+
+    [Fact]
+    public void Keeps_an_image_link_with_alt_text()
+    {
+        var output = RichTextNormalizer.Normalize(
+            "<a href=\"/x\"><img src=\"i.png\" alt=\"desc\"></a>");
+        Assert.Contains("<a", output);
+    }
 }

@@ -85,7 +85,13 @@ export class HeroArticlePageBaseTransformer implements IJSONTransformer {
       pageName: cmsPageData.name,
       articlePageHero: {},
       mainIntro: props.mainIntro,
-      mainBody: mainBody ? { ...mainBody, addAnchors: true } : mainBody,
+      mainBody: mainBody
+        ? {
+            ...mainBody,
+            addAnchors: true,
+            anchorLabel: t("common.linkToSection", locale),
+          }
+        : mainBody,
       breadcrumb,
       lastUpdatedDateText: lastUpdatedDateString ? t("common.lastUpdated", locale) : undefined,
       lastUpdatedDateString,

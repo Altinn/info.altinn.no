@@ -53,3 +53,49 @@ describe("rewriteTables: empty header cells (issue #530)", () => {
     expect(out).toContain("ds-table");
   });
 });
+
+describe("accessible heading section anchors (issue #533)", () => {
+  const transformWithAnchors = (html: string) =>
+    transformRichTextHtml(html, {
+      usedIds: new Set<string>(),
+      addAnchors: true,
+      anchorLabel: "Lenke til seksjonen",
+    });
+
+  const firstAnchorTag = (html: string) => html.match(/<a\b[^>]*>/)?.[0] ?? "";
+
+  it("assigns a slug id to the heading", () => {
+    expect(transformWithAnchors("<h2>Skatt</h2>")).toContain('id="skatt"');
+  });
+
+  it("adds a labelled, focusable anchor that is not empty or aria-hidden", () => {
+    const a = firstAnchorTag(transformWithAnchors("<h2>Skatt</h2>"));
+    expect(a).toContain('class="heading-anchor"');
+    expect(a).toContain('href="#skatt"');
+    expect(a).toContain('aria-label="Lenke til seksjonen Skatt"');
+    expect(a).not.toContain("aria-hidden"); // the <a> stays in the a11y tree
+    expect(a).not.toContain('tabindex="-1"'); // keyboard-accessible
+  });
+
+  it("keeps the decorative icon aria-hidden", () => {
+    expect(transformWithAnchors("<h2>Skatt</h2>")).toContain(
+      'class="heading-anchor__icon" aria-hidden="true"',
+    );
+  });
+
+  it("escapes quotes in the aria-label", () => {
+    const a = firstAnchorTag(transformWithAnchors('<h2>Skatt "x"</h2>'));
+    expect(a).toContain("&quot;");
+    expect(a).not.toContain('"x"');
+  });
+
+  it("does not add an anchor to an empty heading", () => {
+    expect(transformWithAnchors("<h2></h2>")).not.toContain("heading-anchor");
+  });
+
+  it("keeps ids unique across repeated heading text", () => {
+    const out = transformWithAnchors("<h2>Skatt</h2><h2>Skatt</h2>");
+    expect(out).toContain('id="skatt"');
+    expect(out).toContain('id="skatt-2"');
+  });
+});
