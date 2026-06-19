@@ -133,7 +133,10 @@ globalData = {
 
 const pageData = await new JSONTransformer().Transform(umbracoPageData, globalData);
 const metadata = {
-  ...buildMetadata(umbracoPageData, locale),
+  // Drive <html lang> from the effective content language, not the URL locale:
+  // an NB-only page served at /en/ falls back to nb content, so lang must be nb
+  // to match the actual text a screen reader reads (issue #494 follow-up).
+  ...buildMetadata(umbracoPageData, contentLocale),
   ...(isLocaleRoot ? { title: "Altinn - Start" } : {}),
 };
 

@@ -29,8 +29,13 @@ const globalData: any = getGlobalData(
   umbracoPageData?.contentType,
 );
 
+// Use the effective content language for <html lang> (an NB-only error page
+// served at /en/ falls back to nb content), not the URL locale (issue #494).
+const contentLocale: Locale =
+  umbracoPageData?.cultures && umbracoPageData.cultures[locale] ? locale : "nb";
+
 const pageData = await new JSONTransformer().Transform(umbracoPageData, globalData);
-const metadata = buildMetadata(umbracoPageData, locale);
+const metadata = buildMetadata(umbracoPageData, contentLocale);
 
 Astro.response.status = 404;
 Astro.response.headers.set("Cache-Control", pageCacheControl(Astro.url.hostname));
