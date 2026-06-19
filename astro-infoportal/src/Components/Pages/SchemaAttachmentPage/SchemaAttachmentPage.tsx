@@ -80,7 +80,10 @@ const SchemaAttachmentPage = ({
 
       {orangeMessage && (
         <Section margin="section">
-          <Alert variant="warning" heading={orangeMessageTitle ?? ""}>
+          <Alert
+            variant="warning"
+            heading={orangeMessageTitle?.trim() ? orangeMessageTitle : ""}
+          >
             <RichTextArea {...orangeMessage} />
           </Alert>
         </Section>
