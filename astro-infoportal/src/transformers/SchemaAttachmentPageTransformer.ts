@@ -5,11 +5,16 @@ import {
 } from "@services/Providers/ProviderResolver";
 import {
   fetchUmbracoAncestors,
+  fetchUmbracoContentById,
   resolveBlockReferences,
 } from "../api/umbraco/client";
 import { BlockTransformer } from "./BlockTransformer";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
 import type { IJSONTransformer } from "./IJSONTransformer";
+import {
+  buildPromoAreaContentArea,
+  resolvePromoAreaWithNbFallback,
+} from "./promoAreaContact";
 
 export class SchemaAttachmentPageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
@@ -50,9 +55,21 @@ export class SchemaAttachmentPageTransformer implements IJSONTransformer {
     });
     const accordianList = props.accordianList || undefined;
 
-    const promoArea = props.promoArea
-      ? BlockTransformer.TransformBlocks(props.promoArea)
-      : undefined;
+    // promoArea ("Faglig brukerstøtte"): contact blocks must render as
+    // ProviderContactInformationBlock — passing them through raw BlockTransformer
+    // emits a non-existent `FormElementContact` component, so the block silently
+    // disappears even on NB attachment pages. NB fallback for empty localised
+    // content (issue #365).
+    const promoAreaData = await resolvePromoAreaWithNbFallback(
+      cmsPageData.id,
+      props.promoArea,
+      contentLocale,
+      (id) => fetchUmbracoContentById(id, "nb"),
+    );
+    const promoArea = buildPromoAreaContentArea(
+      promoAreaData,
+      (content) => BlockTransformer.TransformBlocks([content]).items[0],
+    );
 
     const resolvedSchemas = await resolveBlockReferences(props.schemas, contentLocale);
     const relatedSchemas = await Promise.all(

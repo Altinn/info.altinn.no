@@ -5,6 +5,7 @@ import {
   fetchUmbracoAncestors,
   fetchUmbracoChildren,
   fetchUmbracoContent,
+  fetchUmbracoContentById,
   resolveBlockReferences,
 } from "../api/umbraco/client";
 import { buildMunicipalitySearch } from "../api/umbraco/municipalitySearch";
@@ -12,6 +13,10 @@ import { BlockTransformer } from "./BlockTransformer";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
 import { stripCategoryPrefix } from "./categoryPrefix";
 import type { IJSONTransformer } from "./IJSONTransformer";
+import {
+  buildPromoAreaContentArea,
+  resolvePromoAreaWithNbFallback,
+} from "./promoAreaContact";
 
 // Prefer rich text when an editor has populated it; fall back to the legacy plain-text field.
 const richTextOrText = (rich: any, text: any) =>
@@ -109,44 +114,22 @@ export class SchemaPageTransformer implements IJSONTransformer {
       };
     });
 
-    // `promoArea` (editor label "Faglig brukerstøtte") is a Block List. Items wrap
-    // each block as `{ content: { contentType, id, properties }, settings }`, with
-    // properties inline (no picker hydration needed). Both `formElementContactFreetext`
-    // and the legacy `formElementContact` (no `heading` field) map to
-    // ProviderContactInformationBlock; other block types fall back to
-    // BlockTransformer's contentType-keyed registry.
-    const promoBlockItems: any[] = Array.isArray(props.promoArea?.items)
-      ? props.promoArea.items
-      : [];
-    const promoItems = promoBlockItems
-      .map((wrapper: any) => {
-        const content = wrapper?.content ?? wrapper;
-        const blockProps = content?.properties ?? {};
-        if (
-          content?.contentType === "formElementContactFreetext" ||
-          content?.contentType === "formElementContact"
-        ) {
-          return {
-            componentName: "ProviderContactInformationBlock",
-            body: blockProps.body ?? undefined,
-            bottomText: blockProps.bottomText ?? undefined,
-            webpageLink: blockProps.webpageLink ?? undefined,
-            telephone: blockProps.telephone ?? "",
-            telephoneLabel: blockProps.telephoneLabel ?? "",
-            email: blockProps.email ?? "",
-            emailTitle: blockProps.emailTitle ?? "",
-            // schemaPage shows only the editor-supplied heading; no provider
-            // name / emblem fallback (providerPage handles the fallback case).
-            pageName: blockProps.heading || "",
-            providerIcon: undefined,
-          };
-        }
-        return BlockTransformer.TransformBlocks([content]).items[0];
-      })
-      .filter(Boolean);
-    const promoArea = promoItems.length
-      ? { componentName: "ContentArea", items: promoItems }
-      : undefined;
+    // `promoArea` (editor label "Faglig brukerstøtte") is a Block List. Contact
+    // blocks render as ProviderContactInformationBlock; other blocks fall back to
+    // BlockTransformer's contentType-keyed registry. schemaPage passes no heading
+    // fallback, so an unset heading shows no provider name/emblem. The block is
+    // only authored on NB content, so fall back to the NB node when the localised
+    // value is empty (issue #365).
+    const promoAreaData = await resolvePromoAreaWithNbFallback(
+      cmsPageData.id,
+      props.promoArea,
+      contentLocale,
+      (id) => fetchUmbracoContentById(id, "nb"),
+    );
+    const promoArea = buildPromoAreaContentArea(
+      promoAreaData,
+      (content) => BlockTransformer.TransformBlocks([content]).items[0],
+    );
 
     // Sidebar: schema's tree parent is a providerPage (URL: /skjemaoversikt/<provider>/<schema>/),
     // so the category/subcategory comes from the `subCategories` Content Picker property.
