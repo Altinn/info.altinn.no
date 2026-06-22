@@ -8,6 +8,7 @@ import useSidebarConfig from '../../Shared/PageSidebar/useSidebarConfig';
 import useFooterConfig from '../Footer/useFooterConfig';
 import useHeaderConfig from '../Header/useHeaderConfig';
 import {useLanguagePreference} from '../Header/hooks/useLanguagePreference';
+import {useHashScroll} from './useHashScroll';
 import './SiteLayout.scss';
 import {SkipLink} from '@digdir/designsystemet-react';
 import BannerBlock from '../../../Components/Blocks/BannerBlock/BannerBlock';
@@ -21,9 +22,8 @@ const SiteLayout = ({
 }: SiteLayoutProps) => {
   const Comp = child ? (Components as any)[child.componentName] : null;
 
-  // Only enable GlobalHeader on client side to avoid SSR issues
-  // const [isClient, setIsClient] = useState(false);
-  // useEffect(() => setIsClient(true), []);
+  // Scroll to a #section target on cold loads once layout has settled.
+  useHashScroll();
 
   const currentLanguage = headerViewModel?.menuLanguageList?.find(
     (l: any) => l.selected,
