@@ -21,6 +21,12 @@ const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const isValidUuid = (value: string): boolean => UUID_RE.test(value);
 
+// SI (self-identified / Altinn 2) parties have no verified name — their party
+// `name` is the login username. Render them as persons, matching
+// @altinn/altinn-components useAccountSelector (groups "SelfIdentified" with "Person").
+const isPersonType = (type: number | string | undefined): boolean =>
+  type === 1 || type === "Person" || type === 3 || type === "SelfIdentified";
+
 // Determines the visual theme for the header and layout
 const getAccountColor = (
   userType: number | string | undefined,
@@ -30,7 +36,7 @@ const getAccountColor = (
     return "company";
   }
 
-  if (userType === 1 || userType === "Person") {
+  if (isPersonType(userType)) {
     return "person";
   }
 
@@ -171,9 +177,7 @@ const useHeaderConfig = (
 
   const userType = useMemo(() => {
     if (!currentUser) return "person";
-    return currentUser.type === 1 || currentUser.type === "Person"
-      ? "person"
-      : "company";
+    return isPersonType(currentUser.type) ? "person" : "company";
   }, [currentUser]);
 
   const accountColor = useMemo(
@@ -202,7 +206,7 @@ const useHeaderConfig = (
   );
 
   const transformParty = (party: AuthorizedPartyData): LibAuthorizedParty => {
-    const isPerson = party.type === 1 || party.type === "Person";
+    const isPerson = isPersonType(party.type);
 
     return {
       partyUuid: party.partyUuid,
