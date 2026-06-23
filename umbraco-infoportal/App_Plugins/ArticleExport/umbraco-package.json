@@ -1,0 +1,23 @@
+{
+  "$schema": "../../umbraco-package-schema.json",
+  "name": "Altinn.ArticleExport",
+  "version": "0.1.0",
+  "extensions": [
+    {
+      "type": "dashboard",
+      "alias": "Altinn.Dashboard.ArticleExport",
+      "name": "Article Export",
+      "element": "/App_Plugins/ArticleExport/dashboard.js",
+      "elementName": "altinn-article-export",
+      "weight": 20,
+      "meta": {
+        "label": "Artikkel eksport",
+        "pathname": "article-export"
+      },
+      "conditions": [
+        { "alias": "Umb.Condition.SectionAlias", "match": "Umb.Section.Settings" },
+        { "alias": "Umb.Condition.CurrentUser.IsAdmin" }
+      ]
+    }
+  ]
+}
