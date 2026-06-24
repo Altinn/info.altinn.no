@@ -3,6 +3,11 @@ import { env } from "cloudflare:workers";
 export const UMBRACO_API_URL =
   env.UMBRACO_API_URL || "https://infoportal.at22.dis-core.altinn.cloud/";
 
+// Expand the banner + consentBanner pickers so their view models get the picked
+// node's properties inline. Shared by the start-page fetches (front page, locale
+// roots, sub-pages, 404, search) so the expand list lives in one place.
+export const START_PAGE_EXPAND = "properties[banner,consentBanner]";
+
 const CULTURE_MAP: Record<string, string> = {
   nb: "nb",
   nn: "nn",
@@ -332,8 +337,8 @@ export async function fetchUmbracoStartPage(locale?: string) {
   const params = new URLSearchParams({
     filter: "contentType:startPage",
     take: "1",
-    // expand the banner picker so buildBanner gets the node's properties inline
-    expand: "properties[banner]",
+    // expand the banner and consentBanner pickers so the view models get the node's properties inline
+    expand: START_PAGE_EXPAND,
   });
   const url = deliveryUrl("/umbraco/delivery/api/v2/content", params.toString());
 

@@ -1,6 +1,6 @@
 ---
 
-import { fetchUmbracoContentWithLocaleFallback, fetchUmbracoErrorPage, fetchUmbracoStartPage, fetchUmbracoMedia } from '@api/umbraco/client';
+import { fetchUmbracoContentWithLocaleFallback, fetchUmbracoErrorPage, fetchUmbracoStartPage, fetchUmbracoMedia, START_PAGE_EXPAND } from '@api/umbraco/client';
 import AstroSiteLayout from '@layouts/AstroSiteLayout.astro';
 import { JSONTransformer } from '@transformers/JSONTransformer';
 import { getGlobalData } from '@constants/globalData';
@@ -76,7 +76,7 @@ const umbracoPath = isNorwegianStartRoot ? "/" : path;
 const pagePromise = fetchUmbracoContentWithLocaleFallback(
   umbracoPath,
   locale,
-  isLocaleRoot ? "properties[banner]" : undefined,
+  isLocaleRoot ? START_PAGE_EXPAND : undefined,
 );
 const startPagePromise = isLocaleRoot ? pagePromise : fetchUmbracoStartPage(locale);
 
@@ -133,7 +133,10 @@ globalData = {
 
 const pageData = await new JSONTransformer().Transform(umbracoPageData, globalData);
 const metadata = {
-  ...buildMetadata(umbracoPageData, locale),
+  // Drive <html lang> from the effective content language, not the URL locale:
+  // an NB-only page served at /en/ falls back to nb content, so lang must be nb
+  // to match the actual text a screen reader reads (issue #494 follow-up).
+  ...buildMetadata(umbracoPageData, contentLocale),
   ...(isLocaleRoot ? { title: "Altinn - Start" } : {}),
 };
 

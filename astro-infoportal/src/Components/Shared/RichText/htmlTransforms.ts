@@ -6,6 +6,9 @@ const LINK_ICON_SVG =
 export interface RichTextTransformOptions {
   usedIds: Set<string>;
   addAnchors: boolean;
+  // Localized prefix for the heading permalink's accessible name, e.g.
+  // "Lenke til seksjonen" → aria-label "Lenke til seksjonen {heading}".
+  anchorLabel?: string;
 }
 
 export function transformRichTextHtml(
@@ -17,7 +20,7 @@ export function transformRichTextHtml(
   const root = parse(html);
 
   if (options.addAnchors) {
-    addHeadingAnchors(root, options.usedIds);
+    addHeadingAnchors(root, options.usedIds, options.anchorLabel ?? "");
   }
   rewriteTables(root);
   rewriteLinks(root);
@@ -44,10 +47,18 @@ export function walkAndTransformRichText(node: unknown): void {
   // present at a few sites); `addAnchors` is read from the container.
   if ("items" in node && Array.isArray(node.items)) {
     const addAnchors = "addAnchors" in node && node.addAnchors === true;
+    const anchorLabel =
+      "anchorLabel" in node && typeof node.anchorLabel === "string"
+        ? node.anchorLabel
+        : undefined;
     const usedIds = new Set<string>();
     for (const item of node.items) {
       if (isRichTextItem(item)) {
-        item.html = transformRichTextHtml(item.html, { usedIds, addAnchors });
+        item.html = transformRichTextHtml(item.html, {
+          usedIds,
+          addAnchors,
+          anchorLabel,
+        });
       }
     }
   }
@@ -70,25 +81,37 @@ function isRichTextItem(
   );
 }
 
-function addHeadingAnchors(root: HTMLElement, usedIds: Set<string>): void {
-  const headings = root.querySelectorAll("h2");
-  for (const h of headings) {
-    let id = h.getAttribute("id");
-    if (id?.trim()) {
+// Gives every <h2> a stable slug `id` (so #section deep-links work) and a
+// "permalink" anchor for editors. The anchor is a real, keyboard-focusable,
+// labelled link — NOT an empty/aria-hidden one — so it doesn't trip the WCAG
+// "empty link" / "aria-hidden on focusable" checks (issue #533). Only the
+// decorative icon inside is aria-hidden.
+function addHeadingAnchors(
+  root: HTMLElement,
+  usedIds: Set<string>,
+  anchorLabel: string,
+): void {
+  for (const h of root.querySelectorAll("h2")) {
+    let id = h.getAttribute("id")?.trim() || "";
+    if (id) {
       usedIds.add(id);
     } else {
-      const text = decodeEntities(h.textContent ?? "");
-      id = makeUniqueSlug(slugify(text), usedIds);
+      id = makeUniqueSlug(
+        slugify(decodeEntities(h.textContent ?? "")),
+        usedIds,
+      );
       h.setAttribute("id", id);
     }
 
-    const hasAnchor =
-      h.querySelector("a.heading-anchor") !== null ||
-      h.innerHTML.includes("heading-anchor");
-    if (hasAnchor) continue;
+    const text = decodeEntities(h.textContent ?? "").trim();
+    // Don't anchor an empty heading (#530), and don't double-add.
+    if (!text || h.querySelector("a.heading-anchor")) continue;
 
-    const anchorHtml = `<a class="heading-anchor" href="#${id}" aria-hidden="true" tabindex="-1"><span class="heading-anchor__icon" aria-hidden="true">${LINK_ICON_SVG}</span></a>`;
-    h.insertAdjacentHTML("afterbegin", anchorHtml);
+    const label = escapeAttr(`${anchorLabel} ${text}`.trim());
+    h.insertAdjacentHTML(
+      "afterbegin",
+      `<a class="heading-anchor" href="#${id}" aria-label="${label}"><span class="heading-anchor__icon" aria-hidden="true">${LINK_ICON_SVG}</span></a>`,
+    );
   }
 }
 
@@ -178,6 +201,7 @@ function rewriteLinks(root: HTMLElement): void {
   const links = root.querySelectorAll("a");
   for (const link of links) {
     const classes = splitClasses(link.getAttribute("class"));
+    // The heading permalink is a special icon link, not a content link.
     if (classes.some((c) => c.toLowerCase() === "heading-anchor")) continue;
 
     if (!classes.some((c) => c.toLowerCase() === "ds-link")) {

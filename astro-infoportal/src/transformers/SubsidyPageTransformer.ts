@@ -34,7 +34,13 @@ export class SubsidyPageTransformer implements IJSONTransformer {
       componentName: "SubsidyPage",
       pageName: cmsPageData.name,
       mainIntro: props.mainIntro || undefined,
-      mainBody: mainBody ? { ...mainBody, addAnchors: true } : undefined,
+      mainBody: mainBody
+        ? {
+            ...mainBody,
+            addAnchors: true,
+            anchorLabel: t("common.linkToSection", locale),
+          }
+        : undefined,
       timeline: props.timeline || [],
       breadcrumb,
       lastUpdatedDateText,

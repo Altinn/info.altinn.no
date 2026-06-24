@@ -3,10 +3,15 @@ import { ProviderResolver } from "@services/Providers/ProviderResolver";
 import {
   fetchUmbracoAncestors,
   fetchUmbracoChildren,
+  fetchUmbracoContentById,
   resolveBlockReferences,
 } from "../api/umbraco/client";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
 import type { IJSONTransformer } from "./IJSONTransformer";
+import {
+  buildProviderContactInfo,
+  resolvePromoAreaWithNbFallback,
+} from "./promoAreaContact";
 
 export class ProviderPageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
@@ -78,43 +83,22 @@ export class ProviderPageTransformer implements IJSONTransformer {
     );
     schemas.sort((a: any, b: any) => a.title.localeCompare(b.title, locale));
 
-    // `promoArea` (editor label "Faglig brukerstøtte") is a Block List. Items
-    // wrap each block as `{ content: { contentType, properties }, settings }`
-    // with inline properties (no picker hydration needed). We map the first
-    // `formElementContactFreetext` (or legacy `formElementContact`, which has
-    // no `heading` field) block to a ProviderContactInformationBlock view-model
-    // — same shape as on schemaPage.
-    const promoBlockItems: any[] = Array.isArray(props.promoArea?.items)
-      ? props.promoArea.items
-      : [];
-    let contactInfo: any;
-    for (const wrapper of promoBlockItems) {
-      const content = wrapper?.content ?? wrapper;
-      if (
-        content?.contentType !== "formElementContactFreetext" &&
-        content?.contentType !== "formElementContact"
-      ) {
-        continue;
-      }
-      const bp = content.properties ?? {};
-      contactInfo = {
-        componentName: "ProviderContactInformationBlock",
-        body: bp.body ?? undefined,
-        bottomText: bp.bottomText ?? undefined,
-        webpageLink: bp.webpageLink ?? undefined,
-        telephone: bp.telephone ?? "",
-        telephoneLabel: bp.telephoneLabel ?? "",
-        email: bp.email ?? "",
-        emailTitle: bp.emailTitle ?? "",
-        // Editor-supplied heading wins; provider name is the fallback. The
-        // emblem only shows when the heading isn't set (matches schemaPage).
-        pageName: bp.heading || cmsPageData.name,
-        providerIcon: !bp.heading
-          ? { name: cmsPageData.name, imageUrl: providerIcon.imageUrl }
-          : undefined,
-      };
-      break;
-    }
+    // `promoArea` (editor label "Faglig brukerstøtte") is a Block List. We map
+    // the first contact block to a ProviderContactInformationBlock view-model,
+    // using the provider name + emblem as the heading fallback (the emblem only
+    // shows when the editor left the heading unset). The block is only authored
+    // on NB content, so fall back to the NB node when the localised value is
+    // empty (issue #365).
+    const promoAreaData = await resolvePromoAreaWithNbFallback(
+      cmsPageData.id,
+      props.promoArea,
+      contentLocale,
+      (id) => fetchUmbracoContentById(id, "nb"),
+    );
+    const contactInfo = buildProviderContactInfo(promoAreaData, {
+      name: cmsPageData.name,
+      imageUrl: providerIcon.imageUrl,
+    });
 
     const pageSidebarViewModel = {
       titleItem: {

@@ -23,6 +23,14 @@ public static class RichTextNormalizer
     private static readonly Regex AnchorOpenTag =
         new(@"<a[\s>]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+    // Matches an <a> whose content is empty or only whitespace/<br> — the common
+    // empty-link shapes (Word paste artifacts, links that lost their text).
+    private static readonly Regex EmptyLinkPattern =
+        new(
+            @"<a\b[^>]*>(?:\s|<br\s*/?>)*</a>",
+            RegexOptions.IgnoreCase | RegexOptions.Compiled
+        );
+
     // Block-level containers where an injected <ul> is valid markup and where we
     // look for loose link runs. Deliberately excludes <p>, headings and existing
     // lists, so inline links are left untouched.
@@ -44,10 +52,13 @@ public static class RichTextNormalizer
         }
 
         // Cheap pre-check: only touch the DOM when there's something we might
-        // change (a <br> to collapse, or 2+ links to maybe wrap). Avoids
-        // reserialising the bulk of rich text that needs no normalisation.
+        // change (a <br> to collapse, 2+ links to maybe wrap, or an empty link
+        // to strip). Avoids reserialising the bulk of rich text — in particular,
+        // a single link with text is left byte-for-byte unchanged.
         var hasBreak = html.Contains("<br", StringComparison.OrdinalIgnoreCase);
-        if (!hasBreak && AnchorOpenTag.Matches(html).Count < 2)
+        var anchorCount = AnchorOpenTag.Matches(html).Count;
+        var hasEmptyLink = anchorCount > 0 && EmptyLinkPattern.IsMatch(html);
+        if (!hasBreak && anchorCount < 2 && !hasEmptyLink)
         {
             return html;
         }
@@ -59,10 +70,61 @@ public static class RichTextNormalizer
             return html;
         }
 
+        RemoveEmptyLinks(body);
         CollapseConsecutiveBreaks(body);
         WrapLooseLinkRuns(body);
 
         return body.InnerHtml;
+    }
+
+    // An <a> with no accessible name (no text, no alt'd image, no aria-label/
+    // title) is an empty link (WCAG, issue #533) — e.g. <a><br></a> or Word
+    // paste artifacts <a href="#_msocom_7"></a>. Unwrap it: keep any inner
+    // markup (so a <br> survives as a line break) and drop the link itself.
+    private static void RemoveEmptyLinks(IElement root)
+    {
+        foreach (var anchor in root.QuerySelectorAll("a").ToArray())
+        {
+            if (AnchorHasAccessibleName(anchor))
+            {
+                continue;
+            }
+
+            var parent = anchor.ParentElement;
+            if (parent is null)
+            {
+                continue;
+            }
+
+            while (anchor.FirstChild is not null)
+            {
+                parent.InsertBefore(anchor.FirstChild, anchor);
+            }
+            anchor.Remove();
+        }
+    }
+
+    private static bool AnchorHasAccessibleName(IElement anchor)
+    {
+        if (!string.IsNullOrWhiteSpace(anchor.TextContent))
+        {
+            return true;
+        }
+        if (!string.IsNullOrWhiteSpace(anchor.GetAttribute("aria-label")))
+        {
+            return true;
+        }
+        if (!string.IsNullOrWhiteSpace(anchor.GetAttribute("title")))
+        {
+            return true;
+        }
+        if (anchor.GetAttribute("aria-labelledby") is not null)
+        {
+            return true;
+        }
+        var image = anchor.QuerySelector("img");
+        return image is not null
+            && !string.IsNullOrWhiteSpace(image.GetAttribute("alt"));
     }
 
     // Editors sometimes stack <br><br> for vertical spacing. Collapse any run of

@@ -2,20 +2,18 @@ using System.Net.Mail;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using Umbraco.Cms.Core.Mail;
 using Umbraco.Cms.Core.Models.Blocks;
-using Umbraco.Cms.Core.Models.Email;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.PublishedCache;
-using Umbraco.Extensions;
 using umbraco_infoportal.Options;
+using Azure.Communication.Email;
+using Azure.Identity;
 
 namespace umbraco_infoportal.Controllers.ContactForm;
 
 [ApiController]
 [Route("api/contactform")]
 public sealed class ContactFormController(
-    IEmailSender emailSender,
     IPublishedContentCache publishedContentCache,
     IDocumentCacheService documentCacheService,
     IPublishedContentTypeCache publishedContentTypeCache,
@@ -65,7 +63,7 @@ public sealed class ContactFormController(
         }
 
         Stream? attachmentStream = null;
-        EmailMessageAttachment? emailAttachment = null;
+        EmailAttachment? emailAttachment = null;
 
         try
         {
@@ -89,14 +87,21 @@ public sealed class ContactFormController(
                 }
 
                 attachmentStream = file.OpenReadStream();
-                emailAttachment = new EmailMessageAttachment(attachmentStream, file.FileName);
+                emailAttachment = new EmailAttachment(file.FileName, "application/pdf", BinaryData.FromStream(attachmentStream));
             }
 
             EmailMessage message = BuildMessage(fields, recipient, options.Value.FromAddress, emailAttachment);
-            await emailSender.SendAsync(message, emailType: "ContactForm", enableNotification: false, expires: null);
+
+            var client = new EmailClient(
+                new Uri("https://dis-acs-relay.communication.azure.com"),
+                new DefaultAzureCredential());
+
+            await client.SendAsync(Azure.WaitUntil.Completed, message);
+
             logger.LogInformation(
                 "Contact form sent for schemaId {SchemaId}.",
                 SanitizeForLog(model.SchemaId));
+
             return Ok(new { success = true });
         }
         catch (Exception ex)
@@ -249,7 +254,7 @@ public sealed class ContactFormController(
         CleanedFields fields,
         string recipient,
         string fromAddress,
-        EmailMessageAttachment? attachment)
+        EmailAttachment? attachment)
     {
         HtmlEncoder encoder = HtmlEncoder.Default;
 
@@ -260,16 +265,19 @@ public sealed class ContactFormController(
             $"Telefon: {encoder.Encode(fields.Phone)}<br/>" +
             $"E-post: <a href=\"mailto:{encoder.Encode(fields.Email)}\">{encoder.Encode(fields.Email)}</a></p>";
 
-        return new EmailMessage(
-            from: fromAddress,
-            to: new string?[] { recipient },
-            cc: null,
-            bcc: null,
-            replyTo: new[] { fields.Email },
-            subject: fields.Subject,
-            body: body,
-            isBodyHtml: true,
-            attachments: attachment is null ? null : new[] { attachment });
+        EmailContent emailContent = new EmailContent(fields.Subject)
+        {
+            Html = body,
+        };            
+
+        EmailMessage emailMessage = new EmailMessage(fromAddress, recipient, emailContent);
+        emailMessage.ReplyTo.Add(new EmailAddress(fields.Email));
+
+        if (attachment is not null) {
+            emailMessage.Attachments.Add(attachment);
+        }
+
+        return emailMessage;
     }
 
     private static bool TryParseEmail(string value)

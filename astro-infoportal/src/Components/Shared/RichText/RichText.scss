@@ -6,49 +6,38 @@
     margin-bottom: 1.5rem;
   }
 
-  h2,
-  h3 {
+  h2 {
     position: relative;
 
+    /* Section permalink: hidden until the heading is hovered or the link is
+       focused (keyboard users), so it's unobtrusive but reachable. */
     .heading-anchor {
       position: absolute;
       left: -1.25em;
       top: 0.15em;
       display: inline-flex;
       align-items: center;
-      opacity: 0;
       color: #000;
       text-decoration: none;
+      opacity: 0;
       transition: opacity 120ms ease-in-out;
-
-      .heading-anchor__icon {
-        font-size: 0.95em;
-        line-height: 1;
-      }
     }
 
-    /* Keep anchor color black regardless of state */
-    .heading-anchor,
-    .heading-anchor:link,
-    .heading-anchor:visited,
-    .heading-anchor:hover,
-    .heading-anchor:focus {
-      color: #000;
-    }
-
-    /* Only reveal on heading hover or anchor focus/hover */
-    &:hover .heading-anchor,
     .heading-anchor:hover,
     .heading-anchor:focus,
     .heading-anchor:focus-visible {
-      opacity: 1;
+      color: #000;
     }
 
-    .heading-anchor [data-heading-icon] {
-      display: inline-flex;
-      width: 1em;
-      height: 1em;
+    .heading-anchor__icon {
+      font-size: 0.95em;
       line-height: 1;
+    }
+
+    &:hover .heading-anchor,
+    .heading-anchor:focus,
+    .heading-anchor:focus-visible {
+      opacity: 1;
     }
   }
 }
