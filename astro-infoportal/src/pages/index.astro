@@ -1,5 +1,5 @@
 ---
-import { fetchUmbracoContent } from '@api/umbraco/client';
+import { fetchUmbracoContent, START_PAGE_EXPAND } from '@api/umbraco/client';
 import AstroSiteLayout from '@layouts/AstroSiteLayout.astro';
 import { JSONTransformer } from '@transformers/JSONTransformer';
 import { getGlobalData } from '@constants/globalData';
@@ -15,8 +15,8 @@ let umbracoPageData: any = null;
 // Fetch the correct Umbraco path for the locale
 const umbracoPath = locale === "en" ? "/en/" : "/";
 const [pageResult] = await Promise.allSettled([
-  // expand the banner picker so buildBanner gets the node's properties (see fetchUmbracoStartPage)
-  fetchUmbracoContent(umbracoPath, locale, "properties[banner]"),
+  // expand the banner and consentBanner pickers so the view models get the node's properties (see fetchUmbracoStartPage)
+  fetchUmbracoContent(umbracoPath, locale, START_PAGE_EXPAND),
 ]);
 
 if (pageResult.status === 'rejected') {
