@@ -9,8 +9,7 @@ import { getProfileApiBaseUrl } from "../../../../api/altinn/config";
 
 export const prerender = false;
 
-// Persist language: PATCH the profile + set the cross-Altinn altinnPersistentContext
-// cookie (mirrors AM's SettingsController, calling the platform directly).
+// Persist language: PATCH the profile (mirrors AM's SettingsController, calling the platform directly).
 export const POST: APIRoute = async ({ request }) => {
   const auth = getAuthContext(request);
   if (!auth.isAuthenticated) {
@@ -35,7 +34,6 @@ export const POST: APIRoute = async ({ request }) => {
     return jsonResponse({ error: "Unsupported language" }, 400);
   }
   const locale = languageCode;
-  const persistentContext = LOCALE_TO_PERSISTENT_CONTEXT[locale];
 
   try {
     const response = await altinnPlatformFetch(
@@ -52,18 +50,10 @@ export const POST: APIRoute = async ({ request }) => {
       return jsonResponse({ error: "Failed to update language" }, 500);
     }
 
-    // Parent host (e.g. altinn.no) so other Altinn apps read it — not the info host.
-    const cookieDomain = new URL(auth.config.endpoints.hostBaseUrl).hostname;
-    const secure = cookieDomain !== "localhost";
     const headers = new Headers();
     headers.append("Content-Type", "application/json");
     headers.append("Cache-Control", "no-store");
-    headers.append(
-      "Set-Cookie",
-      `altinnPersistentContext=${persistentContext}; Path=/; Domain=${cookieDomain}; SameSite=Lax; HttpOnly${
-        secure ? "; Secure" : ""
-      }`,
-    );
+
     return new Response(JSON.stringify({ language: locale }), {
       status: 200,
       headers,
