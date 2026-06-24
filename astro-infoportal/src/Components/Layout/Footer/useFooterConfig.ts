@@ -7,14 +7,40 @@ const useFooterConfig = ({
   helpPage,
   privacyReference,
   accessibilityLocation,
-  operationalMessagesReference
+  operationalMessagesReference,
+  cookieConsent,
 }: any): FooterProps => {
   const menuItems = [
-    helpPage && { id: "1", title: helpPage.text || "", href: helpPage.url || "" },
-    aboutAltinnReference && { id: "2", title: aboutAltinnReference.text || "", href: aboutAltinnReference.url || "" },
-    operationalMessagesReference && { id: "3", title: operationalMessagesReference.text || "", href: operationalMessagesReference.url || "" },
-    privacyReference && { id: "4", title: privacyReference.text || "", href: privacyReference.url || "" },
-    accessibilityLocation && { id: "5", title: accessibilityLocation.text || "", href: accessibilityLocation.url || "" },
+    helpPage && {
+      id: "1",
+      title: helpPage.text || "",
+      href: helpPage.url || "",
+    },
+    aboutAltinnReference && {
+      id: "2",
+      title: aboutAltinnReference.text || "",
+      href: aboutAltinnReference.url || "",
+    },
+    operationalMessagesReference && {
+      id: "3",
+      title: operationalMessagesReference.text || "",
+      href: operationalMessagesReference.url || "",
+    },
+    privacyReference && {
+      id: "4",
+      title: privacyReference.text || "",
+      href: privacyReference.url || "",
+    },
+    accessibilityLocation && {
+      id: "5",
+      title: accessibilityLocation.text || "",
+      href: accessibilityLocation.url || "",
+    },
+    cookieConsent && {
+      id: "6",
+      title: cookieConsent.text || "",
+      href: cookieConsent.url || "",
+    },
   ].filter((item): item is NonNullable<typeof item> => item != null);
 
   const footerProps: FooterProps = {
