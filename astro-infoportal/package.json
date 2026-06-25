@@ -52,7 +52,7 @@
     "picomatch": ">=4.0.4",
     "uuid": "^14.0.1",
     "postcss": "^8.5.15",
-    "@babel/plugin-transform-modules-systemjs": "^7.29.7",
+    "@babel/plugin-transform-modules-systemjs": "^8.0.0",
     "devalue": "^5.8.1",
     "esbuild": "^0.28.1"
   },
