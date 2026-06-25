@@ -76,7 +76,9 @@ const SchemaPage = ({
     ) : null;
 
   const shallowLinkButton = shallowLink ? (
-    <DsLink href={shallowLink}>{shallowLinkText}</DsLink>
+    <DsLink href={shallowLink} className="external-skjema-link">
+      {shallowLinkText}
+    </DsLink>
   ) : null;
 
   const owners: ProviderInlineItem[] = (providerPages || [])
