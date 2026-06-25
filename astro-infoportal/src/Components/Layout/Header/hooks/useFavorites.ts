@@ -5,39 +5,13 @@
 import { useCallback, useEffect, useState } from "react";
 import { isBrowser } from "../utils/browserUtils";
 
-const STORAGE_KEY = "altinn-favorite-parties";
-
-/**
- * Loads favorites from localStorage as fallback
- */
-const loadFromLocalStorage = (): string[] => {
-  if (!isBrowser) return [];
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-};
-
-/**
- * Saves favorites to localStorage as backup
- */
-const saveToLocalStorage = (favorites: string[]): void => {
-  if (!isBrowser) return;
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
-  } catch {
-    // Ignore localStorage errors
-  }
-};
 
 /**
  * Hook for managing user's favorite parties
- * Syncs with backend API and uses localStorage as fallback
+ * Syncs with backend API
  */
 export const useFavorites = () => {
-  const [favorites, setFavorites] = useState<string[]>(loadFromLocalStorage);
+  const [favorites, setFavorites] = useState<string[]>();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,18 +31,15 @@ export const useFavorites = () => {
           const profileGroup = await response.json();
           const favoritePartyIds = profileGroup?.parties || [];
           setFavorites(favoritePartyIds);
-          saveToLocalStorage(favoritePartyIds);
           setError(null);
         } else {
-          console.warn("Failed to load favorites from API, using localStorage");
-          // Keep localStorage values already loaded in state
+          console.warn("Failed to load favorites from API");
         }
       } catch (err) {
         console.error("Error loading favorites:", err);
         setError(
           err instanceof Error ? err.message : "Failed to load favorites",
         );
-        // Keep localStorage values already loaded in state
       } finally {
         setIsLoading(false);
       }
@@ -89,7 +60,6 @@ export const useFavorites = () => {
 
       // Optimistic update
       setFavorites(newFavorites);
-      saveToLocalStorage(newFavorites);
 
       try {
         const method = isFavorite ? "DELETE" : "PUT";
@@ -111,7 +81,6 @@ export const useFavorites = () => {
 
         // Revert optimistic update on error
         setFavorites(favorites);
-        saveToLocalStorage(favorites);
       }
     },
     [favorites],
@@ -126,7 +95,6 @@ export const useFavorites = () => {
 
       // Optimistic update
       setFavorites(newFavorites);
-      saveToLocalStorage(newFavorites);
 
       try {
         const response = await fetch(`/api/users/favorites/${partyUuid}`, {
@@ -145,7 +113,6 @@ export const useFavorites = () => {
 
         // Revert optimistic update on error
         setFavorites(favorites);
-        saveToLocalStorage(favorites);
       }
     },
     [favorites],
@@ -160,7 +127,6 @@ export const useFavorites = () => {
 
       // Optimistic update
       setFavorites(newFavorites);
-      saveToLocalStorage(newFavorites);
 
       try {
         const response = await fetch(`/api/users/favorites/${partyUuid}`, {
@@ -181,7 +147,6 @@ export const useFavorites = () => {
 
         // Revert optimistic update on error
         setFavorites(favorites);
-        saveToLocalStorage(favorites);
       }
     },
     [favorites],
