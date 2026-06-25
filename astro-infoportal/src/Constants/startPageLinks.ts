@@ -41,15 +41,6 @@ function hashMessage(html: string): string {
   return h.toString(16).padStart(16, "0");
 }
 
-// "Banner Color" dropdown labels → Designsystemet roles (BannerBlock.scss keys on these).
-const BANNER_COLOR_BY_LABEL: Record<string, string> = {
-  "blå": "accent",
-  "lyseblå": "info",
-  "grønn": "success",
-  gul: "warning",
-  "rød": "danger",
-};
-
 // `message` arrives pre-shaped as { items: [...] } from the backend RichText converter.
 export function buildBanner(bannerValue: unknown, closeButtonText: string) {
   const first = Array.isArray(bannerValue) ? bannerValue[0] : bannerValue;
@@ -69,10 +60,7 @@ export function buildBanner(bannerValue: unknown, closeButtonText: string) {
     message: { items: messageItems, componentName: "RichTextArea" },
     isActive: Boolean(props.isActive),
     badgeText: (props.badgeText as string) ?? "",
-    colorTheme:
-      BANNER_COLOR_BY_LABEL[
-        ((props.colorTheme as string) ?? "").trim().toLowerCase()
-      ] ?? "accent",
+    variant: "strong",
     closeButtonText,
     contentHash: hashMessage(html),
     localStoragePrefix: "infoportal-banner-dismissed",
