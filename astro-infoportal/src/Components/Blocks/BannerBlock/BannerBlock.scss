@@ -1,5 +1,7 @@
 // Banner component inspired by @altinn/altinn-components Banner
 
+// Inline CMS content block: editor-chosen color (light tinted surface), custom
+// close button, no leading icon.
 .banner-block {
   background-color: var(--ds-color-base-default);
   color: var(--ds-color-base-contrast-default);
@@ -90,6 +92,47 @@
   }
 
   // Hide banner when header menu/account drawer is open on phones
+  @media (max-width: 1023px) {
+    &:has(~ * [data-current-id="menu"]),
+    &:has(~ * [data-current-id="account"]) {
+      display: none;
+    }
+  }
+}
+
+// Global top banner (#571): thin wrapper around the @altinn/altinn-components
+// Banner ("Strong Company": variant="strong" inside data-color="company" →
+// dark-navy surface, white text, native info icon — matching the logged-in
+// banner). The library owns colors/icon/close button; this wrapper provides the
+// company color context and styles the RichText/Badge injected into the title
+// slot, and hides the banner behind the mobile menu.
+.banner-block-strong {
+  // The Banner lays out its leading icon inline. RichText renders a block
+  // <div class="rich-text"><p>…</p></div>, which would otherwise wrap onto the
+  // line below the icon. Render it inline so the message sits beside the icon.
+  .rich-text,
+  .rich-text > * {
+    display: inline;
+    margin: 0;
+  }
+
+  // Keep the injected link readable and underlined, inheriting the Banner's
+  // (white) text color via currentColor.
+  a {
+    color: currentColor;
+    text-decoration: underline;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+
+  // Badge: white background (doubled class beats library specificity).
+  .altinn-badge.altinn-badge {
+    background-color: #FFFFFF;
+  }
+
+  // Hide the banner when the header menu/account drawer is open on phones.
   @media (max-width: 1023px) {
     &:has(~ * [data-current-id="menu"]),
     &:has(~ * [data-current-id="account"]) {
