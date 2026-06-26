@@ -126,6 +126,7 @@ const ConsentBanner = ({
         <Heading
           id={headingId}
           level={2}
+          data-size="sm"
           className="consent-banner__heading"
         >
           {heading}
@@ -142,7 +143,7 @@ const ConsentBanner = ({
             {rejectLabel}
           </Button>
         </div>
-        <Paragraph variant="long" className="consent-banner__necessary">
+        <Paragraph data-size="sm" variant="long" className="consent-banner__necessary">
           {necessaryText}
           <TrailingLink text={necessaryLinkText} url={necessaryLinkUrl} />
         </Paragraph>
