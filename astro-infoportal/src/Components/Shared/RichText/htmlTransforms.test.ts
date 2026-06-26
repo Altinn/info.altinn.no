@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { transformRichTextHtml } from "./htmlTransforms";
+import {
+  transformRichTextHtml,
+  walkAndTransformRichText,
+} from "./htmlTransforms";
 
 const transform = (html: string) =>
   transformRichTextHtml(html, {
@@ -97,5 +100,60 @@ describe("accessible heading section anchors (issue #533)", () => {
     const out = transformWithAnchors("<h2>Skatt</h2><h2>Skatt</h2>");
     expect(out).toContain('id="skatt"');
     expect(out).toContain('id="skatt-2"');
+  });
+});
+
+describe("rewriteTables: responsive scroll wrapper (issue #359)", () => {
+  it("wraps the table in a focusable horizontal-scroll container", () => {
+    const out = transform(
+      "<table><tbody>" +
+        "<tr><td>A</td><td>B</td></tr>" +
+        "<tr><td>1</td><td>2</td></tr>" +
+        "</tbody></table>",
+    );
+    // the table is wrapped so wide tables can scroll instead of overflowing,
+    // and the wrapper is keyboard-focusable so it can be scrolled without a mouse
+    expect(out).toMatch(/<div class="rich-text-table"[^>]*>\s*<table/);
+    expect(out).toContain('tabindex="0"');
+    // the table itself is preserved inside the wrapper
+    expect(out).toContain("ds-table");
+  });
+
+  it("does not double-wrap when run again on already-transformed HTML", () => {
+    const once = transform(
+      "<table><tbody><tr><td>A</td></tr><tr><td>1</td></tr></tbody></table>",
+    );
+    const twice = transform(once);
+    expect(count(twice, /class="rich-text-table"/g)).toBe(1);
+  });
+
+  it("makes the wrapper a labelled region only when a table label is given", () => {
+    const withLabel = transformRichTextHtml(
+      "<table><tbody><tr><td>A</td></tr><tr><td>1</td></tr></tbody></table>",
+      { usedIds: new Set<string>(), addAnchors: false, tableLabel: "Tabell" },
+    );
+    expect(withLabel).toContain('role="region"');
+    expect(withLabel).toContain('aria-label="Tabell"');
+
+    // Without a label, don't emit an unnamed region (landmark noise / WCAG).
+    const noLabel = transform(
+      "<table><tbody><tr><td>A</td></tr><tr><td>1</td></tr></tbody></table>",
+    );
+    expect(noLabel).not.toContain('role="region"');
+  });
+
+  it("threads the table label through walkAndTransformRichText to nested items", () => {
+    const data = {
+      items: [
+        {
+          componentName: "RichText",
+          html: "<table><tbody><tr><td>A</td></tr><tr><td>1</td></tr></tbody></table>",
+        },
+      ],
+    };
+    walkAndTransformRichText(data, { tableLabel: "Tabell" });
+    expect((data.items[0] as { html: string }).html).toContain(
+      'aria-label="Tabell"',
+    );
   });
 });

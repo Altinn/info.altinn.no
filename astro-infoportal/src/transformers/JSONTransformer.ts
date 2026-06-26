@@ -81,7 +81,9 @@ export class JSONTransformer implements IJSONTransformer {
 
     // Pre-transform RichText HTML once, server-side, so it ships identical
     // to SSR output and the client doesn't re-parse during hydration.
-    walkAndTransformRichText(data);
+    walkAndTransformRichText(data, {
+      tableLabel: t("common.table", globalData?.locale),
+    });
 
     return data;
   }
