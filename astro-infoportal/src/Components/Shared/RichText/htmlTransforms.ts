@@ -9,6 +9,10 @@ export interface RichTextTransformOptions {
   // Localized prefix for the heading permalink's accessible name, e.g.
   // "Lenke til seksjonen" → aria-label "Lenke til seksjonen {heading}".
   anchorLabel?: string;
+  // Localized accessible name for the table scroll container, e.g. "Tabell".
+  // When set, the wrapper becomes a labelled `role="region"`; when omitted it
+  // stays an unnamed (but still keyboard-scrollable) container.
+  tableLabel?: string;
 }
 
 export function transformRichTextHtml(
@@ -22,7 +26,7 @@ export function transformRichTextHtml(
   if (options.addAnchors) {
     addHeadingAnchors(root, options.usedIds, options.anchorLabel ?? "");
   }
-  rewriteTables(root);
+  rewriteTables(root, options.tableLabel);
   rewriteLinks(root);
 
   return root.toString();
@@ -36,9 +40,12 @@ export function transformRichTextHtml(
  * different string due to environment-specific `node-html-parser` behavior,
  * which is exactly the React hydration mismatch this is here to prevent.
  */
-export function walkAndTransformRichText(node: unknown): void {
+export function walkAndTransformRichText(
+  node: unknown,
+  options?: { tableLabel?: string },
+): void {
   if (Array.isArray(node)) {
-    for (const item of node) walkAndTransformRichText(item);
+    for (const item of node) walkAndTransformRichText(item, options);
     return;
   }
   if (typeof node !== "object" || node === null) return;
@@ -58,13 +65,14 @@ export function walkAndTransformRichText(node: unknown): void {
           usedIds,
           addAnchors,
           anchorLabel,
+          tableLabel: options?.tableLabel,
         });
       }
     }
   }
 
   for (const value of Object.values(node)) {
-    walkAndTransformRichText(value);
+    walkAndTransformRichText(value, options);
   }
 }
 
@@ -115,7 +123,7 @@ function addHeadingAnchors(
   }
 }
 
-function rewriteTables(root: HTMLElement): void {
+function rewriteTables(root: HTMLElement, tableLabel?: string): void {
   const tables = root.querySelectorAll("table");
   for (const table of tables) {
     const classes = splitClasses(table.getAttribute("class"));
@@ -133,6 +141,27 @@ function rewriteTables(root: HTMLElement): void {
 
     promoteFirstRowToHeader(table);
     downgradeEmptyHeaders(table);
+
+    // Wrap the table so a wide table scrolls horizontally instead of
+    // overflowing the page on narrow screens (issue #359). `tabindex="0"`
+    // makes the scroll container reachable by keyboard (WCAG 2.1.1). Guard
+    // against double-wrapping if the transform runs on already-rewritten HTML.
+    const parent = table.parentNode as HTMLElement | null;
+    const alreadyWrapped = splitClasses(parent?.getAttribute?.("class")).some(
+      (c) => c === "rich-text-table",
+    );
+    if (!alreadyWrapped) {
+      // A named region helps screen-reader users find/scroll the table; skip
+      // the name (no `role="region"`) when none is supplied to avoid an
+      // unnamed landmark.
+      const region = tableLabel
+        ? ` role="region" aria-label="${escapeAttr(tableLabel)}"`
+        : "";
+      const wrapper = parse(
+        `<div class="rich-text-table" tabindex="0"${region}>${table.toString()}</div>`,
+      ).firstChild as HTMLElement;
+      table.replaceWith(wrapper);
+    }
   }
 }
 

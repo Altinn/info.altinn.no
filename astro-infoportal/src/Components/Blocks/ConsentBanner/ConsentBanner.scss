@@ -1,16 +1,15 @@
 // Samtykkebanner.
-// The surface colour #0062b8 is the bespoke "Design på tvers" brand blue
-// (Figma 5939-26559) — it is NOT a Designsystemet token, so it stays literal.
-// White text on it ≈ 5.95:1 (WCAG AA pass); white here is a brand-on-brand-surface
-// choice, not a scheme token, so it stays literal too.
-// Spacing uses --ds-size-* tokens (unit = 4px → size-3=12, size-4=16, size-6=24,
-// size-12=48).
-$consent-bg: #0062b8;
+// Surface colour #0B4172 — bespoke "Design på tvers" brand blue, not a
+// Designsystemet token, so it stays literal. White text on it ≈ 10.5:1 (WCAG AA).
+// Horizontal padding tracks the layout's page gutter (--dsc-spacing-page) so the
+// content lines up with the logo (fallback --ds-size-6 = 24px).
+$consent-bg: #0B4172;
 
 .consent-banner {
   background-color: $consent-bg;
   color: #fff;
-  padding: var(--ds-size-6) var(--ds-size-12); // 24px / 48px (Figma)
+  // vertical 24px; horizontal = page gutter (~24px) so content aligns with the logo
+  padding: var(--ds-size-6) var(--dsc-spacing-page, var(--ds-size-6));
   font-family: var(--ds-font-family, "Inter", sans-serif);
   // Match Figma's text rendering (grayscale antialiasing). macOS browsers default
   // to subpixel antialiasing, which renders Inter noticeably heavier than the
@@ -36,20 +35,11 @@ $consent-bg: #0062b8;
     margin: 0;
   }
 
-  // Figma heading: 32px Inter Regular, line-height 1.2, letter-spacing -0.02em
-  // (-0.64px @ 32px). 32px is not on the DS font-size scale (size-7=30, size-8=36),
-  // so it stays literal. The doubled-specificity selector overrides Designsystemet's
-  // .ds-heading defaults (weight 500, 36px at size="lg") without !important.
-  & &__heading {
-    font-size: 2rem;
-    font-weight: var(--ds-font-weight-regular);
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-  }
+  // Heading is a standard Designsystemet heading-sm (24px) via size="sm" — matches
+  // the H2s elsewhere on the page (designer request); no custom override needed.
 
-  // Figma shows 75% opacity here (≈ 4.0:1 on the brand blue → FAILS AA).
-  // 0.85 ≈ 4.7:1 passes AA while keeping the softer look. Do not go below 0.82
-  // (the ~4.5:1 AA floor on this background).
+  // "Necessary info" line, slightly dimmed. At 0.85 opacity, white on #0B4172
+  // is ≈ 8:1 — comfortably above WCAG AA.
   // Constrain only the running text to a readable measure (Figma: the body and
   // necessary blocks are ~710px wide while the heading spans full width, so the
   // heading stays on one line instead of wrapping).
@@ -81,6 +71,12 @@ $consent-bg: #0062b8;
     }
   }
 
+  // 16px button labels (designer request). Higher specificity than
+  // .ds-button:not([data-size]){font-size:inherit} so it wins without a data-size.
+  & &__actions button {
+    font-size: var(--ds-font-size-3);
+  }
+
   a {
     color: currentColor;
     text-decoration: underline;
@@ -93,9 +89,5 @@ $consent-bg: #0062b8;
     &:hover {
       opacity: 0.85;
     }
-  }
-
-  @media (max-width: 768px) {
-    padding: var(--ds-size-6) var(--ds-size-4); // 24px / 16px
   }
 }

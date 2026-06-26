@@ -3,11 +3,12 @@ import * as Components from "../../../App.Components";
 import "@altinn/altinn-components/dist/global.css";
 import "@digdir/designsystemet-theme";
 import "@digdir/designsystemet-css";
-import type { SiteLayoutProps } from "./SiteLayout.types";
 import useSidebarConfig from "../../Shared/PageSidebar/useSidebarConfig";
 import useFooterConfig from "../Footer/useFooterConfig";
-import useHeaderConfig from "../Header/useHeaderConfig";
 import { useLanguagePreference } from "../Header/hooks/useLanguagePreference";
+import useHeaderConfig from "../Header/useHeaderConfig";
+import type { SiteLayoutProps } from "./SiteLayout.types";
+import { useBannerHeight } from "./useBannerHeight";
 import { useHashScroll } from "./useHashScroll";
 import "./SiteLayout.scss";
 import { SkipLink } from "@digdir/designsystemet-react";
@@ -26,6 +27,10 @@ const SiteLayout = ({
 
   // Scroll to a #section target on cold loads once layout has settled.
   useHashScroll();
+
+  // Issue #576: keep --altinn-banner-height in sync so the actor-selector drawer
+  // offsets below the banner instead of hiding the global-menu row.
+  useBannerHeight();
 
   const currentLanguage = headerViewModel?.menuLanguageList?.find(
     (l: any) => l.selected,
