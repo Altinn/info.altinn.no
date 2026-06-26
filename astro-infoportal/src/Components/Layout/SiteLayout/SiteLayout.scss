@@ -35,3 +35,14 @@ body {
   font-weight: 400;
   line-height: 1.25;
 }
+
+/* Issue #576: feed the infoportal banner-stack height into
+   @altinn/altinn-components. The library positions the actor-selector
+   drawer/backdrop at `top: calc(4.5rem + var(--altinn-banner-height))` and
+   defaults the variable to 0 on the layout base. useBannerHeight publishes the
+   measured height as `--infoportal-banner-height` on <html>; this rule maps it
+   onto the library variable. `div[data-theme]` targets only the layout base,
+   and its specificity (0,1,1) beats the library's class rule (0,1,0). */
+div[data-theme] {
+  --altinn-banner-height: var(--infoportal-banner-height, 0px);
+}
