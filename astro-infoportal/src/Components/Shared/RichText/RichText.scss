@@ -6,6 +6,20 @@
     margin-bottom: 1.5rem;
   }
 
+  /* Wrapper added around tables in htmlTransforms.ts so a wide table scrolls
+     horizontally instead of overflowing the page on narrow screens (issue
+     #359). It's keyboard-focusable (tabindex="0"), so it needs a visible
+     focus ring (WCAG 2.4.7). */
+  .rich-text-table {
+    overflow-x: auto;
+    margin-bottom: 1.5rem;
+
+    &:focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+    }
+  }
+
   h2 {
     position: relative;
 
