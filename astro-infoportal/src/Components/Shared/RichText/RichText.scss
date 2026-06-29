@@ -6,6 +6,15 @@
     margin-bottom: 1.5rem;
   }
 
+  /* Umbraco's RTE re-wraps "<li>Text</li>" as "<li><p>Text</p></li>" when an
+     editor re-saves a page (issue #493). The wrapping <p> would otherwise
+     inherit the paragraph margin above — adding a gap between bullets and
+     pushing the text off its marker. Reset it so a re-saved list matches a
+     freshly-imported one. */
+  li > p {
+    margin: 0;
+  }
+
   /* Wrapper added around tables in htmlTransforms.ts so a wide table scrolls
      horizontally instead of overflowing the page on narrow screens (issue
      #359). It's keyboard-focusable (tabindex="0"), so it needs a visible
