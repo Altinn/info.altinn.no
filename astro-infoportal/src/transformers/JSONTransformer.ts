@@ -39,8 +39,12 @@ export class JSONTransformer implements IJSONTransformer {
       child: null
     };
 
+    // umbracoPageData is null when the Umbraco error-page fetch fails (404.astro
+    // and the [...slug].astro fallback both pass it through). Optional-chain so
+    // GetTransformer gets undefined -> returns null -> we render the layout shell
+    // instead of throwing on .contentType.
     const bodyDataTransformer: IJSONTransformer | null = this.GetTransformer(
-      umbracoPageData.contentType,
+      umbracoPageData?.contentType,
     );
 
     if (bodyDataTransformer != null) {
