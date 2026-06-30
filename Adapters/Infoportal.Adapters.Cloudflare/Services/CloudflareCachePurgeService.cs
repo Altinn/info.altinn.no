@@ -68,6 +68,23 @@ public class CloudflareCachePurgeService : ICloudflareCachePurgeService
         return $"{uri.Scheme}://{uri.Authority}{newPath}{uri.Query}";
     }
 
+    public async Task PurgePrefixesAsync(IEnumerable<string> prefixes, CancellationToken ct = default)
+    {
+        CloudflareOptions opts = _options.CurrentValue;
+        if (!IsConfigured(opts)) return;
+
+        string[] items = (prefixes ?? [])
+            .Where(p => !string.IsNullOrWhiteSpace(p))
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
+        if (items.Length == 0) return;
+
+        foreach (string[] batch in Chunk(items, Math.Max(1, opts.MaxUrlsPerRequest)))
+        {
+            await PostPurgeAsync(opts, new { prefixes = batch }, ct);
+        }
+    }
+
     public Task PurgeEverythingAsync(CancellationToken ct = default)
     {
         CloudflareOptions opts = _options.CurrentValue;

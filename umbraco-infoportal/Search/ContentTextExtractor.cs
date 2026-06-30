@@ -48,6 +48,9 @@ public class ContentTextExtractor
         "Umbraco.TextArea"
     ];
 
+    public static bool IsIndexable(string contentTypeAlias) =>
+        IndexableContentTypes.Contains(contentTypeAlias);
+
     public ContentTextExtractor(
         IContentTypeService contentTypeService,
         IDataTypeService dataTypeService,
