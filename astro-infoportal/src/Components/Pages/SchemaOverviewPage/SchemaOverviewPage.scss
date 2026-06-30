@@ -45,9 +45,16 @@
   &__tab {
     gap: 0.5rem;
     padding: var(--ds-size-3) var(--ds-size-4);
-    width: 100%;
+    // Designsystemet 1.16 sets flex-shrink:0 on the tabs and overflow-x:auto on
+    // the tablist, so the old width:100% made the two tabs total 200% of the
+    // tablist and show a horizontal scrollbar. Growing from a 0 flex-basis splits
+    // the row evenly and sidesteps DS's flex-shrink:0 (a (0,3,0) rule our
+    // single-class selector can't override).
+    flex: 1 1 0;
+    min-width: 0;
     font-size: var(--ds-font-size-3);
     @media (min-width: 768px) {
+      flex: 0 1 auto; // content-width tabs on desktop (match prod, no stretch)
       width: auto;
       font-size: var(--ds-font-size-body);
       padding: var(--ds-size-4) var(--ds-size-5);
