@@ -31,28 +31,12 @@ import { hydrateNestedContactFormPageData } from "./contactFormData";
 export class JSONTransformer implements IJSONTransformer {
   public async Transform(umbracoPageData: any, globalData?: any): Promise<any> {
     const data: any = {
-      headerViewModel:
-        globalData?.properties?.headerViewModel ||
-        globalData?.headerViewModel ||
-        null,
-      footerViewModel:
-        globalData?.properties?.footerViewModel ||
-        globalData?.footerViewModel ||
-        null,
-      pageSidebarViewModel:
-        globalData?.properties?.pageSidebarViewModel ||
-        globalData?.pageSidebarViewModel ||
-        null,
-      skipLinkText:
-        globalData?.properties?.skipLinkText ||
-        globalData?.skipLinkText ||
-        t("common.skipToContent", globalData?.locale),
-      consentBanner:
-        globalData?.properties?.consentBanner ??
-        globalData?.consentBanner ??
-        null,
+      headerViewModel: globalData?.properties?.headerViewModel || globalData?.headerViewModel || null,
+      footerViewModel: globalData?.properties?.footerViewModel || globalData?.footerViewModel || null,
+      pageSidebarViewModel: globalData?.properties?.pageSidebarViewModel || globalData?.pageSidebarViewModel || null,
+      skipLinkText: globalData?.properties?.skipLinkText || globalData?.skipLinkText || t("common.skipToContent", globalData?.locale),
       componentName: "SiteLayout",
-      child: null,
+      child: null
     };
 
     const bodyDataTransformer: IJSONTransformer | null = this.GetTransformer(
@@ -60,10 +44,7 @@ export class JSONTransformer implements IJSONTransformer {
     );
 
     if (bodyDataTransformer != null) {
-      data.child = await bodyDataTransformer.Transform(
-        umbracoPageData,
-        globalData,
-      );
+      data.child = await bodyDataTransformer.Transform(umbracoPageData, globalData);
     }
 
     if (data.child) {

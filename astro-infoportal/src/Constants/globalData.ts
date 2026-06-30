@@ -5,7 +5,6 @@ import {
   type CultureRoutes,
 } from "@constants/languages";
 import { SearchContext } from "@constants/searchContext";
-import { CONSENT_REOPEN_HASH } from "@utils/consent";
 import {
   buildBanner,
   buildLink,
@@ -13,69 +12,6 @@ import {
   resolvePickerUrl,
 } from "@constants/startPageLinks";
 import { type Locale, t } from "@i18n/index";
-
-export type ConsentBannerViewModel = {
-  heading: string;
-  bodyText: string;
-  acceptLabel: string;
-  rejectLabel: string;
-  necessaryText: string;
-  footerLinkText: string;
-  changeLinkText?: string;
-  changeLinkUrl?: string;
-  necessaryLinkText?: string;
-  necessaryLinkUrl?: string;
-};
-
-const asText = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
-
-// Build the consent banner view model from the editor-controlled CMS property.
-// Single source of truth: returns null (banner does not render) when the
-// property is missing or any mandatory field is empty. There is no fallback.
-// Mirrors buildBanner's handling of the Delivery API value shape.
-export function buildConsentBanner(
-  value: unknown,
-): ConsentBannerViewModel | null {
-  const first = Array.isArray(value) ? value[0] : value;
-  const props = (
-    first as { properties?: Record<string, unknown> } | null | undefined
-  )?.properties;
-  if (!props) return null;
-
-  const heading = asText(props.heading);
-  const bodyText = asText(props.bodyText);
-  const acceptLabel = asText(props.acceptLabel);
-  const rejectLabel = asText(props.rejectLabel);
-  const necessaryText = asText(props.necessaryText);
-  const footerLinkText = asText(props.footerLinkText);
-
-  if (
-    !heading ||
-    !bodyText ||
-    !acceptLabel ||
-    !rejectLabel ||
-    !necessaryText ||
-    !footerLinkText
-  ) {
-    return null;
-  }
-
-  const changeLinkUrl = resolvePickerUrl(props.changeLink) ?? undefined;
-  const necessaryLinkUrl = resolvePickerUrl(props.necessaryLink) ?? undefined;
-
-  return {
-    heading,
-    bodyText,
-    acceptLabel,
-    rejectLabel,
-    necessaryText,
-    footerLinkText,
-    changeLinkText: asText(props.changeLinkText) || undefined,
-    changeLinkUrl,
-    necessaryLinkText: asText(props.necessaryLinkText) || undefined,
-    necessaryLinkUrl,
-  };
-}
 
 export function getGlobalData(
   locale: Locale = "nb",
@@ -91,7 +27,6 @@ export function getGlobalData(
   const amUiBase = endpoints.amUiBaseUrl.replace(/\/$/, "");
   const platformBase = endpoints.platformBaseUrl.replace(/\/$/, "");
   const p = startPage?.properties;
-  const consentBanner = buildConsentBanner(p?.consentBanner);
 
   return {
     headerViewModel: {
@@ -162,9 +97,6 @@ export function getGlobalData(
         p?.accessibilityLocation,
         t("footer.accessibility", locale),
       ),
-      cookieConsent: consentBanner
-        ? { text: consentBanner.footerLinkText, url: `#${CONSENT_REOPEN_HASH}` }
-        : null,
       searchContext:
         currentPageContentType === "schemaOverviewPage"
           ? SearchContext.Schema
@@ -175,7 +107,6 @@ export function getGlobalData(
         : searchPageUrl,
     },
     skipLinkText: t("common.skipToContent", locale),
-    consentBanner,
     locale,
     contentLocale,
   };
