@@ -1,6 +1,6 @@
 ---
 
-import { fetchUmbracoContentWithLocaleFallback, fetchUmbracoErrorPage, fetchUmbracoStartPage, fetchUmbracoMedia } from '@api/umbraco/client';
+import { fetchUmbracoContentWithLocaleFallback, fetchUmbracoErrorPage, fetchUmbracoStartPage, fetchUmbracoMedia, START_PAGE_EXPAND } from '@api/umbraco/client';
 import AstroSiteLayout from '@layouts/AstroSiteLayout.astro';
 import { JSONTransformer } from '@transformers/JSONTransformer';
 import { getGlobalData } from '@constants/globalData';
@@ -76,7 +76,7 @@ const umbracoPath = isNorwegianStartRoot ? "/" : path;
 const pagePromise = fetchUmbracoContentWithLocaleFallback(
   umbracoPath,
   locale,
-  isLocaleRoot ? "properties[banner]" : undefined,
+  isLocaleRoot ? START_PAGE_EXPAND : undefined,
 );
 const startPagePromise = isLocaleRoot ? pagePromise : fetchUmbracoStartPage(locale);
 
