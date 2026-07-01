@@ -25,7 +25,7 @@ export class SubsidyPageTransformer implements IJSONTransformer {
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
     const mainBody = props.mainBody;
-    const lastUpdatedDateString = formatDate(cmsPageData.updateDate ?? "");
+    const lastUpdatedDateString = formatDate(props.lastChanged ?? cmsPageData.updateDate);
     const lastUpdatedDateText = lastUpdatedDateString
       ? t("common.lastUpdated", locale)
       : undefined;
