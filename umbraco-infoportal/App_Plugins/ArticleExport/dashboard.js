@@ -72,7 +72,6 @@ class AltinnArticleExportElement extends UmbElementMixin(LitElement) {
 
   #onLanguageChange(e) {
     this._selection = { ...this._selection, language: e.target.value };
-    // Providers/authors are language-variant — refresh them for the chosen language.
   }
 
   #onFieldChange(field, e) {
