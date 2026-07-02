@@ -13,7 +13,6 @@ using Umbraco.Cms.Core.Scoping;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Cms.Web.Common;
-using uSync.Core.Extensions;
 
 namespace umbraco_infoportal.ArticleExport.Services;
 
