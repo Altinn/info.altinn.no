@@ -13,7 +13,6 @@ using Umbraco.Cms.Core.Scoping;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Cms.Web.Common;
-using Umbraco.Extensions;
 
 namespace umbraco_infoportal.ArticleExport.Services;
 
@@ -361,6 +360,8 @@ public sealed class ArticleReportGenerator(
         {
             string owner = string.Join(", ", GetCategoryNames(page, culture));
             string url = page.Url(culture, UrlMode.Absolute);
+            string name = page.Name(culture);
+            name ??= page.Name;
 
             sb.Append("<tr>");
             sb.Append("<td style='border:1px solid #000000;vertical-align:top;'>")
@@ -368,7 +369,7 @@ public sealed class ArticleReportGenerator(
               .Append("</td>");
             sb.Append("<td style='border:1px solid #000000;padding-left:25px;'>");
             sb.Append("<h2><a href='").Append(WebUtility.HtmlEncode(url)).Append("'>")
-              .Append(WebUtility.HtmlEncode(page.Name)).Append("</a></h2>");
+              .Append(WebUtility.HtmlEncode(name)).Append("</a></h2>");
 
             if (IsSchema(page))
             {
@@ -466,14 +467,33 @@ public sealed class ArticleReportGenerator(
         var sb = new StringBuilder();
         foreach (JsonNode? item in items)
         {
-            string? html = item?["html"]?.GetValue<string>();
+            AddItemHtml(item, sb);
+        }
+
+        return sb.ToString();
+    }
+
+    private void AddItemHtml(JsonNode? item, StringBuilder sb)
+    {
+        if (item is null)
+        {
+            return;
+        }
+
+        JsonObject jsonObject = item.AsObject();
+        if (jsonObject["html"] is not null)
+        {
+            string? html = jsonObject["html"]?.GetValue<string>();
             if (!string.IsNullOrWhiteSpace(html))
             {
                 sb.Append(html);
             }
         }
-
-        return sb.ToString();
+        // For content blocks
+        else if (item?["content"] is not null)
+        {
+            AddItemHtml(item?["content"]?["items"]?[0], sb);
+        }
     }
 
     private static string? GetPublicBase(IPublishedContent? start, string culture)
