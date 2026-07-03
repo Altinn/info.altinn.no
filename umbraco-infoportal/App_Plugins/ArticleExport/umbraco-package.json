@@ -15,8 +15,7 @@
         "pathname": "article-export"
       },
       "conditions": [
-        { "alias": "Umb.Condition.SectionAlias", "match": "Umb.Section.Settings" },
-        { "alias": "Umb.Condition.CurrentUser.IsAdmin" }
+        { "alias": "Umb.Condition.SectionAlias", "match": "Umb.Section.Content" }
       ]
     }
   ]
