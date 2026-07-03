@@ -13,7 +13,7 @@ namespace umbraco_infoportal.ArticleExport.Controllers;
 [ApiVersion("1.0")]
 [VersionedApiBackOfficeRoute("article-export")]
 [ApiExplorerSettings(GroupName = "Article Export")]
-[Authorize(Policy = AuthorizationPolicies.RequireAdminAccess)]
+[Authorize(Policy = AuthorizationPolicies.SectionAccessContent)]
 public class ArticleExportController : ManagementApiControllerBase
 {
     private readonly ArticleReportGenerator _generator;
