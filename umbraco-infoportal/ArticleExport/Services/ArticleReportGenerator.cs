@@ -13,6 +13,7 @@ using Umbraco.Cms.Core.Scoping;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Cms.Web.Common;
+using uSync.Core.Extensions;
 
 namespace umbraco_infoportal.ArticleExport.Services;
 
@@ -481,18 +482,33 @@ public sealed class ArticleReportGenerator(
         }
 
         JsonObject jsonObject = item.AsObject();
-        if (jsonObject["html"] is not null)
+
+        string? componentName = jsonObject.GetValueAsString("componentName");
+
+        switch (componentName)
         {
-            string? html = jsonObject["html"]?.GetValue<string>();
-            if (!string.IsNullOrWhiteSpace(html))
-            {
-                sb.Append(html);
-            }
-        }
-        // For content blocks
-        else if (item?["content"] is not null)
-        {
-            AddItemHtml(item?["content"]?["items"]?[0], sb);
+            case "RichText":
+                sb.Append(jsonObject.GetValueAsString("html"));
+                break;
+            case "ContentBlock":
+                AddItemHtml(jsonObject?["content"]?["items"]?[0], sb);
+                break;
+            case "AccordianCollectionBlock":
+                foreach (JsonNode? node in jsonObject.GetPropertyAsArray("accordianArea"))
+                {
+                    AddItemHtml(node, sb);
+                }
+                break;
+            case "SchemaAccordianBlock":
+                sb.Append($"<h3>{item["heading"]}</h3>");
+                foreach (JsonNode? node in jsonObject?.GetPropertyAsObject("description")?.GetPropertyAsArray("items"))
+                {
+                    AddItemHtml(node, sb);
+                }
+                break;
+            case "UrlBlock":
+                sb.Append("<p><a href=\"").Append(item["url"]).Append("\">").Append(item["linkText"]).Append("</a></p>");
+                break;
         }
     }
 
