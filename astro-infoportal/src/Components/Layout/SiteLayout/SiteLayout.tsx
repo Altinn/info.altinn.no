@@ -13,6 +13,7 @@ import { useHashScroll } from "./useHashScroll";
 import "./SiteLayout.scss";
 import { SkipLink } from "@digdir/designsystemet-react";
 import BannerBlock from "../../../Components/Blocks/BannerBlock/BannerBlock";
+import ConsentBanner from "../../../Components/Blocks/ConsentBanner/ConsentBanner";
 
 const SiteLayout = ({
   child,
@@ -20,6 +21,7 @@ const SiteLayout = ({
   footerViewModel,
   pageSidebarViewModel,
   skipLinkText,
+  consentBanner,
 }: SiteLayoutProps) => {
   const Comp = child ? (Components as any)[child.componentName] : null;
 
@@ -35,36 +37,36 @@ const SiteLayout = ({
   )?.languageName;
 
   const normalize = (s?: string) =>
-    (s || '')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
+    (s || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
       .toLowerCase();
-  const getLanguageCode = (langName?: string): 'nb' | 'nn' | 'en' => {
+  const getLanguageCode = (langName?: string): "nb" | "nn" | "en" => {
     const v = normalize(langName);
-    if (!v) return 'nb';
+    if (!v) return "nb";
     if (
-      v === 'nn' ||
-      v === 'nnno' ||
-      v.startsWith('nn-') ||
-      v.includes('nynorsk')
+      v === "nn" ||
+      v === "nnno" ||
+      v.startsWith("nn-") ||
+      v.includes("nynorsk")
     )
-      return 'nn';
-    if (v === 'en' || v.startsWith('en-') || v.includes('english')) return 'en';
+      return "nn";
+    if (v === "en" || v.startsWith("en-") || v.includes("english")) return "en";
     if (
-      v === 'no' ||
-      v === 'nonb' ||
-      v.startsWith('no-') ||
-      v.includes('norsk') ||
-      v.includes('bokmal')
+      v === "no" ||
+      v === "nonb" ||
+      v.startsWith("no-") ||
+      v.includes("norsk") ||
+      v.includes("bokmal")
     )
-      return 'nb';
-    return 'nb';
+      return "nb";
+    return "nb";
   };
 
   const languageCode = getLanguageCode(currentLanguage);
 
   // Config from hooks
-  const {headerProps, color} = useHeaderConfig(
+  const { headerProps, color } = useHeaderConfig(
     headerViewModel || ({} as any),
     languageCode,
   );
@@ -76,40 +78,38 @@ const SiteLayout = ({
 
   // Pages that have their own width constraints and should not be constrained by layout
   const exludedPages = [
-    'StartPage',
-    'SchemaOverviewPage',
-    'SectionPage',
-    'ThemePage',
-    'SubsidyOverviewPage',
-    'ProviderPage',
+    "StartPage",
+    "SchemaOverviewPage",
+    "SectionPage",
+    "ThemePage",
+    "SubsidyOverviewPage",
+    "ProviderPage",
   ];
   const shouldConstrainWidth =
     child && !exludedPages.includes(child.componentName);
   const hasSidebar = !!sidebarConfig;
 
-  const contentColor: 'company' = 'company';
+  const contentColor: "company" = "company";
 
   return (
     <RootProvider languageCode={languageCode}>
-      <SkipLink
-        className="site-layout__skip-link"
-        href="#main-content"
-      >
+      <SkipLink className="site-layout__skip-link" href="#main-content">
         {skipLinkText}
       </SkipLink>
+      {consentBanner && <ConsentBanner {...consentBanner} />}
       {headerViewModel?.banner && <BannerBlock {...headerViewModel.banner} />}
       <Layout
         color={color}
         header={headerViewModel ? headerProps : undefined}
         footer={footerProps}
-        content={{color: contentColor}}
-        {...(sidebarConfig ? {sidebar: sidebarConfig} : {})}
+        content={{ color: contentColor }}
+        {...(sidebarConfig ? { sidebar: sidebarConfig } : {})}
         theme="default"
       >
         {shouldConstrainWidth ? (
           <div
             className={`layout-content-constrained${
-              hasSidebar ? ' layout-content-constrained--sidebar' : ''
+              hasSidebar ? " layout-content-constrained--sidebar" : ""
             }`}
           >
             <Comp {...child} />
