@@ -39,7 +39,8 @@ public class ContentTextExtractor
         "schemaAttachmentPage",
         "helpQuestionPage",
         "helpProcessArticlePage",
-        "newsArticlePage"
+        "newsArticlePage",
+        "articlePage"
     ];
 
     private static readonly HashSet<string> TextEditors =
