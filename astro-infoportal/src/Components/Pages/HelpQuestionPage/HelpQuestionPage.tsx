@@ -19,7 +19,12 @@ const HelpQuestionPage = ({
         <Heading size="xl" as="h1">{pageName}</Heading>
       </ArticleHeader>
 
-      {mainBody && <RichTextArea {...mainBody} />}
+      {mainBody && (
+        <Typography as="div">
+          <RichTextArea {...mainBody} />
+        </Typography>
+      )}
+
     </Article>
   );
 };
