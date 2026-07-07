@@ -18,9 +18,6 @@ import {
   resolvePromoAreaWithNbFallback,
 } from "./promoAreaContact";
 
-// Prefer rich text when an editor has populated it; fall back to the legacy plain-text field.
-const richTextOrText = (rich: any, text: any) =>
-  rich?.items?.length ? rich : text || undefined;
 
 // Altinn2 form deeplinks must stay environment-relative — an absolute URL like
 // `https://www.altinn.no/Pages/...` saved by an editor in tt02 sends users into
@@ -225,11 +222,11 @@ export class SchemaPageTransformer implements IJSONTransformer {
       preInstansiated: props.preInstansiated || false,
       schemaNotInUse: props.schemaNotInUse || false,
       deactivateButton: props.deactivateButton || false,
-      deadline: richTextOrText(props.deadlineRichText, props.deadline),
+      deadline: props.deadlineRichText,
       deadlineText: t("schema.deadline", locale),
-      processTime: richTextOrText(props.processTimeRichText, props.processTime),
+      processTime: props.processTimeRichText,
       processTimeText: t("schema.processTime", locale),
-      fee: richTextOrText(props.feeRichText, props.fee),
+      fee: props.feeRichText,
       feeText: t("schema.fee", locale),
       securityLevelInfo: props.securityLevelInfo || undefined,
       shallowLink: props.shallowLink || undefined,
