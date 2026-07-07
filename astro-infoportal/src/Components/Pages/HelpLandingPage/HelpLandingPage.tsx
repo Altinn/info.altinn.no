@@ -50,6 +50,12 @@ const HelpLandingPage = ({
                 {page.pageName}
               </Details.Summary>
               <Details.Content>
+                {page.body && (
+                <Typography as="div">
+                  <RichTextArea {...page.body} />
+                </Typography>
+              )}
+
                 {page.body && <RichTextArea {...page.body} />}
               </Details.Content>
             </Details>

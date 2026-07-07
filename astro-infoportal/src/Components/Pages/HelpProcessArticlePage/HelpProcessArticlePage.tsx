@@ -36,7 +36,11 @@ const HelpProcessArticlePage = ({
         )}
       </ArticleHeader>
 
-      {mainBody && <RichTextArea {...mainBody} />}
+      {mainBody && (
+        <Typography as="div">
+          <RichTextArea {...mainBody} />
+        </Typography>
+      )}
 
       {timeline && timeline.length > 0 && <TimelineBlock timelineItems={timeline} />}
 
