@@ -195,7 +195,10 @@ export class AdvisorStartBlockTransformer implements IJSONTransformer {
                         }
                     : null;
                 const image = props?.image
-                    ? props.image
+                    ? {
+                        componentName: "Image",
+                        src: props?.image[0]?.url
+                    }
                     : imageFallback
                         ? {
                             componentName: "Image",

@@ -425,6 +425,9 @@ export async function fetchUmbracoMedia(path: string) {
   // Transitioning from old cms media structure */
   path = path.replace("/publicassets/", "/media/");
   path = path.replace("/contentassets/", "/media/");
+  if (path.startsWith("/")) {
+    path = path.substring(1);
+  }
   const url = `${env.UMBRACO_API_URL}${path}`;
   const response = await fetch(url);
 
