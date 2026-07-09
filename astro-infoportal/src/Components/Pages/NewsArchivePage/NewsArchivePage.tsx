@@ -11,7 +11,7 @@ import { Pagination, usePagination } from "@digdir/designsystemet-react";
 import { useResponsivePagination } from "/Services/Hooks/UseResponsivePagination";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
 
-// import ContentArea from "../../Shared/ContentArea/ContentArea";
+import ContentArea from "../../Shared/ContentArea/ContentArea";
 
 const isBrowser =
   typeof window !== "undefined" &&
@@ -25,7 +25,7 @@ const NewsArchivePage = ({
   currentPageNumber,
   lastPageText,
   nextPageText,
-  // bottomContentArea,
+  bottomContentArea,
   breadcrumb,
 }: any) => {
   const { maxPaginationButtons, isMobile } = useResponsivePagination();
@@ -106,7 +106,7 @@ const NewsArchivePage = ({
         </Pagination>
       )}
 
-      {/* {bottomContentArea && <ContentArea {...bottomContentArea} />} */}
+      { bottomContentArea && <ContentArea {...bottomContentArea} /> }
     </Article>
   );
 };
