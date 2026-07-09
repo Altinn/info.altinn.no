@@ -160,8 +160,6 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
         string markup = rteValue.GetPropertyAsString("markup");
 
-        string result = markup;
-
         foreach (Match match in Regex.Matches(markup, pattern))
         {
             Guid blockGuid = Guid.Parse(match.Groups["contentguid"].Value);
@@ -170,7 +168,7 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
             if (blockItemData is null)
             {
-                result = result.Replace(match.Value, "");
+                markup = markup.Replace(match.Value, "");
                 continue;
             }
 
@@ -182,10 +180,10 @@ public class RichTextPropertyConverter : IPropertyValueConverter
             string? url = jsonObject.GetValueAsString("url");
             string linkHtml = $"<a href=\"{url}\" class=\"ds-link\">{linkText}</a>";
 
-            result = result.Replace(match.Value, linkHtml);
+            markup = markup.Replace(match.Value, linkHtml);
         }
 
-        return result;
+        return markup;
     }
 
     private string GetBlockPickerUri(JsonObject contentDataItem)
