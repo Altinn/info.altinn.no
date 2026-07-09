@@ -1,6 +1,7 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
 import { fetchUmbracoAncestors, fetchUmbracoChildren } from "../api/umbraco/client";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
+import { hydrateContentAreaItems } from "./contentArea";
 import { sortNewsByEffectiveDateDesc } from "./newsSort";
 import { type Locale, t } from "@i18n/index";
 
@@ -17,6 +18,7 @@ function parsePageNumber(rawValue?: string) {
 
 export class NewsArchivePageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
+    const props = cmsPageData?.properties ?? {};
     const locale: Locale = globalData?.locale || "nb";
     const contentLocale: Locale = globalData?.contentLocale || locale;
     const allChildren = await fetchUmbracoChildren(
@@ -37,6 +39,8 @@ export class NewsArchivePageTransformer implements IJSONTransformer {
     const ancestors = await fetchUmbracoAncestors(cmsPageData.id, contentLocale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
+    const bottomContentArea = props.bottomContentArea && await hydrateContentAreaItems(props.bottomContentArea, contentLocale);
+
     const newsArticles = paginatedArticles.map((child: any) => {
         return {
             pageName: child.name,
@@ -55,7 +59,8 @@ export class NewsArchivePageTransformer implements IJSONTransformer {
       currentPageNumber,
       lastPageText: t("search.previous", locale),
       nextPageText: t("search.next", locale),
-      breadcrumb: breadcrumb
+      breadcrumb: breadcrumb,
+      bottomContentArea: bottomContentArea
     };
   }
 }
