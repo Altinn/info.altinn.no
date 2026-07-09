@@ -95,8 +95,10 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
         JsonObject rteValue = JsonSerializer.Deserialize<JsonNode>(rawValue).AsObject();
 
+        string markup = ParseInlineUrlBlocks(rawValue);
+        markup = _markupFilter.FilterMarkup(markup);
+
         JsonArray items = [];
-        string markup = _markupFilter.FilterMarkup(rteValue.GetPropertyAsString("markup"));
 
         Match match = Regex.Match(markup, pattern);
 
@@ -124,6 +126,7 @@ public class RichTextPropertyConverter : IPropertyValueConverter
             string uriString = GetBlockPickerUri(blockItemData);
 
             JsonObject jsonObject = ConvertPickerBlock(uriString);
+
             items.Add(jsonObject);
 
             if (markup.Length > match.Length)
@@ -147,6 +150,42 @@ public class RichTextPropertyConverter : IPropertyValueConverter
         }
 
         return items;
+    }
+
+    private string ParseInlineUrlBlocks(string rawValue)
+    {
+        string pattern = @"<umb-rte-block-inline data-content-key=""(?<contentguid>[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})""></umb-rte-block-inline>";
+
+        JsonObject rteValue = JsonSerializer.Deserialize<JsonNode>(rawValue).AsObject();
+
+        string markup = rteValue.GetPropertyAsString("markup");
+
+        string result = markup;
+
+        foreach (Match match in Regex.Matches(markup, pattern))
+        {
+            Guid blockGuid = Guid.Parse(match.Groups["contentguid"].Value);
+
+            JsonObject blockItemData = GetContentDataItem(blockGuid, rteValue);
+
+            if (blockItemData is null)
+            {
+                result = result.Replace(match.Value, "");
+                continue;
+            }
+
+            string uriString = GetBlockPickerUri(blockItemData);
+
+            JsonObject jsonObject = ConvertPickerBlock(uriString);
+
+            string? linkText = jsonObject.GetValueAsString("linkText");
+            string? url = jsonObject.GetValueAsString("url");
+            string linkHtml = $"<a href=\"{url}\" class=\"ds-link\">{linkText}</a>";
+
+            result = result.Replace(match.Value, linkHtml);
+        }
+
+        return result;
     }
 
     private string GetBlockPickerUri(JsonObject contentDataItem)
