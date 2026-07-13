@@ -437,3 +437,17 @@ export async function fetchUmbracoMedia(path: string) {
 
   return await response.bytes();
 }
+
+export async function fetchUmbracoRedirect(path: string) {
+  const url = `${env.UMBRACO_API_URL}api/redirect?path=${path}`;
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch redirect from Umbraco: ${response.statusText} ${url}`);
+  }
+  
+  const text = await response.text();
+  return text.length > 0 ? text : null;
+}
+
+

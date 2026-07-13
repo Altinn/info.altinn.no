@@ -1,4 +1,3 @@
-import { resolveRouteOverride } from "../../Constants/routeOverrides";
 import { fetchUmbracoContentListPage } from "./client";
 
 type SitemapLocale = "nb" | "nn" | "en";
@@ -95,25 +94,20 @@ function normalizePath(path?: string): string | null {
 
   const [pathname] = path.split("?", 1);
   const normalizedPathname = pathname.endsWith("/") ? pathname : `${pathname}/`;
-  const overridden = resolveRouteOverride(normalizedPathname) ?? normalizedPathname;
-  const [overriddenPathname] = overridden.split("?", 1);
-  const normalizedOverride = overriddenPathname.endsWith("/")
-    ? overriddenPathname
-    : `${overriddenPathname}/`;
 
-  if (EXCLUDED_PATHS.has(normalizedOverride)) {
+  if (EXCLUDED_PATHS.has(normalizedPathname)) {
     return null;
   }
 
-  if (EXCLUDED_PATH_SEGMENTS.some((segment) => normalizedOverride.includes(segment))) {
+  if (EXCLUDED_PATH_SEGMENTS.some((segment) => normalizedPathname.includes(segment))) {
     return null;
   }
 
-  if (EXCLUDED_PATH_PATTERNS.some((pattern) => pattern.test(normalizedOverride))) {
+  if (EXCLUDED_PATH_PATTERNS.some((pattern) => pattern.test(normalizedPathname))) {
     return null;
   }
 
-  return normalizedOverride;
+  return normalizedPathname;
 }
 
 function toAbsoluteUrl(baseUrl: string, path: string): string {
