@@ -6,7 +6,6 @@ import {
   fetchUmbracoStartPage,
 } from "../api/umbraco/client";
 import type { SectionPageProps } from "@components/Pages/SectionPage/SectionPage.types";
-import { resolveRouteOverride } from "@constants/routeOverrides";
 import { sortNewsByEffectiveDateDesc } from "./newsSort";
 import { type Locale, t } from "@i18n/index";
 
@@ -26,7 +25,7 @@ function normalizeLinkItem(link: any, fallbackText?: string, fallbackUrl?: strin
   return {
     linkText: text,
     text,
-    url: resolveRouteOverride(url),
+    url: url,
     openInNewWindow: normalizedLink?.openInNewWindow ?? false,
   };
 }

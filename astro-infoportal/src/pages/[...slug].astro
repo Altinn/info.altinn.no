@@ -1,13 +1,11 @@
 ---
 
-import { fetchUmbracoContentWithLocaleFallback, fetchUmbracoErrorPage, fetchUmbracoStartPage, fetchUmbracoMedia, START_PAGE_EXPAND } from '@api/umbraco/client';
+import { fetchUmbracoContentWithLocaleFallback, fetchUmbracoRedirect, fetchUmbracoErrorPage, fetchUmbracoStartPage, fetchUmbracoMedia, START_PAGE_EXPAND } from '@api/umbraco/client';
 import AstroSiteLayout from '@layouts/AstroSiteLayout.astro';
 import { JSONTransformer } from '@transformers/JSONTransformer';
 import { getGlobalData } from '@constants/globalData';
 import { pageCacheControl } from '@constants/cache';
 import { buildMetadata } from '@constants/metadata';
-import { resolveRouteOverride } from '@constants/routeOverrides';
-import { resolveRedirect } from '@constants/routeOverrides';
 import { resolveEnvironment } from '@api/altinn/environments';
 import type { Locale } from '@i18n/index';
 
@@ -52,21 +50,12 @@ if (path.startsWith('/api/') || path.match(/\.[a-zA-Z0-9]+$/)) {
   return new Response(null, { status: 404 });
 }
 
-
-const redirectTarget = resolveRedirect(path);
+const redirectTarget = await fetchUmbracoRedirect(path);
 if (redirectTarget && redirectTarget !== path) {
   const redirectUrl = new URL(redirectTarget, Astro.url);
   redirectUrl.search = Astro.url.search;
   return Astro.redirect(redirectUrl.toString(), 302);
 }
-
-const contentUrl = resolveRouteOverride(path);
-const wasRouteOverridden = contentUrl && contentUrl !== path;
-if (contentUrl && wasRouteOverridden) {
-  path = contentUrl;
-}
-
-
 
 // On a locale-root URL the requested page IS the startPage — reuse the fetch.
 const isLocaleRoot = isNorwegianStartRoot || /^\/(nn|en)\/?$/.test(path);
@@ -102,9 +91,9 @@ const startPageData = startPageResult.status === 'fulfilled' ? startPageResult.v
 // When the request URL doesn't match the page's canonical path for the requested
 // locale (e.g. /en/skjemaoversikt/... served via the NB-path fallback even though
 // the page has an EN variant at /en/forms-overview/...), redirect so the URL bar
-// and rendered content agree. Skipped for route overrides which intentionally
-// keep the user URL stable.
-if (!isError && !wasRouteOverridden && !isLocaleRoot) {
+// and rendered content agree.
+
+if (!isError && !isLocaleRoot) {
   const canonicalPath = umbracoPageData?.cultures?.[locale]?.path;
   const withSlash = (p: string) => (p.endsWith("/") ? p : `${p}/`);
   if (canonicalPath && withSlash(canonicalPath) !== withSlash(Astro.url.pathname)) {
