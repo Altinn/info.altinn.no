@@ -95,6 +95,10 @@ function normalizePath(path?: string): string | null {
   const [pathname] = path.split("?", 1);
   const normalizedPathname = pathname.endsWith("/") ? pathname : `${pathname}/`;
 
+  if (EXCLUDED_PATHS.has(normalizedPathname)) {
+    return null;
+  }
+
   if (EXCLUDED_PATH_SEGMENTS.some((segment) => normalizedPathname.includes(segment))) {
     return null;
   }
