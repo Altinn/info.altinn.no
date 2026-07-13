@@ -25,14 +25,15 @@ public class RedirectController : ControllerBase
         }
 
         path = NormalizePath(path);
+        string pathWithoutTrailingSlash = path[..^1];
 
-        using var scope = _scopeProvider.CreateScope();
+        using IScope scope = _scopeProvider.CreateScope();
 
         // Checking if path belongs to a page that has been moved and got a new url
         RedirectQueryRow? row = scope.Database.SingleOrDefault<RedirectQueryRow>(
             @"SELECT contentKey as ContentGuid, culture 
                 FROM umbracoRedirectUrl WHERE url = @0",
-                "1157" + path.Replace("/en/", "/").Replace("/nn/", "/"));     
+                "1157" + pathWithoutTrailingSlash.Replace("/en/", "/").Replace("/nn/", "/"));     
 
         // If not, checking if path is added through Skybrud Redirects Add-On
         row ??= scope.Database.SingleOrDefault<RedirectQueryRow>(
@@ -49,7 +50,7 @@ public class RedirectController : ControllerBase
                     AND cv.""current"" = 1
                     AND pd.languageId = l.id
                     AND n.id = cv.nodeId
-                    AND pd.varcharValue = @0", path[1..]);  
+                    AND pd.varcharValue = @0", pathWithoutTrailingSlash[1..]);  
 
         if (row is null)
         {
@@ -72,9 +73,9 @@ public class RedirectController : ControllerBase
             path = "/" + path;
         }
 
-        if (path.EndsWith('/'))
+        if (!path.EndsWith('/'))
         {
-            path = path[..(path.Length-1)];
+            path += "/";
         }
 
         return path;
