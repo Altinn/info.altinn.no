@@ -2,6 +2,7 @@ import {
   Article,
   ArticleHeader,
   Heading,
+  Typography
 } from "@altinn/altinn-components";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
 import RichTextArea from "../../Shared/RichTextArea/RichTextArea";
