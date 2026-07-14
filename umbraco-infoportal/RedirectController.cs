@@ -25,7 +25,13 @@ public class RedirectController : ControllerBase
         }
 
         path = NormalizePath(path);
-        string pathWithoutTrailingSlash = path[..^1];
+
+        if (path.Length == 1)
+        {
+            return Ok();
+        }
+
+        string pathWithoutTrailingSlash = path[0..(path.Length - 1)];
         string pathWithoutLanguageAndTrailingSlash = pathWithoutTrailingSlash.Replace("/en/", "/").Replace("/nn/", "/");
 
         using IScope scope = _scopeProvider.CreateScope();
