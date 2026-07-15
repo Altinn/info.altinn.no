@@ -36,19 +36,13 @@ public class RedirectController : ControllerBase
 
         using IScope scope = _scopeProvider.CreateScope();
 
-        // Checking if path belongs to a page that has been moved and got a new url
-        RedirectQueryRow? row = scope.Database.SingleOrDefault<RedirectQueryRow>(
-            @"SELECT contentKey as ContentGuid, culture 
-                FROM umbracoRedirectUrl WHERE url = @0",
-                "1157" + pathWithoutLanguageAndTrailingSlash);     
-
-        // If not, checking if path is added through Skybrud Redirects Add-On
-        row ??= scope.Database.SingleOrDefault<RedirectQueryRow>(
+        // Checking if path is added through Skybrud Redirects Add-On.
+        RedirectQueryRow? row = scope.Database.FirstOrDefault<RedirectQueryRow>(
                 @"SELECT destinationKey as ContentGuid, destinationCulture as Culture 
                     FROM skybrudRedirects WHERE url = @0", path);
 
         // If not, checking if path is a "Enkel adresse" / umbracoUrlAlias
-        row ??= scope.Database.SingleOrDefault<RedirectQueryRow>(
+        row ??= scope.Database.FirstOrDefault<RedirectQueryRow>(
                 @"SELECT n.uniqueId as ContentGuid, l.languageISOCode as Culture 
                     FROM umbracoPropertyData pd, cmsPropertyType pt, umbracoNode n, umbracoContentVersion cv, umbracoLanguage l 
                     WHERE pd.propertyTypeId = pt.id
@@ -58,6 +52,14 @@ public class RedirectController : ControllerBase
                     AND pd.languageId = l.id
                     AND n.id = cv.nodeId
                     AND pd.varcharValue = @0", pathWithoutLanguageAndTrailingSlash[1..]);  
+
+        // If not, checking if path belongs to a page that has been moved and got a new url
+        // Putting this one last to allow overrides through Skybrud Redirects and "Enkel adresse"
+        row ??= scope.Database.FirstOrDefault<RedirectQueryRow>(
+            @"SELECT contentKey as ContentGuid, culture 
+                FROM umbracoRedirectUrl WHERE url = @0",
+                "1157" + pathWithoutLanguageAndTrailingSlash);     
+
 
         if (row is null)
         {
