@@ -45,8 +45,6 @@ public class MarkupFilter
         string pattern = @"<img [^>]+>";
         string resultMarkup = markup;
 
-        Console.WriteLine("Original markup: " + markup);
-
         foreach (Match match in Regex.Matches(markup, pattern))
         {
             string imgTag = match.Value;
@@ -75,8 +73,6 @@ public class MarkupFilter
             }
 
             string newTag = match.Value.Replace($" data-udi=\"{udiString}\"", "").Replace(src, url);
-
-            Console.WriteLine("Replacing " + match.Value + " with " + newTag);
 
             resultMarkup = resultMarkup.Replace(match.Value, newTag);
         }
