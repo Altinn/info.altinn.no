@@ -45,6 +45,8 @@ public class MarkupFilter
         string pattern = @"<img [^>]+>";
         string resultMarkup = markup;
 
+        Console.WriteLine("Original markup: " + markup);
+
         foreach (Match match in Regex.Matches(markup, pattern))
         {
             string imgTag = match.Value;
@@ -72,8 +74,11 @@ public class MarkupFilter
                 url += "?" + parameters;
             }
 
-            resultMarkup = resultMarkup.Replace($" data-udi=\"{udiString}\"", "");
-            resultMarkup = resultMarkup.Replace(src, url);
+            string newTag = match.Value.Replace($" data-udi=\"{udiString}\"", "").Replace(src, url);
+
+            Console.WriteLine("Replacing " + match.Value + " with " + newTag);
+
+            resultMarkup = resultMarkup.Replace(match.Value, newTag);
         }
 
         return resultMarkup;
@@ -86,7 +91,7 @@ public class MarkupFilter
             return null;
         }
 
-        return url.Substring(url.IndexOf("?"));
+        return url.Substring(url.IndexOf("?") + 1);
     }
 
     private string GetUdiFromImageTag(string imageTag)
