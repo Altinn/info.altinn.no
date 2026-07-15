@@ -72,8 +72,8 @@ public class MarkupFilter
                 url += "?" + parameters;
             }
 
-            resultMarkup = resultMarkup.Replace($" data-udi=\"{udiString}\"", "");
-            resultMarkup = resultMarkup.Replace(src, url);
+            string newTag = imgTag.Replace($" data-udi=\"{udiString}\"", "").Replace(src, url);
+            resultMarkup = resultMarkup.Replace(imgTag, newTag);
         }
 
         return resultMarkup;
