@@ -15,6 +15,11 @@
     margin: 0;
   }
 
+  li > p > img {
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
   /* Wrapper added around tables in htmlTransforms.ts so a wide table scrolls
      horizontally instead of overflowing the page on narrow screens (issue
      #359). It's keyboard-focusable (tabindex="0"), so it needs a visible
