@@ -21,10 +21,12 @@ export class NewsArchivePageTransformer implements IJSONTransformer {
     const props = cmsPageData?.properties ?? {};
     const locale: Locale = globalData?.locale || "nb";
     const contentLocale: Locale = globalData?.contentLocale || locale;
+    const isPreview = globalData?.isPreview;
     const allChildren = await fetchUmbracoChildren(
       cmsPageData.route.path,
       2147483647,
       contentLocale,
+      isPreview,
     );
     const newsChildren = sortNewsByEffectiveDateDesc(
       allChildren.filter(isNewsArticle),

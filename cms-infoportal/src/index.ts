@@ -14,6 +14,14 @@ export default {
     headers.set("X-Forwarded-Host", incomingUrl.host);
     headers.set("X-Forwarded-Proto", incomingUrl.protocol.replace(":", ""));
 
+		try {
+			if (url.pathname.toLowerCase().startsWith("/umbraco/delivery/api/")) {
+				return new Response(null, { status: 404 });
+			}
+		} catch (error) {
+			throw new Error(`Failed to fetch API request from origin: ${error}`);
+		}    
+
     const cookieHeader = headers.get("Cookie");
 
     if (cookieHeader) {

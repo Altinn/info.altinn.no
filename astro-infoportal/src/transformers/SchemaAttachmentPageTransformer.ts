@@ -22,6 +22,7 @@ export class SchemaAttachmentPageTransformer implements IJSONTransformer {
     const locale: Locale = globalData?.locale || "nb";
     const contentLocale: Locale = globalData?.contentLocale || locale;
     const resolver = await ProviderResolver.create();
+    const isPreview = globalData?.isPreview;
 
     const ancestors = await fetchUmbracoAncestors(
       cmsPageData.route.path,
@@ -64,14 +65,14 @@ export class SchemaAttachmentPageTransformer implements IJSONTransformer {
       cmsPageData.id,
       props.promoArea,
       contentLocale,
-      (id) => fetchUmbracoContentById(id, "nb"),
+      (id) => fetchUmbracoContentById(id, "nb", isPreview),
     );
     const promoArea = buildPromoAreaContentArea(
       promoAreaData,
       (content) => BlockTransformer.TransformBlocks([content]).items[0],
     );
 
-    const resolvedSchemas = await resolveBlockReferences(props.schemas, contentLocale);
+    const resolvedSchemas = await resolveBlockReferences(props.schemas, contentLocale, isPreview);
     const relatedSchemas = await Promise.all(
       resolvedSchemas.map(async (schema: any) => {
         const schemaPath = schema?.route?.path;

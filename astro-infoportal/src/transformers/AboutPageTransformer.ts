@@ -6,7 +6,7 @@ export class AboutPageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
     const props = cmsPageData?.properties ?? {};
 
-    const resolvedLinks = await resolveBlockReferences(props.linkArea, globalData?.contentLocale ?? globalData?.locale);
+    const resolvedLinks = await resolveBlockReferences(props.linkArea, globalData?.contentLocale ?? globalData?.locale, globalData?.isPreview);
     const linkArea = resolvedLinks.map((item: any) => ({
       text: item?.name,
       url: item?.route?.path,

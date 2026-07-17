@@ -45,7 +45,7 @@ function toRichTextArea(value: any) {
   };
 }
 
-async function hydrateContentAreaItems(items: any, locale: Locale) {
+async function hydrateContentAreaItems(items: any, locale: Locale, isPreview: boolean) {
   if (!Array.isArray(items)) {
     return undefined;
   }
@@ -57,7 +57,7 @@ async function hydrateContentAreaItems(items: any, locale: Locale) {
       }
 
       try {
-        return await fetchUmbracoContent(item.id ?? item.route.path, locale);
+        return await fetchUmbracoContent(item.id ?? item.route.path, locale, undefined, isPreview);
       } catch {
         return item;
       }
@@ -75,8 +75,9 @@ export class HeroArticlePageBaseTransformer implements IJSONTransformer {
     const ancestors = await fetchUmbracoAncestors(cmsPageData.id, contentLocale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
     const mainBody = toRichTextArea(props.mainBody);
+    const isPreview = globalData?.isPreview;
     const bottomContentArea = props.bottomContentArea
-      ? await hydrateContentAreaItems(props.bottomContentArea, contentLocale)
+      ? await hydrateContentAreaItems(props.bottomContentArea, contentLocale, isPreview)
       : undefined;
     const lastUpdatedDateString = formatDate(props.lastChanged ?? cmsPageData.updateDate);
 

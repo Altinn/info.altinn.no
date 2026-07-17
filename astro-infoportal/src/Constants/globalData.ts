@@ -137,6 +137,7 @@ export function getGlobalData(
       dateOfBirthText: t("header.dateOfBirth", locale),
       orgNrText: t("header.orgNr", locale),
       hostBaseUrl: endpoints.hostBaseUrl,
+      isPreview: (currentPath === "/preview")
     },
     footerViewModel: {
       startAndRunCompany: buildLink(

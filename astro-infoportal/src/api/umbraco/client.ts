@@ -14,9 +14,18 @@ const CULTURE_MAP: Record<string, string> = {
   en: "en",
 };
 
-function cultureHeader(culture?: string): HeadersInit {
+function getHeaders(culture?: string, isPreview?: boolean): HeadersInit {
+  const headers:Headers = new Headers();
   const mapped = culture ? CULTURE_MAP[culture] ?? culture : "nb";
-  return { "Accept-Language": mapped };
+
+  headers.append("Accept-Language", mapped);
+
+  if (isPreview) {
+    headers.append("Api-Key", "no-secrets-here"); 
+    headers.append("Preview", "true");
+  }
+
+  return headers;
 }
 
 // Editorial reality: NN and EN content trees frequently lag NB. When a
@@ -71,16 +80,17 @@ export async function fetchUmbracoContent(
   path: string,
   culture?: string,
   expand?: string,
+  isPreview?: boolean,
 ) {
   const url = deliveryUrl(
     `/umbraco/delivery/api/v2/content/item${normalizeDeliveryPath(normalizeItemPath(path))}`,
     expand ? new URLSearchParams({ expand }).toString() : undefined,
   );
 
-  let response = await fetch(url, { headers: cultureHeader(culture) });
+  let response = await fetch(url, { headers: getHeaders(culture, isPreview) });
 
   if (response.status === 404 && shouldTryNbFallback(culture)) {
-    response = await fetch(url, { headers: cultureHeader("nb") });
+    response = await fetch(url, { headers: getHeaders("nb", isPreview) });
   }
 
   if (!response.ok) {
@@ -104,31 +114,32 @@ export async function fetchUmbracoContentWithLocaleFallback(
   path: string,
   culture?: string,
   expand?: string,
+  isPreview?: boolean
 ) {
   try {
-    return await fetchUmbracoContent(path, culture, expand);
+    return await fetchUmbracoContent(path, culture, expand, isPreview);
   } catch (error) {
     if (culture && culture !== "nb") {
       const normalized = normalizeItemPath(path);
       const prefix = `/${culture}/`;
       if (normalized.startsWith(prefix)) {
         const fallbackPath = normalized.slice(prefix.length - 1) || "/";
-        return await fetchUmbracoContent(fallbackPath, "nb", expand);
+        return await fetchUmbracoContent(fallbackPath, "nb", expand, isPreview);
       }
     }
     throw error;
   }
 }
 
-export async function fetchUmbracoContentById(id: string, culture?: string) {
+export async function fetchUmbracoContentById(id: string, culture?: string, isPreview?: boolean) {
   const url = deliveryUrl(
     `/umbraco/delivery/api/v2/content/item/${encodeURIComponent(id)}`,
   );
 
-  let response = await fetch(url, { headers: cultureHeader(culture) });
+  let response = await fetch(url, { headers: getHeaders(culture, isPreview) });
 
   if (response.status === 404 && shouldTryNbFallback(culture)) {
-    response = await fetch(url, { headers: cultureHeader("nb") });
+    response = await fetch(url, { headers: getHeaders("nb", isPreview) });
   }
 
   if (!response.ok) {
@@ -147,6 +158,7 @@ export async function fetchUmbracoContentById(id: string, culture?: string) {
 export async function resolveBlockReferences(
   refs: any[] | { items?: any[] } | undefined | null,
   locale?: string,
+  isPreview?: boolean,
 ): Promise<any[]> {
   const items: any[] = Array.isArray(refs)
     ? refs
@@ -161,14 +173,14 @@ export async function resolveBlockReferences(
       const route = item?.route?.path;
       if (route) {
         try {
-          return await fetchUmbracoContent(route, locale);
+          return await fetchUmbracoContent(route, locale, );
         } catch {
           // cross-startItem reference — fall through to id-based fetch
         }
       }
       if (item?.id) {
         try {
-          return (await fetchUmbracoContentById(item.id, locale)) ?? item;
+          return (await fetchUmbracoContentById(item.id, locale, isPreview)) ?? item;
         } catch {
           return item;
         }
@@ -183,6 +195,7 @@ export async function fetchUmbracoChildren(
   take = 100,
   culture?: string,
   sort?: string,
+  isPreview?: boolean
 ) {
   const params = new URLSearchParams({
     fetch: `children:${normalizeDeliveryPath(path)}`,
@@ -193,7 +206,7 @@ export async function fetchUmbracoChildren(
   }
   const url = deliveryUrl("/umbraco/delivery/api/v2/content", params.toString());
 
-  const response = await fetch(url, { headers: cultureHeader(culture) });
+  const response = await fetch(url, { headers: getHeaders(culture, isPreview) });
 
   if (!response.ok) {
     throw new Error(
@@ -205,7 +218,7 @@ export async function fetchUmbracoChildren(
   const items = data.items ?? [];
 
   if (items.length === 0 && shouldTryNbFallback(culture)) {
-    const nbResponse = await fetch(url, { headers: cultureHeader("nb") });
+    const nbResponse = await fetch(url, { headers: getHeaders("nb", isPreview) });
     if (nbResponse.ok) {
       const nbData = await nbResponse.json();
       return nbData.items ?? [];
@@ -219,8 +232,9 @@ export async function fetchUmbracoChildrenInEditorOrder(
   path: string,
   take = 100,
   culture?: string,
+  isPreview?: boolean
 ) {
-  return fetchUmbracoChildren(path, take, culture, "sortOrder:asc");
+  return fetchUmbracoChildren(path, take, culture, "sortOrder:asc", isPreview);
 }
 
 export async function fetchUmbracoContentList(
@@ -228,6 +242,7 @@ export async function fetchUmbracoContentList(
   take = 100,
   culture?: string,
   sort?: string,
+  isPreview?: boolean,
 ) {
   const params = new URLSearchParams({
     take: String(take),
@@ -238,7 +253,7 @@ export async function fetchUmbracoContentList(
   }
   const url = deliveryUrl("/umbraco/delivery/api/v2/content", params.toString());
 
-  const response = await fetch(url, { headers: cultureHeader(culture) });
+  const response = await fetch(url, { headers: getHeaders(culture, isPreview) });
 
   if (!response.ok) {
     throw new Error(
@@ -250,7 +265,7 @@ export async function fetchUmbracoContentList(
   const items = data.items ?? [];
 
   if (items.length === 0 && shouldTryNbFallback(culture)) {
-    const nbResponse = await fetch(url, { headers: cultureHeader("nb") });
+    const nbResponse = await fetch(url, { headers: getHeaders("nb", isPreview) });
     if (nbResponse.ok) {
       const nbData = await nbResponse.json();
       return nbData.items ?? [];
@@ -267,6 +282,7 @@ export async function fetchUmbracoContentListPage(
   culture?: string,
   sort?: string,
   fields?: string,
+  isPreview?: boolean
 ) {
   const params = new URLSearchParams({
     take: String(take),
@@ -281,7 +297,7 @@ export async function fetchUmbracoContentListPage(
   }
   const url = deliveryUrl("/umbraco/delivery/api/v2/content", params.toString());
 
-  const response = await fetch(url, { headers: cultureHeader(culture) });
+  const response = await fetch(url, { headers: getHeaders(culture, isPreview) });
 
   if (!response.ok) {
     throw new Error(
@@ -294,7 +310,7 @@ export async function fetchUmbracoContentListPage(
   const total = data.total ?? 0;
 
   if (items.length === 0 && shouldTryNbFallback(culture)) {
-    const nbResponse = await fetch(url, { headers: cultureHeader("nb") });
+    const nbResponse = await fetch(url, { headers: getHeaders("nb", isPreview) });
     if (nbResponse.ok) {
       const nbData = await nbResponse.json();
       return {
@@ -307,11 +323,11 @@ export async function fetchUmbracoContentListPage(
   return { total, items };
 }
 
-export async function fetchUmbracoAncestors(path: string, culture?: string) {
+export async function fetchUmbracoAncestors(path: string, culture?: string, isPreview?: boolean) {
   const params = new URLSearchParams({ fetch: `ancestors:${normalizeDeliveryPath(path)}` });
   const url = deliveryUrl("/umbraco/delivery/api/v2/content", params.toString());
 
-  const response = await fetch(url, { headers: cultureHeader(culture) });
+  const response = await fetch(url, { headers: getHeaders(culture, isPreview) });
 
   if (!response.ok) {
     throw new Error(
@@ -323,7 +339,7 @@ export async function fetchUmbracoAncestors(path: string, culture?: string) {
   const items = data.items ?? [];
 
   if (items.length === 0 && shouldTryNbFallback(culture)) {
-    const nbResponse = await fetch(url, { headers: cultureHeader("nb") });
+    const nbResponse = await fetch(url, { headers: getHeaders("nb", isPreview) });
     if (nbResponse.ok) {
       const nbData = await nbResponse.json();
       return nbData.items ?? [];
@@ -333,7 +349,7 @@ export async function fetchUmbracoAncestors(path: string, culture?: string) {
   return items;
 }
 
-export async function fetchUmbracoStartPage(locale?: string) {
+export async function fetchUmbracoStartPage(locale?: string, isPreview?: boolean) {
   const params = new URLSearchParams({
     filter: "contentType:startPage",
     take: "1",
@@ -342,7 +358,7 @@ export async function fetchUmbracoStartPage(locale?: string) {
   });
   const url = deliveryUrl("/umbraco/delivery/api/v2/content", params.toString());
 
-  const response = await fetch(url, { headers: cultureHeader(locale) });
+  const response = await fetch(url, { headers: getHeaders(locale, isPreview) });
   if (response.ok) {
     const data = await response.json();
     const item = data.items?.[0];
@@ -350,7 +366,7 @@ export async function fetchUmbracoStartPage(locale?: string) {
   }
 
   if (shouldTryNbFallback(locale)) {
-    const nbResponse = await fetch(url, { headers: cultureHeader("nb") });
+    const nbResponse = await fetch(url, { headers: getHeaders("nb", isPreview) });
     if (nbResponse.ok) {
       const nbData = await nbResponse.json();
       return nbData.items?.[0] ?? null;
@@ -367,7 +383,7 @@ export async function fetchUmbracoErrorPage(locale?: string) {
   });
   const url = deliveryUrl("/umbraco/delivery/api/v2/content", params.toString());
 
-  const response = await fetch(url, { headers: cultureHeader(locale) });
+  const response = await fetch(url, { headers: getHeaders(locale) });
   if (response.ok) {
     const data = await response.json();
     const item = data.items?.[0];
@@ -375,7 +391,7 @@ export async function fetchUmbracoErrorPage(locale?: string) {
   }
 
   if (shouldTryNbFallback(locale)) {
-    const nbResponse = await fetch(url, { headers: cultureHeader("nb") });
+    const nbResponse = await fetch(url, { headers: getHeaders("nb") });
     if (nbResponse.ok) {
       const nbData = await nbResponse.json();
       return nbData.items?.[0] ?? null;
@@ -399,7 +415,7 @@ export async function fetchUmbracoRelated(
   params.append("take", "300");
   const url = deliveryUrl("/umbraco/delivery/api/v2/content", params.toString());
 
-  const response = await fetch(url, { headers: cultureHeader(culture) });
+  const response = await fetch(url, { headers: getHeaders(culture) });
 
   if (!response.ok) {
     throw new Error(
@@ -411,7 +427,7 @@ export async function fetchUmbracoRelated(
   const items = data.items ?? [];
 
   if (items.length === 0 && shouldTryNbFallback(culture)) {
-    const nbResponse = await fetch(url, { headers: cultureHeader("nb") });
+    const nbResponse = await fetch(url, { headers: getHeaders("nb") });
     if (nbResponse.ok) {
       const nbData = await nbResponse.json();
       return nbData.items ?? [];

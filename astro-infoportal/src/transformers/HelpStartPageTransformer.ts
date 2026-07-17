@@ -65,6 +65,7 @@ export class HelpStartPageTransformer implements IJSONTransformer {
     const contentLocale: Locale = globalData?.contentLocale || locale;
     const ancestors = await fetchUmbracoAncestors(cmsPageData.id, contentLocale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
+    const isPreview = globalData?.isPreview;
 
     // Drilldown/question/contact picker refs arrive with `properties: {}`;
     // hydrate each ref so the mappers below have access to inline properties
@@ -75,10 +76,10 @@ export class HelpStartPageTransformer implements IJSONTransformer {
       questionAreaRefs,
       helpContentRefs,
     ] = await Promise.all([
-      resolveBlockReferences(props.newDrilldownPages, contentLocale),
-      resolveBlockReferences(props.oldDrilldownPages, contentLocale),
-      resolveBlockReferences(props.questionArea, contentLocale),
-      resolveBlockReferences(props.helpContentArea, contentLocale),
+      resolveBlockReferences(props.newDrilldownPages, contentLocale, isPreview),
+      resolveBlockReferences(props.oldDrilldownPages, contentLocale, isPreview),
+      resolveBlockReferences(props.questionArea, contentLocale, isPreview),
+      resolveBlockReferences(props.helpContentArea, contentLocale, isPreview),
     ]);
 
     const newDrilldownPages = newDrilldownRefs.map(mapDrilldownPage);

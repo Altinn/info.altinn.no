@@ -1,0 +1,18 @@
+{
+  "name": "PreviewUrlProvider",
+  "alias": "PreviewUrlProvider",
+  "extensions": [
+    {
+      "type": "workspaceActionMenuItem",
+      "kind": "previewOption",
+      "alias": "PortalPreviewOption",
+      "name": "Custom preview",
+      "forWorkspaceActions": "Umb.WorkspaceAction.Document.SaveAndPreview",
+      "weight": 101,
+      "meta": {
+        "label": "Lagre og forhåndsvis",
+        "urlProviderAlias": "PreviewUrlProvider"
+      }
+    }
+  ]
+}
