@@ -1,0 +1,58 @@
+---
+
+import { fetchUmbracoContentById, fetchUmbracoStartPage } from '@api/umbraco/client';
+import AstroSiteLayout from '@layouts/AstroSiteLayout.astro';
+import { JSONTransformer } from '@transformers/JSONTransformer';
+import { getGlobalData } from '@constants/globalData';
+import { buildMetadata } from '@constants/metadata';
+import { resolveEnvironment } from '@api/altinn/environments';
+import { isConstructorDeclaration } from 'typescript';
+import { responseSentSymbol } from 'astro/dist/core/constants';
+
+const guid = Astro.url.searchParams.get("id");
+const locale = Astro.url.searchParams.get("locale");
+const altinnEndpoints = resolveEnvironment(Astro.url.hostname);
+
+const pagePromise = fetchUmbracoContentById(guid, locale, true);
+const startPagePromise = fetchUmbracoStartPage(locale);
+
+const [pageResult, startPageResult] = await Promise.allSettled([
+  pagePromise,
+  startPagePromise,
+]);
+
+let umbracoPageData = pageResult.value;
+
+const secret = Astro.url.searchParams.get("secret");
+
+if (!secret) {
+  return new Response(null, { status: 404 });
+}
+
+const contentUpdatedFromUrl = Number(secret);
+const contentUpdatedFromApi = new Date(umbracoPageData.updateDate).getTime();
+
+if (Math.abs(contentUpdatedFromApi - contentUpdatedFromUrl) > 100) {
+  return new Response(null, { status: 404 });
+}
+
+const startPageData = startPageResult.status === 'fulfilled' ? startPageResult.value : null;
+
+
+let globalData: any = getGlobalData(locale, "/sok/", altinnEndpoints, umbracoPageData?.cultures, startPageData, umbracoPageData?.contentType, "/preview", locale);
+globalData = {
+  ...globalData,
+  startPageData,
+  query: null,
+  referer: Astro.request.headers.get("referer") || undefined,
+};
+
+const pageData = await new JSONTransformer().Transform(umbracoPageData, globalData);
+const metadata = {
+  ...buildMetadata(umbracoPageData, locale),
+};
+
+Astro.response.headers.set("Cache-Control", "private, no-cache, no-store");
+---
+
+<AstroSiteLayout pageData={pageData} {...metadata} />

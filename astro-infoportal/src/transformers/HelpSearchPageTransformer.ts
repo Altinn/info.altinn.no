@@ -19,12 +19,12 @@ function pageTypeFromContentType(contentType: string): string | undefined {
   return undefined;
 }
 
-async function mapResult(hit: SearchResultItem, locale: Locale) {
+async function mapResult(hit: SearchResultItem, locale: Locale, isPreview: boolean) {
   // Hits carry only the indexed text; fetch the full Umbraco content to get
   // the structured mainBody (RichTextArea shape) for inline expansion.
   let body: unknown;
   try {
-    const full = await fetchUmbracoContent(hit.url, locale);
+    const full = await fetchUmbracoContent(hit.url, locale, undefined, isPreview);
     body = full?.properties?.mainBody ?? undefined;
   } catch {
     body = undefined;
@@ -43,6 +43,7 @@ export class HelpSearchPageTransformer implements IJSONTransformer {
     const contentLocale: Locale = globalData?.contentLocale ?? locale;
     const ancestors = await fetchUmbracoAncestors(cmsPageData.id, contentLocale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
+    const isPreview = globalData?.isPreview;
 
     const query = String(globalData?.query?.q ?? "")
       .trim()
@@ -61,7 +62,7 @@ export class HelpSearchPageTransformer implements IJSONTransformer {
         SearchContext.Help,
       );
       totalHits = response.totalResultCount;
-      results = await Promise.all(response.items.map((hit) => mapResult(hit, locale)));
+      results = await Promise.all(response.items.map((hit) => mapResult(hit, locale, isPreview)));
     }
 
     return {

@@ -18,6 +18,7 @@ export class ProviderPageTransformer implements IJSONTransformer {
     const props = cmsPageData.properties ?? {};
     const locale: Locale = globalData?.locale || "nb";
     const contentLocale: Locale = globalData?.contentLocale || locale;
+    const isPreview = globalData?.isPreview;
     const resolver = await ProviderResolver.create();
 
     const ancestors = await fetchUmbracoAncestors(cmsPageData.id, contentLocale);
@@ -46,6 +47,7 @@ export class ProviderPageTransformer implements IJSONTransformer {
       cmsPageData.route.path,
       2147483647,
       contentLocale,
+      isPreview
     );
     const schemaPages = children.filter(
       (c: any) =>
@@ -58,6 +60,7 @@ export class ProviderPageTransformer implements IJSONTransformer {
         const resolvedRefs = await resolveBlockReferences(
           schema.properties?.providers,
           contentLocale,
+          isPreview,
         );
         const providers = resolvedRefs.map((ref: any) => {
           const name = ref?.name ?? "";
@@ -93,7 +96,7 @@ export class ProviderPageTransformer implements IJSONTransformer {
       cmsPageData.id,
       props.promoArea,
       contentLocale,
-      (id) => fetchUmbracoContentById(id, "nb"),
+      (id) => fetchUmbracoContentById(id, "nb", isPreview),
     );
     const contactInfo = buildProviderContactInfo(promoAreaData, {
       name: cmsPageData.name,

@@ -11,10 +11,11 @@ export class OperationalMessageArchivePageTransformer implements IJSONTransforme
     const contentLocale: Locale = globalData?.contentLocale || locale;
     const props = cmsPageData.properties ?? {};
     const path = cmsPageData.route?.path;
+    const isPreview = globalData?.isPreview;
 
     const [ancestors, children] = await Promise.all([
       path ? fetchUmbracoAncestors(path, contentLocale) : Promise.resolve([]),
-      path ? fetchUmbracoChildren(path, 100, contentLocale) : Promise.resolve([]),
+      path ? fetchUmbracoChildren(path, 100, contentLocale, isPreview) : Promise.resolve([]),
     ]);
 
     const articles = children

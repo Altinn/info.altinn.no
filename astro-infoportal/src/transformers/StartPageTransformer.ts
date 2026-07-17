@@ -22,6 +22,7 @@ export class StartPageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
     const locale: Locale = globalData?.locale || "nb";
     const contentLocale: Locale = globalData?.contentLocale || locale;
+    const isPreview: boolean = globalData?.isPreview;
     const resolver = await ProviderResolver.create();
     const p = cmsPageData.properties ?? {};
 
@@ -33,7 +34,7 @@ export class StartPageTransformer implements IJSONTransformer {
           const route = ref.route?.path;
           if (!route) return null;
           try {
-            const full = await fetchUmbracoContent(route, contentLocale);
+            const full = await fetchUmbracoContent(route, contentLocale, undefined, isPreview);
             return transformOperationalMessageArticle(full);
           } catch {
             return null;
@@ -90,7 +91,7 @@ export class StartPageTransformer implements IJSONTransformer {
       const route = block.route?.path;
       if (!route) continue;
       try {
-        const full = await fetchUmbracoContent(route, contentLocale);
+        const full = await fetchUmbracoContent(route, contentLocale, undefined, isPreview);
         promoBoxItems.push({
           componentName: "PromoBoxBlock",
           link: full.properties?.link || null,
@@ -111,6 +112,8 @@ export class StartPageTransformer implements IJSONTransformer {
         const schemaPage = await fetchUmbracoContent(
           schemaRef.route.path,
           contentLocale,
+          undefined,
+          isPreview,
         );
         const recommended = schemaPage.properties?.recommendedSchemas ?? [];
 
@@ -123,11 +126,14 @@ export class StartPageTransformer implements IJSONTransformer {
               const fullPage = await fetchUmbracoContent(
                 item.route?.path,
                 contentLocale,
+                undefined,
+                isPreview
               );
               schemaCode = fullPage.properties?.schemaCode || null;
               const resolvedRefs = await resolveBlockReferences(
                 fullPage.properties?.providers,
                 contentLocale,
+                isPreview,
               );
               icons = resolvedRefs.map((ref: any) => {
                 const name = ref?.name ?? "";
@@ -184,7 +190,7 @@ export class StartPageTransformer implements IJSONTransformer {
       newsRefs.map(async (ref: any) => {
         let full: any = null;
         try {
-          full = await fetchUmbracoContent(ref.route?.path, contentLocale);
+          full = await fetchUmbracoContent(ref.route?.path, contentLocale, undefined, isPreview);
         } catch {
           /* fall back to ref-level fields below */
         }
