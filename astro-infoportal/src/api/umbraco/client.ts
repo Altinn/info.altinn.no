@@ -173,7 +173,7 @@ export async function resolveBlockReferences(
       const route = item?.route?.path;
       if (route) {
         try {
-          return await fetchUmbracoContent(route, locale, );
+          return await fetchUmbracoContent(route, locale, undefined, isPreview);
         } catch {
           // cross-startItem reference — fall through to id-based fetch
         }
