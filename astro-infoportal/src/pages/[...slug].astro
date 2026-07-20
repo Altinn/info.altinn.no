@@ -27,11 +27,6 @@ if (
   return new Response(null, { status: 404 });
 }
 
-if (path.startsWith("/Pages/") || path.startsWith("/pages/")) {
-  const altinn2Url = "https://altinn.no" + path + search;
-  return Astro.redirect(altinn2Url, 301);
-}
-
 /* Temporary fix as some links starting with /EPiServer/CMS/Content were not converted correctly during import */
 const legacyInternalUrlPrefix = "/EPiServer/CMS/Content";
 if (path.startsWith(legacyInternalUrlPrefix)) {
