@@ -20,7 +20,7 @@
     "@digdir/designsystemet-react": "^1.15.0",
     "@digdir/designsystemet-theme": "^1.11.0",
     "@navikt/aksel-icons": "^8.13.0",
-    "astro": "^6.4.8",
+    "astro": "^7.0.0",
     "lodash.debounce": "^4.0.8",
     "message-channel": "^2.0.0",
     "node-html-parser": "^7.1.0",
