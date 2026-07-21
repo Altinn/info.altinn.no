@@ -20,8 +20,15 @@ function formatDate(dateStr: string): string {
 
 export function transformOperationalMessageArticle(cmsPageData: any): any {
   const props = cmsPageData?.properties ?? {};
-  const isCritical = props.isCritical === true;
-  const colorVariant = props.colorVariant || (isCritical ? "danger" : "warning");
+  const parseColorVariant = () => {
+    if (props.colorVariant === "R\u00F8d") {
+      return "danger";
+    } else if (props.colorVariant === "Oransje") {
+      return "warning";
+    } else {
+      return "info";
+    }
+  }  
   const lastChangedDateString = cmsPageData?.updateDate ?? null;
   const lastChangedDateFormatted = lastChangedDateString
     ? formatDate(lastChangedDateString)
@@ -33,8 +40,7 @@ export function transformOperationalMessageArticle(cmsPageData: any): any {
     mainBody: props.mainBody ?? "",
     mainBodyRichText: props.mainBodyRichText ?? null,
     url: cmsPageData?.route?.path ?? props.url ?? null,
-    isCritical,
-    colorVariant,
+    colorVariant: parseColorVariant(),
     linkUrl: props.linkUrl ?? resolvePickerUrl(props.link),
     linkText: props.linkText ?? resolvePickerText(props.link),
     lastChangedDateString,
