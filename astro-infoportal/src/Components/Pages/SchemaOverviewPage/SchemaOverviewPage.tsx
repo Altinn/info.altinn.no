@@ -38,15 +38,17 @@ const SchemaOverviewPage = ({
   providersText,
   servicesText,
   recommendedSchemasHeaderText,
-  initialTab,
   searchPageUrl,
   searchPlaceholder,
   searchAriaLabel,
 }: SchemaOverviewPageProps) => {
-  const defaultTab = (
-    initialTab === 'provider' ? TabsEnum.Provider : TabsEnum.Category
-  ) as TabType;
-  const [tabValue, setTabValue] = useState<TabType>(defaultTab);
+  const getDefaultTab = () => {
+    if (!isBrowser) return TabsEnum.Provider;
+    const category = new URLSearchParams(location.search).get('category');
+    return category === TabsEnum.Provider ? TabsEnum.Provider : TabsEnum.Category;
+  };
+
+  const [tabValue, setTabValue] = useState<TabType>(getDefaultTab());
 
   const getIcon = (iconName?: string) => {
     if (!iconName) return AkselIcons.PersonIcon;
@@ -60,13 +62,7 @@ const SchemaOverviewPage = ({
 
     const syncFromUrl = () => {
       try {
-        const params = new URLSearchParams(location.search);
-        const category = params.get('category') as TabType | null;
-        setTabValue(
-          category === TabsEnum.Provider
-            ? TabsEnum.Provider
-            : TabsEnum.Category,
-        );
+        setTabValue(getDefaultTab());
       } catch {}
     };
 
