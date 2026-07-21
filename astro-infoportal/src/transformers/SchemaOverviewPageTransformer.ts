@@ -134,7 +134,6 @@ export class SchemaOverviewPageTransformer implements IJSONTransformer {
         locale,
       ),
       recommendedSchemas: recommendedSchemas,
-      initialTab: cmsPageData.properties.initialTab || undefined,
       searchPageUrl: t("search.pageUrl", locale),
       searchPlaceholder: t("search.searchAfterSchemaContent", locale),
       searchAriaLabel: t("search.ariaLabel", locale),
