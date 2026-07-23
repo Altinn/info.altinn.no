@@ -255,8 +255,8 @@
   "contactform.fileExtensionInvalid": "Tillatte filtyper: bmp, jpg, jpeg, png, gif, txt, log, csv, doc, docx, xls, xlsx, ppt, pptx, pdf, odt, ods, odp, rtf, rar, zip, 7z, gdoc, gsheet, gslide, htm, html, eml, msg",
   "contactform.attachmentDelete": "Slett",
   "contactform.submitting": "Sender...",
-  "contactform.successMessage": "Takk for din henvendelse! Vi vil svare deg så snart som mulig",
-  "contactform.errorMessage": "En feil oppstod ved sending av skjema. Vennligst prøv igjen senere",
+  "contactform.successMessage": "Takk for at du tok kontakt med oss! Vi svarer deg så snart vi kan.",
+  "contactform.errorMessage": "Kunne ikke sende skjemaet. Prøv igjen senere.",
   "contactform.retryButton": "Prøv igjen",
   "contactform.subjectInbox": "Innboks",
   "contactform.subjectAccess": "Tilganger",
@@ -274,8 +274,8 @@
   "subscription.emailPlaceholder": "Din e-post",
   "subscription.sendButton": "Send",
   "subscription.undo": "Angre",
-  "subscription.confirmation": "Takk, du er nå påmeldt vår nyhetsbrevtjeneste. Dette betyr at du vil få e-post fra Altinn hver gang vi har noe å fortelle deg om.",
-  "subscription.confirmationUndo": "Du har angret innsendingen, og er ikke lengre påmeldt vårt nyhetsbrev.",
+  "subscription.confirmation": "Takk, du har nå meldt deg på nyhetsbrevet vårt. Du får e-post fra Altinn når vi har noe å nytt å komme med.",
+  "subscription.confirmationUndo": "Du har angret påmeldingen og vil ikke motta nyhetsbrevet vårt.",
   "subscription.invalidMissingEmail": "Du har ikke oppgitt e-post.",
   "subscription.invalidEmail": "Du har ikke skrevet e-posten korrekt."
 }
