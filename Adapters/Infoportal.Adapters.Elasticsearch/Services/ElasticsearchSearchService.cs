@@ -251,7 +251,7 @@ public class ElasticsearchSearchService : ISearchService
 
     public async Task IndexDocumentAsync(SearchDocument document, CancellationToken ct = default)
     {
-        if (string.IsNullOrEmpty(document.Url))
+        if (string.IsNullOrEmpty(document.Url) || "#".Equals(document.Url))
         {
             _logger.LogWarning(
                 "Skipped indexing of document {DocumentId} due to missing URL",
