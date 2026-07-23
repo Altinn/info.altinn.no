@@ -251,6 +251,15 @@ public class ElasticsearchSearchService : ISearchService
 
     public async Task IndexDocumentAsync(SearchDocument document, CancellationToken ct = default)
     {
+        if (string.IsNullOrEmpty(document.Url))
+        {
+            _logger.LogWarning(
+                "Skipped indexing of document {DocumentId} due to missing URL",
+                document.Id);
+
+            return;
+        }
+        
         try
         {
             await EnsureIndexExistsAsync(document.Culture, ct);
