@@ -10,6 +10,9 @@ function mapDrilldownPage(item: any) {
     pageName: item?.name,
     url: item?.route?.path,
     akselIcon: props.akselIcon,
+    // Editorial one-liner shown under the card title on the help start page.
+    // Distinct from triggerWords, which stays hidden and only feeds the search index.
+    description: props.description,
     triggerWords: props.triggerWords,
     altImage: props.altImage,
   };

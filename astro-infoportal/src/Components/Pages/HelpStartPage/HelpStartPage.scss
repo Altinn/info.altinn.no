@@ -27,6 +27,54 @@
     padding: 0;
   }
 
+  // Card padding comes from ListItem's own custom properties rather than a
+  // padding override, so the DS keeps ownership of the box. The design asks for
+  // 18px vertically, which falls between the 4px-based spacing steps — size-5
+  // (20px) is the nearest that keeps vertical padding larger than horizontal.
+  &__drilldown-item {
+    --dsc-item-px: var(--ds-size-4);
+    --dsc-item-my: var(--ds-size-5);
+  }
+
+  // Composed through ListItem's `label` slot, so everything below is our own
+  // markup — see DrilldownCard in HelpStartPage.tsx.
+  &__drilldown-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-size-4);
+    width: 100%;
+  }
+
+  &__drilldown-card-head {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-size-4);
+  }
+
+  &__drilldown-card-icon {
+    flex-shrink: 0;
+    // Aksel icons size from font-size (svg is width/height 1em).
+    font-size: var(--ds-font-size-8);
+  }
+
+  // The design's line heights (1.125 for the title, 1.25 for the description)
+  // are tighter than the token scale allows, so both use its tightest step.
+  &__drilldown-card-title {
+    margin: 0;
+    font-size: var(--ds-font-size-4);
+    font-weight: var(--ds-font-weight-semibold);
+    line-height: var(--ds-line-height-sm);
+  }
+
+  &__drilldown-card-description {
+    font-size: var(--ds-font-size-3);
+    font-weight: var(--ds-font-weight-medium);
+    line-height: var(--ds-line-height-sm);
+    // The design keeps the description at the title's colour rather than the
+    // muted tone ListItem's own description slot would apply.
+    color: var(--ds-color-text-default);
+  }
+
   &__question-section {
     margin-top: 3rem;
 
