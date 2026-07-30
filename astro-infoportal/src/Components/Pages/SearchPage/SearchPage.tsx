@@ -171,7 +171,7 @@ const SearchPage = ({
 
   return (
     <PageBase className="search-page">
-      <Heading as="h2" size="xl">
+      <Heading as="h1" size="xl">
         {searchHeading || searchPlaceholder}
       </Heading>
       <SearchInput
