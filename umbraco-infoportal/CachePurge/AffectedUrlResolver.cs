@@ -65,11 +65,11 @@ public class AffectedUrlResolver
             IncludeAncestorSubtreeOnDirtyProperties = ["newDrilldownPages", "oldDrilldownPages"],
         },
 
-        // Name/akselIcon show in every help sidebar → subtree; triggerWords/altImage → helpStartPage only.
+        // Name/akselIcon show in every help sidebar → subtree; description/triggerWords/altImage → helpStartPage only.
         ["helpDrilldownPage"] = new ContentTypeRule
         {
             IncludeTreeParent = true,
-            CrossPagePurgeOnDirtyProperties = ["Name", "akselIcon", "triggerWords", "altImage"],
+            CrossPagePurgeOnDirtyProperties = ["Name", "akselIcon", "description", "triggerWords", "altImage"],
             IncludeAncestorSubtree = "helpStartPage",
             IncludeAncestorSubtreeOnDirtyProperties = ["Name", "akselIcon"],
         },

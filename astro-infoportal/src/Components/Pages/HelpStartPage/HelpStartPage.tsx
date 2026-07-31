@@ -13,6 +13,58 @@ import RichTextArea from "../../Shared/RichTextArea/RichTextArea";
 import SearchInput from "../../Shared/SearchInput/SearchInput";
 import "./HelpStartPage.scss";
 
+// ListItem renders the card as an <a> and defaults its aria-label to `title`,
+// which would hide the description from screen readers. Announce both so the
+// link name matches what is rendered.
+const drilldownAriaLabel = (page: any) =>
+  page.description ? `${page.pageName}. ${page.description}` : page.pageName;
+
+const getIcon = (iconName?: string) => {
+  if (!iconName) return undefined;
+  const IconComponent = (AkselIcons as any)[iconName];
+  return IconComponent || undefined;
+};
+
+// The design puts the description on its own full-width row below the icon+title
+// row, rather than indented beside the icon. ListItem's own `title`/`description`
+// slots share one flex column next to the icon, so the card content is composed
+// through the public `label` slot (which replaces that column) and the icon is
+// rendered inline instead of via the `icon` prop.
+const DrilldownCard = ({ page, id }: { page: any; id: string }) => {
+  const IconComponent = getIcon(page.akselIcon);
+
+  return (
+    <ListItem
+      className="help-start-page__drilldown-item"
+      id={id}
+      as="a"
+      href={page.url || "#"}
+      variant="subtle"
+      ariaLabel={drilldownAriaLabel(page)}
+      label={
+        <span className="help-start-page__drilldown-card">
+          <span className="help-start-page__drilldown-card-head">
+            {IconComponent && (
+              <IconComponent
+                className="help-start-page__drilldown-card-icon"
+                aria-hidden
+              />
+            )}
+            <h3 className="help-start-page__drilldown-card-title">
+              {page.pageName}
+            </h3>
+          </span>
+          {page.description && (
+            <span className="help-start-page__drilldown-card-description">
+              {page.description}
+            </span>
+          )}
+        </span>
+      }
+    />
+  );
+};
+
 const HelpStartPage = ({
   pageName,
   mainIntro,
@@ -29,12 +81,6 @@ const HelpStartPage = ({
   helpContentAreaHeading,
   // breadcrumb,
 }: any) => {
-  const getIcon = (iconName?: string) => {
-    if (!iconName) return undefined;
-    const IconComponent = (AkselIcons as any)[iconName];
-    return IconComponent || undefined;
-  };
-
   return (
     <Article>
       {/* {breadcrumb && <BreadcrumbsView {...breadcrumb} />} */}
@@ -59,23 +105,9 @@ const HelpStartPage = ({
             spacing={3}
             cols={2}
           >
-            {newDrilldownPages.map((page: any, idx: number) => {
-              const iconName = (page as any).akselIcon;
-              const IconComponent = getIcon(iconName);
-
-              return (
-                <ListItem
-                  className="help-start-page__drilldown-item"
-                  id={idx.toString()}
-                  as="a"
-                  href={page.url || "#"}
-                  key={idx}
-                  title={page.pageName}
-                  variant="subtle"
-                  icon={IconComponent}
-                />
-              );
-            })}
+            {newDrilldownPages.map((page: any, idx: number) => (
+              <DrilldownCard key={idx} id={idx.toString()} page={page} />
+            ))}
           </Grid>
         </div>
       )}
@@ -94,23 +126,9 @@ const HelpStartPage = ({
             spacing={3}
             cols={2}
           >
-            {oldDrilldownPages.map((page: any, idx: number) => {
-              const iconName = (page as any).akselIcon;
-              const IconComponent = getIcon(iconName);
-
-              return (
-                <ListItem
-                  className="help-start-page__drilldown-item"
-                  id={idx.toString()}
-                  as="a"
-                  href={page.url || "#"}
-                  key={idx}
-                  title={page.pageName}
-                  variant="subtle"
-                  icon={IconComponent}
-                />
-              );
-            })}
+            {oldDrilldownPages.map((page: any, idx: number) => (
+              <DrilldownCard key={idx} id={idx.toString()} page={page} />
+            ))}
           </Grid>
         </div>
       )}
