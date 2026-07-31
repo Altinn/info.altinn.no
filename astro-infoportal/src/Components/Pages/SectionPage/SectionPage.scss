@@ -11,6 +11,93 @@
   background-repeat: no-repeat;
 }
 
+/* ==================== Illustration ==================== */
+
+/*
+  The illustration is a wide 2.19:1 strip (1024x467) whose subject — the people
+  and the houses — sits in the right-hand half, with empty sky filling the left.
+  Fitting the whole strip to a phone width renders that subject too small to
+  read, so crop to a squarer box anchored on the right edge instead.
+*/
+.sectionpage-illustration {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  object-position: right center;
+}
+
+/*
+  Approaching the md breakpoint the viewport is wide enough that a 1:1 crop would
+  stand taller than the fold and push the link list out of view. Widen the box so
+  the subject stays large while the list stays reachable.
+*/
+@media (min-width: 480px) and (max-width: 767.98px) {
+  .sectionpage-illustration {
+    aspect-ratio: 3 / 2;
+  }
+}
+
+/*
+  From md up the illustration is the jumbotron's full-bleed background image and
+  the text column sits on top of it by design, so the inline <img> is hidden.
+*/
+@media (min-width: 768px) {
+  .sectionpage-illustration {
+    display: none;
+  }
+}
+
+@media (max-width: 767.98px) {
+  /*
+    Below md the background copy of the illustration was scaled with
+    `background-size: cover` over a >=550px tall box, which zoomed it in and put it
+    behind the link list. Small screens use the <img> above instead, so drop the
+    background copy and let the illustration and list stack.
+
+    !important is required here: background-image is an inline style on the
+    element (built from the CMS-provided src), and a stylesheet cannot override an
+    inline declaration any other way.
+  */
+  .legacy-page .a-jumbotron.a-jumbotron-top {
+    background-image: none !important;
+    padding-top: 0; /* legacy reserved 357px for the background illustration */
+    min-height: 0; /* height now comes from the illustration + list */
+    max-height: none; /* ...and must not be clipped at 792px */
+  }
+}
+
+/* ==================== Featured link ==================== */
+
+/*
+  The legacy `.a-linkFeatured` / `a.a-link-large` rules ask for a "DIN-bold"
+  webfont that this app does not ship, and leave `font-weight: normal`. Below
+  768px (where legacy CSS adds an explicit `font-weight: bold`) the link therefore
+  fell back to Arial at normal weight and did not read as a link at all. Set the
+  weight and the arrow spacing here for every breakpoint.
+*/
+.legacy-page .a-jumbotron a.sectionpage-featuredlink {
+  font-weight: bold;
+  /*
+    Legacy sets `display: inline-flex`, which makes the whole label a single flex
+    item and leaves the arrow parked beside the wrapped block, vertically centred
+    and detached from the text. Inline layout puts the arrow back into the text
+    flow so it trails the last word on whichever line that ends up on.
+  */
+  display: inline;
+}
+
+/* Binds the last word and the arrow together so the arrow is never orphaned */
+.sectionpage-featuredlink__end {
+  white-space: nowrap;
+}
+
+.sectionpage-featuredlink svg {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 8px; /* replaces the flex `gap`, which inline layout ignores */
+}
+
 /* Prevent layout shift when hovering the featured link */
 .a-jumbotron a.a-linkFeatured.a-link-large {
   border-bottom: 2px solid transparent; /* reserve space so hover doesn't push content */
