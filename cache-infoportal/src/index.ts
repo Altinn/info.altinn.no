@@ -1,6 +1,7 @@
 interface Env {
 	ASTRO_INFOPORTAL: any
 }
+
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
 		try {
@@ -13,9 +14,13 @@ export default {
 
 		const url = new URL(request.url);
 
+		const excludedPathNames= ["/api/", "/ui/", "/health"];
+
 		try {
-			if (url.search.startsWith("api/") || url.search.startsWith("ui/")) {
-				return await env.ASTRO_INFOPORTAL.fetch(request);
+			for (const excludedPathName of excludedPathNames) {
+				if (url.pathname.startsWith(excludedPathName)) {
+					return await env.ASTRO_INFOPORTAL.fetch(request);
+				}
 			}
 		} catch (error) {
 			throw new Error(`Failed to fetch API request from origin: ${error}`);
