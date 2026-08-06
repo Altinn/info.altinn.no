@@ -1,15 +1,5 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
 
-function resolvePickerUrl(value: any): string | null {
-  const item = Array.isArray(value) ? value[0] : value;
-  return item?.route?.path ?? item?.url ?? null;
-}
-
-function resolvePickerText(value: any): string | null {
-  const item = Array.isArray(value) ? value[0] : value;
-  return item?.name ?? item?.title ?? null;
-}
-
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
   if (Number.isNaN(d.getTime())) return "";
@@ -37,12 +27,9 @@ export function transformOperationalMessageArticle(cmsPageData: any): any {
   return {
     componentName: "OperationalMessageArticlePage",
     pageName: cmsPageData?.name ?? "",
-    mainBody: props.mainBody ?? "",
     mainBodyRichText: props.mainBodyRichText ?? null,
     url: cmsPageData?.route?.path ?? props.url ?? null,
     colorVariant: parseColorVariant(),
-    linkUrl: props.linkUrl ?? resolvePickerUrl(props.link),
-    linkText: props.linkText ?? resolvePickerText(props.link),
     lastChangedDateString,
     lastChangedDateFormatted,
   };

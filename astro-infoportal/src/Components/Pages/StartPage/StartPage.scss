@@ -21,6 +21,13 @@
     }
   }
 
+  &__critical-messages,
+  &__messages {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
   &__messages {
     margin-bottom: 1rem;
   }

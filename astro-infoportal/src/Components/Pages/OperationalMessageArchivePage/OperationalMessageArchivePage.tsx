@@ -47,18 +47,12 @@ const OperationalMessageArchivePage = ({
                     </div>
                   )}
                   {article.mainBodyRichText &&
-                  article.mainBodyRichText.items &&
-                  article.mainBodyRichText.items.length > 0 ? (
-                    <div className="operational-message__body">
-                      <RichTextArea {...article.mainBodyRichText} />
-                    </div>
-                  ) : (
-                    article.mainBody && (
+                    article.mainBodyRichText.items &&
+                    article.mainBodyRichText.items.length > 0 && (
                       <div className="operational-message__body">
-                        {article.mainBody}
+                        <RichTextArea {...article.mainBodyRichText} />
                       </div>
-                    )
-                  )}
+                    )}
                 </li>
                 <Divider as="li" key={`div-${index}`} />
               </>

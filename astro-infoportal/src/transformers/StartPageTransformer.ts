@@ -43,11 +43,10 @@ export class StartPageTransformer implements IJSONTransformer {
       )
     ).filter(Boolean);
     const criticalOperationalMessages = alertMessages.filter(
-      (message: any) => message.isCritical || message.colorVariant === "danger",
+      (message: any) => message.colorVariant === "danger",
     );
     const operationalMessages = alertMessages.filter(
-      (message: any) =>
-        !message.isCritical && message.colorVariant !== "danger",
+      (message: any) => message.colorVariant !== "danger",
     );
 
     // --- Link buttons (built from inboxUrl, profilUrl, schemaReference) ---
