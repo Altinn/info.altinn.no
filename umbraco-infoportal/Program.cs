@@ -24,6 +24,15 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownProxies.Clear();
 });
 
+// Local developer overrides, e.g. the connection string for a database copy
+// produced by scripts/db/refresh-local-db.sh. Git-ignored and Development-only,
+// so it can hold local credentials without any risk of being committed and
+// without diverging appsettings.Development.json from main.
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+}
+
 builder.Services.Configure<KeyVaultOptions>(
     builder.Configuration.GetSection(KeyVaultOptions.SectionName));
 
