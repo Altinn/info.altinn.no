@@ -78,12 +78,12 @@ public class AffectedUrlResolver
         {
             IncludeTreeParent = true,
             OutgoingPickerProperties = ["subCategories"],
-            StaticUrls = ["/"],
+            StaticUrls = ["/", "/nn/", "/en/"],
             CrossPagePurgeOnDirtyProperties = ["Name", "schemaCode", "providers", "subCategories"],
         },
         ["schemaOverviewPage"] = new ContentTypeRule
         {
-            StaticUrls = ["/"],
+            StaticUrls = ["/", "/nn", "/en"],
             CrossPagePurgeOnDirtyProperties = ["recommendedSchemas"],
         },
         ["subCategoryPage"] = new ContentTypeRule
@@ -94,13 +94,13 @@ public class AffectedUrlResolver
         },
         ["providerPage"] = new ContentTypeRule
         {
-            StaticUrls = ["/skjemaoversikt/"],
+            StaticUrls = ["/skjemaoversikt/", "/nn/skjemaoversikt/", "/en/forms-overview/"],
             CrossPagePurgeOnDirtyProperties = ["Name", "providerAcronym", "providerOrgNr"],
         },
         ["categoryPage"] = new ContentTypeRule
         {
             IncludeTreeSiblings = true,
-            StaticUrls = ["/skjemaoversikt/"],
+            StaticUrls = ["/skjemaoversikt/", "/nn/skjemaoversikt/", "/en/forms-overview/"],
             CrossPagePurgeOnDirtyProperties = ["Name", "icon"],
         },
 
@@ -163,7 +163,7 @@ public class AffectedUrlResolver
         ["newsArticlePage"] = new ContentTypeRule
         {
             IncludeTreeParent = true,
-            StaticUrls = ["/"],
+            StaticUrls = ["/", "/nn/", "/en/"],
             IncludeNearestAncestorOfType = "sectionPage",
             CrossPagePurgeOnDirtyProperties = ["Name", "mainIntro", "lastChanged"],
         },
@@ -172,7 +172,7 @@ public class AffectedUrlResolver
         ["operationalMessageArticlePage"] = new ContentTypeRule
         {
             IncludeTreeParent = true,
-            StaticUrls = ["/"],
+            StaticUrls = ["/", "/nn/", "/en/"],
         },
     };
 
