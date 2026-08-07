@@ -43,7 +43,7 @@ const SchemaOverviewPage = ({
   searchAriaLabel,
 }: SchemaOverviewPageProps) => {
   const getDefaultTab = () => {
-    if (!isBrowser) return TabsEnum.Provider;
+    if (!isBrowser) return TabsEnum.Category;
     const category = new URLSearchParams(location.search).get('category');
     return category === TabsEnum.Provider ? TabsEnum.Provider : TabsEnum.Category;
   };
