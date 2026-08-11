@@ -68,7 +68,7 @@ const SchemaPage = ({
   const startSchemaLinkButton =
     startSchemaLink &&
     (preInstansiated || (!schemaNotInUse && !deactivateButton)) ? (
-      <Button as="a" href={startSchemaLink}>
+      <Button as="a" href={startSchemaLink} className="altinn-skjema-link">
         {preInstansiated
           ? (buttonInboxText ?? "Åpne")
           : (startSchemaLinkText ?? "Start")}
