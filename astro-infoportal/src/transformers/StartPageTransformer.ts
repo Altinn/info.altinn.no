@@ -179,9 +179,15 @@ export class StartPageTransformer implements IJSONTransformer {
     }
 
     // --- Company / "Starte og drive" section ---
+    // Both texts are editor-overridable per culture; blank falls back to the
+    // built-in text so a partly translated tree never renders an empty heading.
     const companyRef = p.startAndRunCompany?.[0];
-    const companyTitle = companyRef ? t("start.companyTitle", locale) : null;
-    const companyText = companyRef ? t("start.companyText", locale) : null;
+    const companyTitle = companyRef
+      ? p.startAndRunCompanyHeading || t("start.companyTitle", locale)
+      : null;
+    const companyText = companyRef
+      ? p.startAndRunCompanyText || t("start.companyText", locale)
+      : null;
 
     // --- News list (fetch each article for mainIntro + lastChanged) ---
     const newsRefs: any[] = p.latestNewsContentArea ?? [];
