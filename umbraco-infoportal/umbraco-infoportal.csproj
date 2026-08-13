@@ -16,19 +16,21 @@
     <PackageReference Include="HtmlToOpenXml.dll" Version="3.4.1" />
     <PackageReference Include="MimeKit" Version="4.16.0" />
     <PackageReference Include="PreMailer.Net" Version="2.7.2" />
-    <PackageReference Include="Skybrud.Umbraco.Redirects" Version="17.0.5" />
+    <PackageReference Include="Skybrud.Umbraco.Redirects" Version="18.0.0-alpha001" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.2" />
-    <PackageReference Include="Umbraco.Cms" Version="17.4.0" />
-    <PackageReference Include="Umbraco.Cms.DevelopmentMode.Backoffice" Version="17.3.5" />
-    <PackageReference Include="Umbraco.StorageProviders.AzureBlob" Version="17.0.0" />
-    <PackageReference Include="Umbraco.StorageProviders.AzureBlob.ImageSharp" Version="17.0.0" />
-    <PackageReference Include="uSync" Version="17.3.1" />
+    <PackageReference Include="Umbraco.Cms" Version="18.0.2" />
+    <PackageReference Include="Umbraco.Cms.DevelopmentMode.Backoffice" Version="18.0.2" />
+    <PackageReference Include="Umbraco.StorageProviders.AzureBlob" Version="18.0.0" />
+    <PackageReference Include="Umbraco.StorageProviders.AzureBlob.ImageSharp" Version="18.0.0" />
+    <PackageReference Include="uSync" Version="18.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.7" />
     <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.3" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.2" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.15.1" />
     <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0" />
+    <!-- Override of OpenApi version to avoid vulnerability. Can be removed in the future. -->
+    <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
   </ItemGroup>
 
   <ItemGroup>
