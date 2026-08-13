@@ -37,9 +37,13 @@ public class RedirectController : ControllerBase
         using IScope scope = _scopeProvider.CreateScope();
 
         // Checking if path is added through Skybrud Redirects Add-On.
+        // Skybrud stores the inbound url WITHOUT a trailing slash: its own lookup does
+        // `path.Trim().TrimEnd('/')` before comparing (RedirectsService.GetRedirectByPathAndQuery),
+        // so a trailing slash here never matches. Note NormalizePath() above adds one, because it
+        // also normalizes the *outgoing* destination path at the end of this method.
         RedirectQueryRow? row = scope.Database.FirstOrDefault<RedirectQueryRow>(
-                @"SELECT destinationKey as ContentGuid, destinationCulture as Culture 
-                    FROM skybrudRedirects WHERE url = @0", path);
+                @"SELECT destinationKey as ContentGuid, destinationCulture as Culture, destinationUrl as DestinationUrl
+                    FROM skybrudRedirects WHERE url = @0", pathWithoutTrailingSlash);
 
         // If not, checking if path is a "Enkel adresse" / umbracoUrlAlias
         row ??= scope.Database.FirstOrDefault<RedirectQueryRow>(
@@ -66,9 +70,43 @@ public class RedirectController : ControllerBase
             return Ok();
         }      
 
-        string resolvedPath = _publishedUrlProvider.GetUrl(row.ContentGuid, culture: row.Culture);
+        // Content/media destinations carry a key. Resolve it through the url provider rather than
+        // trusting skybrudRedirects.destinationUrl, which is only the URL as it looked when the
+        // redirect was saved — resolving keeps the redirect pointing at the page if it later moves.
+        if (row.ContentGuid != Guid.Empty)
+        {
+            string resolvedPath = _publishedUrlProvider.GetUrl(row.ContentGuid, culture: row.Culture);
 
-        return "#".Equals(resolvedPath) ? Ok() : Ok(NormalizePath(resolvedPath));
+            return "#".Equals(resolvedPath) ? Ok() : Ok(NormalizePath(resolvedPath));
+        }
+
+        // A Skybrud redirect whose destination type is "Url" has no destinationKey (Guid.Empty), so
+        // there is nothing to resolve — the destination is the raw url the editor typed. Only the
+        // Skybrud query selects destinationUrl; the other two always produce a key, so they never
+        // reach this branch (their DestinationUrl stays null).
+        return string.IsNullOrWhiteSpace(row.DestinationUrl)
+            ? Ok()
+            : Ok(NormalizeDestinationUrl(row.DestinationUrl));
+    }
+
+    /// <summary>
+    /// Normalizes a raw destination url from a Skybrud "Url" redirect.
+    /// </summary>
+    /// <remarks>
+    /// Skybrud allows off-site destinations, so an absolute url has to pass through untouched —
+    /// <see cref="NormalizePath"/> would turn "https://example.com/foo" into "/https://example.com/foo/".
+    /// Relative destinations go through NormalizePath so callers get the same shape as a resolved
+    /// content path. Skybrud keeps the destination query string in a separate column, which is
+    /// deliberately not forwarded: the Astro caller overwrites the query string with the inbound
+    /// request's own, so anything returned here would be discarded.
+    /// </remarks>
+    private static string NormalizeDestinationUrl(string destinationUrl)
+    {
+        destinationUrl = destinationUrl.Trim();
+
+        return Uri.TryCreate(destinationUrl, UriKind.Absolute, out _)
+            ? destinationUrl
+            : NormalizePath(destinationUrl);
     }
 
     private static string NormalizePath(string path)
@@ -90,7 +128,10 @@ public class RedirectController : ControllerBase
         return path;
     }
     
+    // NPoco creates this via the primary constructor with default values and then assigns the
+    // properties it finds columns for, so a query that selects no DestinationUrl leaves it null.
     private record RedirectQueryRow(
         Guid ContentGuid,
-        string Culture);
+        string Culture,
+        string? DestinationUrl);
 }
