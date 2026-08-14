@@ -1,5 +1,6 @@
 {
   "common.skipToContent": "Hopp til hovedinnhold",
+  "common.missingTranslation": "Dette innholdet er dessverre ikke tilgjengelig på det valgte språket og vises derfor på bokmål.",
   "common.loading": "Laster...",
   "common.in": "i",
   "common.nextStep": "Gå videre",

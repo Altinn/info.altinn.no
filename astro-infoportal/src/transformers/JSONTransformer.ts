@@ -51,6 +51,10 @@ export class JSONTransformer implements IJSONTransformer {
         globalData?.properties?.consentBanner ??
         globalData?.consentBanner ??
         null,
+      missingTranslationText:
+        globalData?.properties?.missingTranslationText ??
+        globalData?.missingTranslationText ??
+        null,
       componentName: "SiteLayout",
       child: null,
     };

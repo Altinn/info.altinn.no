@@ -77,6 +77,24 @@ export function buildConsentBanner(
   };
 }
 
+// Old-portal behaviour, restored: a page with no variant in the requested
+// language renders its NB content (see `contentLocale` in [...slug].astro), and
+// the reader is told so in the language they asked for rather than being left to
+// wonder why the page turned Norwegian. Returns null on NB and on any page that
+// really is translated — the notice must never appear when nothing fell back.
+//
+// This is page-level, matching the old portal. Individual fields that fall back
+// on an otherwise-translated page (e.g. an untranslated driftsmelding on the
+// localised front page, issue #672) are deliberately not covered: the page is
+// translated, so a whole-page notice would misrepresent it.
+export function buildMissingTranslationText(
+  locale: Locale,
+  contentLocale: Locale,
+): string | null {
+  if (locale === contentLocale) return null;
+  return t("common.missingTranslation", locale);
+}
+
 export function getGlobalData(
   locale: Locale = "nb",
   searchPageUrl = "/sok/",
@@ -177,6 +195,7 @@ export function getGlobalData(
     },
     skipLinkText: t("common.skipToContent", locale),
     consentBanner,
+    missingTranslationText: buildMissingTranslationText(locale, contentLocale),
     locale,
     contentLocale,
   };

@@ -1,5 +1,6 @@
 {
   "common.skipToContent": "Hopp til hovudinnhaldet",
+  "common.missingTranslation": "Dette innhaldet er diverre ikkje tilgjengeleg på nynorsk og blir difor vist på bokmål.",
   "common.loading": "Lastar...",
   "common.in": "i",
   "common.nextStep": "Gå videre",
