@@ -1,5 +1,6 @@
 import {
   fetchUmbracoContent,
+  fetchUmbracoContentById,
   resolveBlockReferences,
 } from "@api/umbraco/client";
 import { type Locale, t } from "@i18n/index";
@@ -7,6 +8,7 @@ import {
   type ProviderInfo,
   ProviderResolver,
 } from "@services/Providers/ProviderResolver";
+import { loadAlertMessages, resolveAlertRefsWithNbFallback } from "./alertArea";
 import type { IJSONTransformer } from "./IJSONTransformer";
 import { transformOperationalMessageArticle } from "./OperationalMessageArticlePageTransformer";
 
@@ -27,21 +29,20 @@ export class StartPageTransformer implements IJSONTransformer {
     const p = cmsPageData.properties ?? {};
 
     // --- Operational messages from AlertArea ---
-    const alertRefs: any[] = p.alertArea ?? [];
+    // NB decides which driftsmeldinger the front page shows; each one is then
+    // loaded by id so a translated message renders localised and an untranslated
+    // one still reaches /nn/ and /en/ in bokmål (issue #672, see ./alertArea).
+    const alertRefs = await resolveAlertRefsWithNbFallback(
+      cmsPageData.id,
+      p.alertArea,
+      contentLocale,
+      (id) => fetchUmbracoContentById(id, "nb", isPreview),
+    );
     const alertMessages = (
-      await Promise.all(
-        alertRefs.map(async (ref: any) => {
-          const route = ref.route?.path;
-          if (!route) return null;
-          try {
-            const full = await fetchUmbracoContent(route, contentLocale, undefined, isPreview);
-            return transformOperationalMessageArticle(full);
-          } catch {
-            return null;
-          }
-        }),
+      await loadAlertMessages(alertRefs, (id) =>
+        fetchUmbracoContentById(id, contentLocale, isPreview),
       )
-    ).filter(Boolean);
+    ).map(transformOperationalMessageArticle);
     const criticalOperationalMessages = alertMessages.filter(
       (message: any) => message.colorVariant === "danger",
     );

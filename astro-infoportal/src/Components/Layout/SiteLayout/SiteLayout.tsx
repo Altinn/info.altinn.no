@@ -1,4 +1,4 @@
-import { Layout, RootProvider } from "@altinn/altinn-components";
+import { DsAlert, Layout, RootProvider } from "@altinn/altinn-components";
 import * as Components from "../../../App.Components";
 import "@altinn/altinn-components/dist/global.css";
 import "@digdir/designsystemet-theme";
@@ -22,6 +22,7 @@ const SiteLayout = ({
   pageSidebarViewModel,
   skipLinkText,
   consentBanner,
+  missingTranslationText,
 }: SiteLayoutProps) => {
   const Comp = child ? (Components as any)[child.componentName] : null;
 
@@ -106,6 +107,20 @@ const SiteLayout = ({
         {...(sidebarConfig ? { sidebar: sidebarConfig } : {})}
         theme="default"
       >
+        {missingTranslationText && (
+          <div
+            className={`layout-content-constrained${
+              hasSidebar ? " layout-content-constrained--sidebar" : ""
+            } site-layout__missing-translation`}
+          >
+            {/* DsAlert, not the altinn-components Alert: that one always renders
+                a heading element, and an empty heading both trips the
+                :empty safety net below and swallows the info icon, which
+                .ds-alert hangs off the first-child heading. Headingless is the
+                shape Designsystemet documents for a one-line notice. */}
+            <DsAlert data-color="info">{missingTranslationText}</DsAlert>
+          </div>
+        )}
         {shouldConstrainWidth ? (
           <div
             className={`layout-content-constrained${
