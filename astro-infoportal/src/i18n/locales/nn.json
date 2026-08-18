@@ -195,6 +195,8 @@
   "schemaOverview.allServices": "Alle tenester",
   "schemaOverview.allProviders": "Alle etatar",
   "schemaOverview.recommendedSchemas": "Aktuelle skjema og tenester",
+  "category.schemaCount.one": "{0} teneste",
+  "category.schemaCount.other": "{0} tenester",
 
   "subsidy.youHaveChosen": "Du har valt",
   "subsidy.choose": "Vel",
