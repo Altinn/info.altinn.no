@@ -24,6 +24,11 @@ Once running, navigate to the default port indicated in your console output to v
 ## Database
 The project utilizes a local SQLite database by default, housed within the `umbraco/Data/` directory.
 
+To work against real content instead, copy an environment's database to your machine and run
+Umbraco against it — see [scripts/db/README.md](../scripts/db/README.md). That writes
+`appsettings.Local.json`, which is loaded automatically in Development and takes precedence
+over the SQLite default.
+
 ## Elasticsearch (Search)
 
 Search is powered by Elasticsearch. For local development, run Elasticsearch in Docker:
