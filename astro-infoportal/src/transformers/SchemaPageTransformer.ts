@@ -7,6 +7,7 @@ import {
   fetchUmbracoContent,
   fetchUmbracoContentById,
   resolveBlockReferences,
+  resolveContentReference,
 } from "../api/umbraco/client";
 import { buildMunicipalitySearch } from "../api/umbraco/municipalitySearch";
 import { BlockTransformer } from "./BlockTransformer";
@@ -15,6 +16,7 @@ import { stripCategoryPrefix } from "./categoryPrefix";
 import type { IJSONTransformer } from "./IJSONTransformer";
 import {
   buildPromoAreaContentArea,
+  expandSharedBlocks,
   resolvePromoAreaWithNbFallback,
 } from "./promoAreaContact";
 
@@ -49,6 +51,7 @@ export class SchemaPageTransformer implements IJSONTransformer {
     const props = cmsPageData.properties ?? {};
     const locale: Locale = globalData?.locale || "nb";
     const contentLocale: Locale = globalData?.contentLocale || locale;
+    const isPreview = globalData?.isPreview;
     const resolver = await ProviderResolver.create();
 
     const ancestors = await fetchUmbracoAncestors(cmsPageData.id, contentLocale);
@@ -121,10 +124,16 @@ export class SchemaPageTransformer implements IJSONTransformer {
       cmsPageData.id,
       props.promoArea,
       contentLocale,
-      (id) => fetchUmbracoContentById(id, "nb"),
+      (id) => fetchUmbracoContentById(id, "nb", isPreview),
+    );
+    // Editors may reference a shared block ("Delt blokk") instead of authoring
+    // the contact details inline; those arrive as an unrenderable `blockPicker`
+    // wrapper and must be resolved first (issue #690).
+    const promoAreaBlocks = await expandSharedBlocks(promoAreaData, (ref) =>
+      resolveContentReference(ref, contentLocale, isPreview),
     );
     const promoArea = buildPromoAreaContentArea(
-      promoAreaData,
+      promoAreaBlocks,
       (content) => BlockTransformer.TransformBlocks([content]).items[0],
     );
 

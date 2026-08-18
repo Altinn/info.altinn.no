@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   buildPromoAreaContentArea,
   buildProviderContactInfo,
+  expandSharedBlocks,
   isContactBlock,
   mapContactBlock,
   promoAreaIsEmpty,
@@ -17,11 +18,29 @@ const freetextBlock = (properties: Record<string, unknown>) => ({
 const otherBlock = (properties: Record<string, unknown>) => ({
   content: { contentType: "linkButtonBlock", properties },
 });
+// "Delt blokk": a blockPicker wrapper holding unexpanded Content Picker refs.
+const sharedBlockPicker = (...refs: { id: string; path?: string }[]) => ({
+  content: {
+    contentType: "blockPicker",
+    properties: {
+      blockPicker: refs.map((ref) => ({
+        contentType: "providerContactInformationBlock",
+        id: ref.id,
+        route: { path: ref.path ?? `/delte-blokker/${ref.id}/` },
+        properties: {},
+      })),
+    },
+  },
+});
 
 describe("isContactBlock", () => {
   it("recognises both Faglig brukerstøtte block content types", () => {
     expect(isContactBlock("formElementContact")).toBe(true);
     expect(isContactBlock("formElementContactFreetext")).toBe(true);
+  });
+
+  it("recognises the shared-block content type used by Delt blokk", () => {
+    expect(isContactBlock("providerContactInformationBlock")).toBe(true);
   });
 
   it("rejects other content types and undefined", () => {
@@ -227,5 +246,91 @@ describe("resolvePromoAreaWithNbFallback", () => {
     );
 
     expect(result).toBeNull();
+  });
+});
+
+describe("expandSharedBlocks", () => {
+  const resolved = (id: string, email: string) => ({
+    contentType: "providerContactInformationBlock",
+    id,
+    properties: { email, heading: "Godkjenningsmyndighet" },
+  });
+
+  it("replaces a Delt blokk wrapper with the resolved shared block", async () => {
+    const resolve = vi
+      .fn()
+      .mockResolvedValue(resolved("block-1", "post@miljodir.no"));
+
+    const result = await expandSharedBlocks(
+      { items: [sharedBlockPicker({ id: "block-1" })] },
+      resolve,
+    );
+
+    expect(resolve).toHaveBeenCalledTimes(1);
+    expect(result.items).toEqual([
+      { content: resolved("block-1", "post@miljodir.no") },
+    ]);
+  });
+
+  it("expands every reference held by one wrapper, in order", async () => {
+    const resolve = vi
+      .fn()
+      .mockImplementation(async (ref: any) =>
+        resolved(ref.id, `${ref.id}@x.no`),
+      );
+
+    const result = await expandSharedBlocks(
+      { items: [sharedBlockPicker({ id: "a" }, { id: "b" })] },
+      resolve,
+    );
+
+    expect(result.items.map((i: any) => i.content.id)).toEqual(["a", "b"]);
+  });
+
+  it("drops references that cannot be resolved instead of rendering an empty block", async () => {
+    const resolve = vi.fn().mockResolvedValue(null);
+
+    const result = await expandSharedBlocks(
+      { items: [sharedBlockPicker({ id: "gone" })] },
+      resolve,
+    );
+
+    expect(result.items).toEqual([]);
+  });
+
+  it("leaves inline blocks untouched and resolves nothing for them", async () => {
+    const resolve = vi.fn();
+    const inline = freetextBlock({ email: "post@toll.no" });
+
+    const result = await expandSharedBlocks({ items: [inline] }, resolve);
+
+    expect(resolve).not.toHaveBeenCalled();
+    expect(result.items).toEqual([inline]);
+  });
+
+  it("returns an empty promoArea unchanged", async () => {
+    const resolve = vi.fn();
+    expect(await expandSharedBlocks(null, resolve)).toBeNull();
+    expect(resolve).not.toHaveBeenCalled();
+  });
+
+  it("feeds buildPromoAreaContentArea a renderable contact block (issue #690)", async () => {
+    const expanded = await expandSharedBlocks(
+      { items: [sharedBlockPicker({ id: "block-1" })] },
+      async () => resolved("block-1", "post@miljodir.no"),
+    );
+
+    const result = buildPromoAreaContentArea(expanded, () => undefined);
+
+    expect(result).toEqual({
+      componentName: "ContentArea",
+      items: [
+        expect.objectContaining({
+          componentName: "ProviderContactInformationBlock",
+          email: "post@miljodir.no",
+          pageName: "Godkjenningsmyndighet",
+        }),
+      ],
+    });
   });
 });
