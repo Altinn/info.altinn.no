@@ -275,6 +275,36 @@ export async function fetchUmbracoContentList(
   return items;
 }
 
+/**
+ * Count the content items matching `filters` without transferring them.
+ *
+ * `fields=` drops the property payload, and `take=1` is deliberate: the
+ * Delivery API reports `total: 0` when `take=0`, so one item has to be
+ * requested for the count to be meaningful.
+ */
+export async function fetchUmbracoContentCount(
+  filters: string[],
+  culture?: string,
+  isPreview?: boolean,
+): Promise<number> {
+  const params = new URLSearchParams({ take: "1", fields: "" });
+  for (const filter of filters) {
+    params.append("filter", filter);
+  }
+  const url = deliveryUrl("/umbraco/delivery/api/v2/content", params.toString());
+
+  const response = await fetch(url, { headers: getHeaders(culture, isPreview) });
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to count content in Umbraco: ${response.statusText} ${url}`,
+    );
+  }
+
+  const data = await response.json();
+  return data.total ?? 0;
+}
+
 export async function fetchUmbracoContentListPage(
   filters: string[],
   take = 100,

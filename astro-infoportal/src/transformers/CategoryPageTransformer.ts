@@ -1,71 +1,86 @@
-import type { IJSONTransformer } from "./IJSONTransformer";
-import { fetchUmbracoAncestors, fetchUmbracoChildren } from "../api/umbraco/client";
+import { type Locale, t } from "@i18n/index";
+import {
+  fetchUmbracoAncestors,
+  fetchUmbracoChildren,
+  fetchUmbracoContentCount,
+} from "../api/umbraco/client";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
+import { stripCategoryPrefix } from "./categoryPrefix";
+import type { IJSONTransformer } from "./IJSONTransformer";
 
-/** Normalize URL slugs: strip trailing slashes and collapse multiple dashes to single. */
-function normalizeUrl(url: string): string {
-  return url.replace(/\/+$/, "").replace(/-{2,}/g, "-");
+/**
+ * Number of schemas filed under a subcategory.
+ *
+ * Counted in bokmål on purpose: SubCategoryPageTransformer lists the
+ * subcategory's schemas from the NB tree in every locale, so an NN/EN count
+ * would advertise fewer services than the page it links to actually shows.
+ */
+async function fetchSchemaCount(subCategoryId: string): Promise<number> {
+  try {
+    return await fetchUmbracoContentCount(
+      ["contentType:schemaPage", `subCategory:${subCategoryId}`],
+      "nb",
+    );
+  } catch {
+    // Count is decoration — render the subcategory without a badge instead
+    // of failing the whole page.
+    return 0;
+  }
 }
 
-/** Fetch schema count text per subcategory URL from the production overview page. */
-async function fetchSchemaCountsByUrl(): Promise<Record<string, string>> {
-  const map: Record<string, string> = {};
-  try {
-    const res = await fetch("https://info.altinn.no/skjemaoversikt/");
-    const html = await res.text();
-    const m = html.match(/"schemaCategories":(\[.*?\])\s*,\s*"providerCollections"/s);
-    if (!m) return map;
-    const categories = JSON.parse(m[1]) as {
-      subCategories?: { url?: string; schemaCountText?: string }[];
-    }[];
-    for (const cat of categories) {
-      for (const sub of cat.subCategories ?? []) {
-        if (sub.url && sub.schemaCountText) {
-          map[normalizeUrl(sub.url)] = sub.schemaCountText;
-        }
-      }
-    }
-  } catch {
-    // If production fetch fails, counts will be empty
-  }
-  return map;
+/** "11 tjenester" / "1 service" — empty subcategories get no badge at all. */
+function schemaCountText(count: number, locale: Locale): string | undefined {
+  if (!count) return undefined;
+  const key =
+    count === 1 ? "category.schemaCount.one" : "category.schemaCount.other";
+  return t(key, locale).replace("{0}", String(count));
 }
 
 export class CategoryPageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
     const props = cmsPageData.properties ?? {};
-    const locale = globalData?.locale ?? "nb";
-    const contentLocale = globalData?.contentLocale ?? locale;
+    const locale: Locale = globalData?.locale ?? "nb";
+    const contentLocale: Locale = globalData?.contentLocale ?? locale;
 
-    const ancestors = await fetchUmbracoAncestors(cmsPageData.id, contentLocale);
+    const ancestors = await fetchUmbracoAncestors(
+      cmsPageData.id,
+      contentLocale,
+    );
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
 
-    // Subcategories: direct children of this category page
-    const children = await fetchUmbracoChildren(cmsPageData.route.path, 100, contentLocale);
-    const categoryPrefix = `${cmsPageData.name} - `;
-    const schemaCounts = await fetchSchemaCountsByUrl();
-    const subCategories = children
-      .filter((c: any) => c.contentType === "subCategoryPage")
-      .map((c: any) => {
-        const url = c.route?.path;
-        const normalizedUrl = url ? normalizeUrl(url) : undefined;
-        return {
-          heading: c.name.startsWith(categoryPrefix) ? c.name.slice(categoryPrefix.length) : c.name,
-          url,
-          schemaCountText: normalizedUrl ? schemaCounts[normalizedUrl] : undefined,
-        };
-      })
-      .sort((a: any, b: any) => a.heading.localeCompare(b.heading, "nb"));
+    // Subcategories: direct children of this category page, kept in the order
+    // the editors arranged them in Umbraco.
+    const children = await fetchUmbracoChildren(
+      cmsPageData.route.path,
+      100,
+      contentLocale,
+    );
+    const subCategories = await Promise.all(
+      children
+        .filter((c: any) => c.contentType === "subCategoryPage")
+        .map(async (c: any) => {
+          const count = await fetchSchemaCount(c.id);
+          return {
+            heading: stripCategoryPrefix(c.name),
+            url: c.route?.path,
+            schemaCountText: schemaCountText(count, locale),
+          };
+        }),
+    );
 
     // Sidebar: all sibling categories
     const segments = cmsPageData.route.path.split("/").filter(Boolean);
     segments.pop(); // remove current category slug → "skjemaoversikt/kategori"
     const parentPath = segments.join("/");
-    const allCategories = await fetchUmbracoChildren(parentPath, 100, contentLocale);
+    const allCategories = await fetchUmbracoChildren(
+      parentPath,
+      100,
+      contentLocale,
+    );
 
     const pageSidebarViewModel = {
       titleItem: {
-        label: "Alle tjenester",
+        label: t("schemaOverview.allServices", locale),
         url: "/skjemaoversikt",
         icon: "MenuGridIcon",
       },
