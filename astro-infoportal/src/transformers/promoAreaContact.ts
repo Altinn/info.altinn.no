@@ -12,7 +12,19 @@
 const CONTACT_BLOCK_TYPES = new Set([
   "formElementContactFreetext",
   "formElementContact",
+  // Shared blocks (editor label "Delt blokk") live under the `delte-blokker`
+  // root and are published as their own content type. The property shape is
+  // identical to formElementContactFreetext, so mapContactBlock handles both.
+  "providerContactInformationBlock",
 ]);
+
+/**
+ * Content type of the "Delt blokk" wrapper element, and the alias of the
+ * Content Picker property it holds. The wrapper carries no renderable content
+ * of its own — only references to shared blocks under the `delte-blokker` root.
+ */
+const SHARED_BLOCK_WRAPPER_TYPE = "blockPicker";
+const SHARED_BLOCK_PICKER_ALIAS = "blockPicker";
 
 export function isContactBlock(contentType: string | undefined): boolean {
   return !!contentType && CONTACT_BLOCK_TYPES.has(contentType);
@@ -65,6 +77,46 @@ function promoAreaItems(promoArea: any): any[] {
     : Array.isArray(promoArea?.items)
       ? promoArea.items
       : [];
+}
+
+/**
+ * Expands "Delt blokk" wrappers into the shared blocks they point at (issue #690).
+ *
+ * The Delivery API returns the wrapper as
+ * `{ contentType: "blockPicker", properties: { blockPicker: [ref, …] } }`,
+ * where each ref carries only `id`/`route` and an empty `properties` object.
+ * Nothing downstream knows the `blockPicker` alias, so an unexpanded wrapper
+ * renders as nothing at all. Resolve each ref and splice the resolved content
+ * in as if the editor had authored it inline; refs that cannot be resolved
+ * (unpublished or deleted) are dropped rather than rendered empty.
+ *
+ * Blocks that are not wrappers pass through untouched, so this is a no-op —
+ * and costs no requests — for promoAreas authored entirely inline.
+ */
+export async function expandSharedBlocks(
+  promoArea: any,
+  resolveSharedBlock: (ref: any) => Promise<any>,
+): Promise<any> {
+  const items = promoAreaItems(promoArea);
+  if (!items.some(isSharedBlockWrapper)) return promoArea;
+
+  const expanded = await Promise.all(
+    items.map(async (wrapper) => {
+      if (!isSharedBlockWrapper(wrapper)) return [wrapper];
+      const content = wrapper?.content ?? wrapper;
+      const refs = content?.properties?.[SHARED_BLOCK_PICKER_ALIAS];
+      if (!Array.isArray(refs)) return [];
+      const resolved = await Promise.all(refs.map(resolveSharedBlock));
+      return resolved.filter(Boolean).map((block) => ({ content: block }));
+    }),
+  );
+
+  return { ...(promoArea ?? {}), items: expanded.flat() };
+}
+
+function isSharedBlockWrapper(wrapper: any): boolean {
+  const content = wrapper?.content ?? wrapper;
+  return content?.contentType === SHARED_BLOCK_WRAPPER_TYPE;
 }
 
 /**

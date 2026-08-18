@@ -5,11 +5,13 @@ import {
   fetchUmbracoChildren,
   fetchUmbracoContentById,
   resolveBlockReferences,
+  resolveContentReference,
 } from "../api/umbraco/client";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
 import type { IJSONTransformer } from "./IJSONTransformer";
 import {
   buildProviderContactInfo,
+  expandSharedBlocks,
   resolvePromoAreaWithNbFallback,
 } from "./promoAreaContact";
 
@@ -98,7 +100,12 @@ export class ProviderPageTransformer implements IJSONTransformer {
       contentLocale,
       (id) => fetchUmbracoContentById(id, "nb", isPreview),
     );
-    const contactInfo = buildProviderContactInfo(promoAreaData, {
+    // A "Delt blokk" entry only references a shared block; resolve it before
+    // mapping so it renders like an inline contact block (issue #690).
+    const promoAreaBlocks = await expandSharedBlocks(promoAreaData, (ref) =>
+      resolveContentReference(ref, contentLocale, isPreview),
+    );
+    const contactInfo = buildProviderContactInfo(promoAreaBlocks, {
       name: cmsPageData.name,
       imageUrl: providerIcon.imageUrl,
     });

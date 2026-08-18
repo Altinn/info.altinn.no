@@ -155,6 +155,41 @@ export async function fetchUmbracoContentById(id: string, culture?: string, isPr
  * `route.path` first, then fall back to `id` (necessary when the ref points to content
  * under a different startItem — path resolution fails there).
  */
+/**
+ * Resolves a single Content Picker reference to its full content item, by id.
+ *
+ * Unlike `resolveBlockReferences` this prefers the id over `route.path`, which
+ * matters for references that cross into another culture: a shared block's path
+ * is localised (`…/miljoedirektoratet/` in nb, `…/environment-agency/` in en)
+ * and the reference always carries the path of the culture the *referencing*
+ * page was fetched in. A path fetch in any other culture 404s and silently
+ * falls back to nb, so an English page would show Norwegian content. The id is
+ * culture-independent. Returns null when the reference cannot be resolved
+ * (unpublished or deleted) so callers can drop it.
+ */
+export async function resolveContentReference(
+  ref: any,
+  culture?: string,
+  isPreview?: boolean,
+): Promise<any | null> {
+  if (ref?.properties && Object.keys(ref.properties).length > 0) {
+    return ref;
+  }
+  if (ref?.id) {
+    const byId = await fetchUmbracoContentById(ref.id, culture, isPreview);
+    if (byId) return byId;
+  }
+  const route = ref?.route?.path;
+  if (route) {
+    try {
+      return await fetchUmbracoContent(route, culture, undefined, isPreview);
+    } catch {
+      // Unpublished, deleted, or not reachable in this culture.
+    }
+  }
+  return null;
+}
+
 export async function resolveBlockReferences(
   refs: any[] | { items?: any[] } | undefined | null,
   locale?: string,
