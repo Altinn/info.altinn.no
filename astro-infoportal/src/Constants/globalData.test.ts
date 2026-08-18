@@ -1,5 +1,7 @@
+import en from "@i18n/locales/en.json";
+import nn from "@i18n/locales/nn.json";
 import { describe, expect, it } from "vitest";
-import { buildConsentBanner } from "./globalData";
+import { buildConsentBanner, buildMissingTranslationText } from "./globalData";
 
 const full = {
   properties: {
@@ -61,5 +63,22 @@ describe("buildConsentBanner", () => {
     const vm = buildConsentBanner(noLinks);
     expect(vm?.changeLinkUrl).toBeUndefined();
     expect(vm?.necessaryLinkUrl).toBeUndefined();
+  });
+});
+
+describe("buildMissingTranslationText", () => {
+  it("returns null when the page is available in the requested language", () => {
+    expect(buildMissingTranslationText("nb", "nb")).toBeNull();
+    expect(buildMissingTranslationText("nn", "nn")).toBeNull();
+    expect(buildMissingTranslationText("en", "en")).toBeNull();
+  });
+
+  it("explains the fallback in the language the reader asked for", () => {
+    expect(buildMissingTranslationText("en", "nb")).toBe(
+      en["common.missingTranslation"],
+    );
+    expect(buildMissingTranslationText("nn", "nb")).toBe(
+      nn["common.missingTranslation"],
+    );
   });
 });

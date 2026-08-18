@@ -5,7 +5,6 @@ import "./OperationalMessageArticlePage.scss";
 const OperationalMessageArticlePage = ({
   pageName,
   colorVariant,
-  mainBody,
   mainBodyRichText,
 }: any) => {
   return (
@@ -20,16 +19,12 @@ const OperationalMessageArticlePage = ({
         {pageName || ""}
       </Heading>
       {mainBodyRichText &&
-      mainBodyRichText.items &&
-      mainBodyRichText.items.length > 0 ? (
-        <div className="operational-message__body">
-          <RichTextArea {...mainBodyRichText} />
-        </div>
-      ) : (
-        mainBody && (
-          <div className="operational-message__body">{mainBody}</div>
-        )
-      )}
+        mainBodyRichText.items &&
+        mainBodyRichText.items.length > 0 && (
+          <div className="operational-message__body">
+            <RichTextArea {...mainBodyRichText} />
+          </div>
+        )}
     </Alert>
   );
 };

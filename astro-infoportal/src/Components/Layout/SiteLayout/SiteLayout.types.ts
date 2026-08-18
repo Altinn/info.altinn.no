@@ -7,4 +7,6 @@ export interface SiteLayoutProps {
   child?: { componentName: string; [key: string]: any };
   skipLinkText?: string;
   consentBanner?: ConsentBannerViewModel | null;
+  /** Set only when the page fell back to NB content (see buildMissingTranslationText). */
+  missingTranslationText?: string | null;
 }

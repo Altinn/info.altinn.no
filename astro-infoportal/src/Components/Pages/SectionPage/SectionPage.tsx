@@ -2,7 +2,7 @@ import { ContentArea } from "/App.Components";
 // import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
 import "../../../styles/legacy-pages.scss";
 import "./SectionPage.scss";
-// import { ArrowRightIcon } from "@navikt/aksel-icons";
+import { ArrowRightIcon } from "@navikt/aksel-icons";
 import type { SectionPageProps } from "./SectionPage.types";
 
 const SectionPage = ({
@@ -17,6 +17,16 @@ const SectionPage = ({
   themeArea,
   bottomArea,
 }: SectionPageProps) => {
+  /*
+    Split the featured link label so the last word can carry the arrow inside a
+    nowrap span. A line break is allowed before an atomic inline even with no
+    whitespace in between, so without this the arrow wraps onto a line of its own
+    once the label spans two lines.
+  */
+  const featuredLinkWords = goToLinkText?.trim().split(/\s+/) ?? [];
+  const featuredLinkLastWord = featuredLinkWords.pop();
+  const featuredLinkLead = featuredLinkWords.join(" ");
+
   return (
     <section id="content" className="legacy-page" tabIndex={-1}>
       {/* Page Title Section */}
@@ -43,6 +53,19 @@ const SectionPage = ({
             backgroundPosition: "center",
           }}
         >
+          {/*
+            Small screens render the illustration as a real image so it scales to
+            the viewport width and the link list flows below it instead of on top
+            of it. From md up the illustration stays a full-bleed background and
+            this image is hidden (see SectionPage.scss).
+          */}
+          {backgroundImage?.src && (
+            <img
+              className="sectionpage-illustration"
+              src={backgroundImage.src}
+              alt=""
+            />
+          )}
           <div className="container">
             <div className="row">
               <div className="col-md-8 offset-md-0 col-lg-6 offset-lg-1 col-xl-5 offset-xl-1">
@@ -80,10 +103,13 @@ const SectionPage = ({
                 {goToLinkLocation?.url && goToLinkText && (
                   <a
                     href={goToLinkLocation.url}
-                    className="a-linkFeatured a-link-large"
+                    className="a-linkFeatured a-link-large sectionpage-featuredlink"
                   >
-                    {goToLinkText}
-                    {/* <ArrowRightIcon aria-hidden="true" /> */}
+                    {featuredLinkLead && `${featuredLinkLead} `}
+                    <span className="sectionpage-featuredlink__end">
+                      {featuredLinkLastWord}
+                      <ArrowRightIcon aria-hidden="true" fontSize="1.25em" />
+                    </span>
                   </a>
                 )}
               </div>

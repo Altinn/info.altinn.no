@@ -30,6 +30,16 @@ body {
   }
 }
 
+/* Missing-translation notice (issue #672): borrows .layout-content-constrained
+   so it lines up with the page body, including the sidebar variant. It is
+   applied even on the pages that opt out of that class and manage their own
+   width — a one-line notice spanning the full viewport reads badly. Vertical
+   rhythm is margin, not padding, so it never competes with the
+   `padding: 0 16px` shorthand above. */
+.site-layout__missing-translation {
+  margin-block: var(--ds-size-4);
+}
+
 .site-layout__skip-link {
   font-size: 0.875rem;
   font-weight: 400;

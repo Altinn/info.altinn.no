@@ -6,22 +6,38 @@ import {defineMiddleware} from 'astro:middleware';
  * Closes pen-test finding 4.1 (Accenture, May 2026). The headers live here in
  * the Astro app — rather than the cache worker in front — so:
  *   - Local dev (`npm run dev`) and `npm run preview` see the same headers as
- *     production, which means CSP-Report-Only violations get caught at
- *     development time instead of after deploy.
+ *     production, which means CSP violations get caught at development time
+ *     instead of after deploy — now that CSP is enforcing (see below), that
+ *     means resources can actually get blocked locally too, not just logged.
  *   - The security posture is owned by the application, not by network plumbing,
  *     and survives any future changes to the deployment topology.
  *
  * Production-safety notes (initial rollout — May 2026):
- *   - CSP is sent as Content-Security-Policy-Report-Only. By spec this NEVER
- *     blocks a resource; it only records violations to the browser console.
- *     Promote to enforcing (rename the header) after ~1 week of observation.
- *   - HSTS uses a deliberately short max-age (1 hour) for the initial roll.
- *     Ratchet up over the following weeks: 1 day → 1 week → 1 month → 1 year
- *     → 2 years + `includeSubDomains` + `preload`. Do NOT add `preload` until
- *     max-age has been at 63072000 (2 years) for at least a week.
+ *   - CSP was Content-Security-Policy-Report-Only from initial rollout until
+ *     2026-08-11, when it was promoted to enforcing (Content-Security-Policy).
+ *     This file has no per-environment branching, so the promotion is staged
+ *     by *deploying* this same code environment by environment — at22 first
+ *     (`wrangler deploy --env at22`), watched for a few days, then at23 →
+ *     tt02 → prod — rather than by a flag in the code. Violations (blocked or,
+ *     during any future report-only rollout, merely observed) are POSTed by
+ *     the browser to /api/csp-reports via the `report-uri` directive below
+ *     and logged there; check Workers Logs for astro-infoportal-at22 in the
+ *     Cloudflare dashboard (observability is already enabled in
+ *     wrangler.jsonc) before promoting further. If at22 shows unexpected
+ *     violations, fix the policy or the offending code and re-deploy to at22
+ *     before moving on — don't promote past an environment with open reports.
+ *   - HSTS: 1 hour (initial roll) → 1 day (2026-08-11) → still to come: 1 week
+ *     → 1 month → 1 year → 2 years + `includeSubDomains` + `preload`. Do NOT
+ *     add `preload` until max-age has been at 63072000 (2 years) for at
+ *     least a week. Each step staged the same way as the CSP promotion above
+ *     — deploy to at22 first, watch for a few days, then at23 → tt02 → prod.
+ *     Note: a client that already cached the previous (shorter or longer)
+ *     max-age keeps enforcing that value client-side until it expires, so
+ *     watch real traffic rather than assuming a fresh request reflects what
+ *     every visitor's browser is doing.
  *   - X-Frame-Options is SAMEORIGIN (not DENY) to preserve any legitimate
  *     same-origin embedding. Tighten to DENY once we confirm nothing
- *     legitimately frames the portal.
+ *     legitimately frames the portal. Still pending.
  *
  * NOTE on caching: responses produced here are stored by cache-infoportal in
  * Cloudflare's edge cache WITH these headers baked in. Changing a header value
@@ -61,7 +77,10 @@ function inferContentType(pathname: string): string | null {
 	return ext ? MIME_TYPES[ext] ?? null : null;
 }
 
-const CSP_REPORT_ONLY = [
+// Note: `report-uri` is the legacy CSP reporting directive, but it still has
+// materially broader browser support today than the newer `report-to` +
+// `Reporting-Endpoints` header pair. Revisit if/when that changes.
+const CSP_POLICY = [
 	"default-src 'self'",
 	"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://player.vimeo.com https://siteimproveanalytics.com",
 	"style-src 'self' 'unsafe-inline' https://altinncdn.no",
@@ -72,6 +91,7 @@ const CSP_REPORT_ONLY = [
 	"frame-ancestors 'self'",
 	"base-uri 'self'",
 	"form-action 'self'",
+	"report-uri /api/csp-reports",
 ].join('; ');
 
 function applySecurityHeaders(response: Response, pathname: string): void {
@@ -104,17 +124,20 @@ function applySecurityHeaders(response: Response, pathname: string): void {
 		headers.set('X-Frame-Options', 'SAMEORIGIN');
 	}
 
-	// HSTS — start short. See note above on ratchet plan.
+	// HSTS — 1 day as of 2026-08-11 (previously 1 hour). See ratchet plan above.
 	if (!headers.has('Strict-Transport-Security')) {
-		headers.set('Strict-Transport-Security', 'max-age=3600');
+		headers.set('Strict-Transport-Security', 'max-age=86400');
 	}
 
-	// CSP in Report-Only mode for the initial rollout — observes but does not block.
+	// CSP — enforcing as of 2026-08-11. See rollout note above: promoted
+	// environment-by-environment by deployment, not by a code flag. Roll back
+	// to Report-Only here (and re-deploy) if an environment shows unexpected
+	// blocked requests that can't be fixed quickly.
 	if (
 		!headers.has('Content-Security-Policy') &&
 		!headers.has('Content-Security-Policy-Report-Only')
 	) {
-		headers.set('Content-Security-Policy-Report-Only', CSP_REPORT_ONLY);
+		headers.set('Content-Security-Policy', CSP_POLICY);
 	}
 }
 
