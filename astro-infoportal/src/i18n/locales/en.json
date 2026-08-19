@@ -195,6 +195,8 @@
   "schemaOverview.allServices": "All services",
   "schemaOverview.allProviders": "All providers",
   "schemaOverview.recommendedSchemas": "Relevant forms and services",
+  "category.schemaCount.one": "{0} service",
+  "category.schemaCount.other": "{0} services",
 
   "subsidy.youHaveChosen": "You have chosen",
   "subsidy.choose": "Choose",

@@ -155,6 +155,41 @@ export async function fetchUmbracoContentById(id: string, culture?: string, isPr
  * `route.path` first, then fall back to `id` (necessary when the ref points to content
  * under a different startItem — path resolution fails there).
  */
+/**
+ * Resolves a single Content Picker reference to its full content item, by id.
+ *
+ * Unlike `resolveBlockReferences` this prefers the id over `route.path`, which
+ * matters for references that cross into another culture: a shared block's path
+ * is localised (`…/miljoedirektoratet/` in nb, `…/environment-agency/` in en)
+ * and the reference always carries the path of the culture the *referencing*
+ * page was fetched in. A path fetch in any other culture 404s and silently
+ * falls back to nb, so an English page would show Norwegian content. The id is
+ * culture-independent. Returns null when the reference cannot be resolved
+ * (unpublished or deleted) so callers can drop it.
+ */
+export async function resolveContentReference(
+  ref: any,
+  culture?: string,
+  isPreview?: boolean,
+): Promise<any | null> {
+  if (ref?.properties && Object.keys(ref.properties).length > 0) {
+    return ref;
+  }
+  if (ref?.id) {
+    const byId = await fetchUmbracoContentById(ref.id, culture, isPreview);
+    if (byId) return byId;
+  }
+  const route = ref?.route?.path;
+  if (route) {
+    try {
+      return await fetchUmbracoContent(route, culture, undefined, isPreview);
+    } catch {
+      // Unpublished, deleted, or not reachable in this culture.
+    }
+  }
+  return null;
+}
+
 export async function resolveBlockReferences(
   refs: any[] | { items?: any[] } | undefined | null,
   locale?: string,
@@ -273,6 +308,36 @@ export async function fetchUmbracoContentList(
   }
 
   return items;
+}
+
+/**
+ * Count the content items matching `filters` without transferring them.
+ *
+ * `fields=` drops the property payload, and `take=1` is deliberate: the
+ * Delivery API reports `total: 0` when `take=0`, so one item has to be
+ * requested for the count to be meaningful.
+ */
+export async function fetchUmbracoContentCount(
+  filters: string[],
+  culture?: string,
+  isPreview?: boolean,
+): Promise<number> {
+  const params = new URLSearchParams({ take: "1", fields: "" });
+  for (const filter of filters) {
+    params.append("filter", filter);
+  }
+  const url = deliveryUrl("/umbraco/delivery/api/v2/content", params.toString());
+
+  const response = await fetch(url, { headers: getHeaders(culture, isPreview) });
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to count content in Umbraco: ${response.statusText} ${url}`,
+    );
+  }
+
+  const data = await response.json();
+  return data.total ?? 0;
 }
 
 export async function fetchUmbracoContentListPage(

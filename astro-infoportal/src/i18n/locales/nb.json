@@ -195,6 +195,8 @@
   "schemaOverview.allServices": "Alle tjenester",
   "schemaOverview.allProviders": "Alle etater",
   "schemaOverview.recommendedSchemas": "Aktuelle skjemaer og tjenester",
+  "category.schemaCount.one": "{0} tjeneste",
+  "category.schemaCount.other": "{0} tjenester",
 
   "subsidy.youHaveChosen": "Du har valgt",
   "subsidy.choose": "Velg",
