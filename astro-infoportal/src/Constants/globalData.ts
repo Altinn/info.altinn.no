@@ -79,9 +79,15 @@ export function buildConsentBanner(
 
 // Old-portal behaviour, restored: a page with no variant in the requested
 // language renders its NB content (see `contentLocale` in [...slug].astro), and
-// the reader is told so in the language they asked for rather than being left to
-// wonder why the page turned Norwegian. Returns null on NB and on any page that
-// really is translated — the notice must never appear when nothing fell back.
+// the reader is told so rather than being left to wonder why the page turned
+// Norwegian. Returns null on any page that really is translated — the notice
+// must never appear when nothing fell back.
+//
+// English only, by editorial decision (issue #648): nynorsk readers read bokmål,
+// so the notice is noise there, and språklova requires many of these pages to
+// exist in both målformer — a notice sitting on one for years reads as an
+// excuse rather than help. The nn translation is kept in the locale files so the
+// decision can be reversed without re-translating.
 //
 // This is page-level, matching the old portal. Individual fields that fall back
 // on an otherwise-translated page (e.g. an untranslated driftsmelding on the
@@ -91,7 +97,7 @@ export function buildMissingTranslationText(
   locale: Locale,
   contentLocale: Locale,
 ): string | null {
-  if (locale === contentLocale) return null;
+  if (locale !== "en" || locale === contentLocale) return null;
   return t("common.missingTranslation", locale);
 }
 
