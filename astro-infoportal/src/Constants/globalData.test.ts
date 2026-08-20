@@ -73,12 +73,16 @@ describe("buildMissingTranslationText", () => {
     expect(buildMissingTranslationText("en", "en")).toBeNull();
   });
 
-  it("explains the fallback in the language the reader asked for", () => {
+  it("explains the fallback on an english page", () => {
     expect(buildMissingTranslationText("en", "nb")).toBe(
       en["common.missingTranslation"],
     );
-    expect(buildMissingTranslationText("nn", "nb")).toBe(
-      nn["common.missingTranslation"],
-    );
+  });
+
+  // Issue #648: nynorsk readers read bokmål, so the notice stays off there even
+  // though nn/common.missingTranslation is still translated and ready.
+  it("stays silent on a nynorsk page that fell back to bokmål", () => {
+    expect(buildMissingTranslationText("nn", "nb")).toBeNull();
+    expect(nn["common.missingTranslation"]).not.toBe("");
   });
 });
