@@ -39,6 +39,16 @@ jobs:
     name: Publish syncroot artifact
     if: github.ref == 'refs/heads/main'
     runs-on: self-hosted
+    # The self-hosted runners are Azure Container App Jobs, which inject a
+    # managed identity endpoint. flux --provider=azure uses DefaultAzureCredential,
+    # which then tries ManagedIdentityCredential, gets HTTP 400 (the job has a
+    # user-assigned identity and flux passes no client id), and aborts the whole
+    # credential chain before reaching the az login session from azure/login.
+    # Clearing these makes that step fall through to the CLI credential, which is
+    # what happens on GitHub-hosted runners.
+    env:
+      IDENTITY_ENDPOINT: ""
+      MSI_ENDPOINT: ""
     steps:
       - name: Checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
