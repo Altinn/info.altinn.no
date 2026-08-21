@@ -41,7 +41,11 @@ if (path.startsWith("/media/") || path.startsWith("/contentassets/") || path.sta
    return new Response(bytes);
  }
 
-if (path.startsWith('/api/') || path.match(/\.[a-zA-Z0-9]+$/)) {
+if (path.indexOf(".aspx") > -1) {
+  return Astro.redirect(Astro.url.origin + resolveAspxRedirect(path), 302);
+}
+
+ if (path.startsWith('/api/') || path.match(/\.[a-zA-Z0-9]+$/)) {
   return new Response(null, { status: 404 });
 }
 
@@ -128,6 +132,69 @@ if (isError) {
   Astro.response.status = 404;
 }
 Astro.response.headers.set("Cache-Control", pageCacheControl(Astro.url.hostname));
+
+function resolveAspxRedirect(aspxPath) {
+  if (aspxPath.startsWith("/en")) {
+    if (containsGuid(aspxPath, 'B9DCB0CA-2342-40B7-848E-09831F3BBC26')) {
+      return "/en/help/access-managment/";
+    } else if (containsGuid(aspxPath, '89EE8D8A-F3DB-4B2D-B7EC-11E33C78714F')) {
+      return "/en/help/inbox/";
+    } else if (containsGuid(aspxPath, 'D3A1D3C5-B102-43C8-8522-3D99D27B7BAD')) {
+      return "/en/help/system-accesses/";
+    } else if (containsGuid(aspxPath, 'CFD06368-21FD-4FA0-8621-6A9665640A0F')) {
+      return "/en/help/logging-in/";
+    } else if (containsGuid(aspxPath, '2CE1A67C-2C6C-40BA-929D-84F8A3013426')) {
+      return "/en/help/logging-in/";
+    } else if (containsGuid(aspxPath, '6EB9787F-B889-4452-A505-B05EF9ACC8D9')) {
+      return "/en/help/";
+    } else if (containsGuid(aspxPath, '79519E28-7698-411C-A554-C361003866CE')) {  
+      return "/en/help/access-managment/";  
+    } else if (containsGuid(aspxPath, '5B1E2E22-38DD-4D3F-82F7-CB11996949F9')) {
+      return "/en/help/logging-in/how-to-log-in-to-altinn/";
+    }
+  } else if (aspxPath.startsWith("/nn")) {
+    if (containsGuid(aspxPath, 'B9DCB0CA-2342-40B7-848E-09831F3BBC26')) {
+      return "/nn/hjelp/tilgangsstyring/";
+    } else if (containsGuid(aspxPath, '89EE8D8A-F3DB-4B2D-B7EC-11E33C78714F')) {
+      return "/nn/hjelp/innboks/";
+    } else if (containsGuid(aspxPath, 'D3A1D3C5-B102-43C8-8522-3D99D27B7BAD')) {
+      return "/nn/hjelp/systemtilgangar/";
+    } else if (containsGuid(aspxPath, 'CFD06368-21FD-4FA0-8621-6A9665640A0F')) {
+      return "/nn/hjelp/innlogging/";
+    } else if (containsGuid(aspxPath, '2CE1A67C-2C6C-40BA-929D-84F8A3013426')) {
+      return "/nn/hjelp/innlogging/";
+    } else if (containsGuid(aspxPath, '6EB9787F-B889-4452-A505-B05EF9ACC8D9')) {
+      return "/nn/hjelp/";
+    } else if (containsGuid(aspxPath, '79519E28-7698-411C-A554-C361003866CE')) {  
+      return "/nn/hjelp/tilgangsstyring/";  
+    } else if (containsGuid(aspxPath, '5B1E2E22-38DD-4D3F-82F7-CB11996949F9')) {
+      return "/nn/hjelp/innlogging/slik-loggar-du-inn-i-altinn/";
+    }    
+  } else {
+    if (containsGuid(aspxPath, 'B9DCB0CA-2342-40B7-848E-09831F3BBC26')) {
+      return "/hjelp/ny-tilgangsstyring/";
+    } else if (containsGuid(aspxPath, '89EE8D8A-F3DB-4B2D-B7EC-11E33C78714F')) {
+      return "/hjelp/ny-innboks-beta/";
+    } else if (containsGuid(aspxPath, 'D3A1D3C5-B102-43C8-8522-3D99D27B7BAD')) {
+      return "/hjelp/systemtilgang/";
+    } else if (containsGuid(aspxPath, 'CFD06368-21FD-4FA0-8621-6A9665640A0F')) {
+      return "/hjelp/innlogging/";
+    } else if (containsGuid(aspxPath, '2CE1A67C-2C6C-40BA-929D-84F8A3013426')) {
+      return "/hjelp/innlogging/";
+    } else if (containsGuid(aspxPath, '6EB9787F-B889-4452-A505-B05EF9ACC8D9')) {
+      return "/hjelp/";
+    } else if (containsGuid(aspxPath, '79519E28-7698-411C-A554-C361003866CE')) {  
+      return "/hjelp/ny-tilgangsstyring/";  
+    } else if (containsGuid(aspxPath, '5B1E2E22-38DD-4D3F-82F7-CB11996949F9')) {
+      return "/hjelp/innlogging/slik-logger-du-inn-i-altinn/";
+    }    
+  }
+  return "/404";
+}
+
+function containsGuid(aspxPath, guid) {
+  return aspxPath.toUpperCase().indexOf(guid.replaceAll("-", "")) > -1;
+}
 ---
 
 <AstroSiteLayout pageData={pageData} {...metadata} />
