@@ -1,15 +1,18 @@
 import type { FooterProps } from "@altinn/altinn-components";
 
-const useFooterConfig = ({
-  address1,
-  address2,
-  aboutAltinnReference,
-  helpPage,
-  privacyReference,
-  accessibilityLocation,
-  operationalMessagesReference,
-  cookieConsent,
-}: any): FooterProps => {
+const useFooterConfig = (
+  {
+    address1,
+    address2,
+    aboutAltinnReference,
+    helpPage,
+    privacyReference,
+    accessibilityLocation,
+    operationalMessagesReference,
+    cookieConsent,
+  }: any,
+  onCookieConsentClick?: () => void,
+): FooterProps => {
   const menuItems = [
     helpPage && {
       id: "1",
@@ -39,7 +42,9 @@ const useFooterConfig = ({
     cookieConsent && {
       id: "6",
       title: cookieConsent.text || "",
-      href: cookieConsent.url || "",
+      ...(onCookieConsentClick
+        ? { as: "button", onClick: onCookieConsentClick }
+        : { href: cookieConsent.url || "" }),
     },
   ].filter((item): item is NonNullable<typeof item> => item != null);
 

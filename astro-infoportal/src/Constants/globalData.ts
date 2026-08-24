@@ -10,21 +10,11 @@ import {
   buildBanner,
   buildLink,
   isHelpPageType,
-  resolvePickerUrl,
 } from "@constants/startPageLinks";
 import { type Locale, t } from "@i18n/index";
 
 export type ConsentBannerViewModel = {
-  heading: string;
-  bodyText: string;
-  acceptLabel: string;
-  rejectLabel: string;
-  necessaryText: string;
   footerLinkText: string;
-  changeLinkText?: string;
-  changeLinkUrl?: string;
-  necessaryLinkText?: string;
-  necessaryLinkUrl?: string;
 };
 
 const asText = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
@@ -42,38 +32,14 @@ export function buildConsentBanner(
   )?.properties;
   if (!props) return null;
 
-  const heading = asText(props.heading);
-  const bodyText = asText(props.bodyText);
-  const acceptLabel = asText(props.acceptLabel);
-  const rejectLabel = asText(props.rejectLabel);
-  const necessaryText = asText(props.necessaryText);
   const footerLinkText = asText(props.footerLinkText);
 
-  if (
-    !heading ||
-    !bodyText ||
-    !acceptLabel ||
-    !rejectLabel ||
-    !necessaryText ||
-    !footerLinkText
-  ) {
+  if (!footerLinkText) {
     return null;
   }
 
-  const changeLinkUrl = resolvePickerUrl(props.changeLink) ?? undefined;
-  const necessaryLinkUrl = resolvePickerUrl(props.necessaryLink) ?? undefined;
-
   return {
-    heading,
-    bodyText,
-    acceptLabel,
-    rejectLabel,
-    necessaryText,
     footerLinkText,
-    changeLinkText: asText(props.changeLinkText) || undefined,
-    changeLinkUrl,
-    necessaryLinkText: asText(props.necessaryLinkText) || undefined,
-    necessaryLinkUrl,
   };
 }
 

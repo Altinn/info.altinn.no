@@ -1,8 +1,0 @@
-<script>
-    import { loadSiteimprove } from "../utils/consent.ts";
-
-    // loadSiteimprove() self-gates on consent AND the personal-data URL check,
-    // so there's nothing to decide here — call it on every page load; it no-ops
-    // unless statistics consent has been granted.
-    loadSiteimprove();
-</script>

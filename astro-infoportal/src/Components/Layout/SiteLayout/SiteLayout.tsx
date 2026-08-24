@@ -1,8 +1,20 @@
-import { DsAlert, Layout, RootProvider } from "@altinn/altinn-components";
+import {
+  CookieBanner,
+  DsAlert,
+  Layout,
+  RootProvider,
+  useConsent,
+} from "@altinn/altinn-components";
+import { useEffect, useRef, useState } from "react";
 import * as Components from "../../../App.Components";
 import "@altinn/altinn-components/dist/global.css";
 import "@digdir/designsystemet-theme";
 import "@digdir/designsystemet-css";
+import {
+  CONSENT_REOPEN_HASH,
+  deleteLegacyConsentCookie,
+  loadSiteimprove,
+} from "@utils/consent";
 import useSidebarConfig from "../../Shared/PageSidebar/useSidebarConfig";
 import useFooterConfig from "../Footer/useFooterConfig";
 import { useLanguagePreference } from "../Header/hooks/useLanguagePreference";
@@ -13,7 +25,6 @@ import { useHashScroll } from "./useHashScroll";
 import "./SiteLayout.scss";
 import { SkipLink } from "@digdir/designsystemet-react";
 import BannerBlock from "../../../Components/Blocks/BannerBlock/BannerBlock";
-import ConsentBanner from "../../../Components/Blocks/ConsentBanner/ConsentBanner";
 
 const SiteLayout = ({
   child,
@@ -32,6 +43,12 @@ const SiteLayout = ({
   // Issue #576: keep --altinn-banner-height in sync so the actor-selector drawer
   // offsets below the banner instead of hiding the global-menu row.
   useBannerHeight();
+
+  const { consent, isAnswered, acceptAll, rejectAll, clear } = useConsent();
+  const [hydrated, setHydrated] = useState(false);
+  // Set by open() so the focus effect only fires on an explicit reopen
+  // (footer / personvern / programmatic), not when the banner first appears.
+  const focusOnOpenRef = useRef(false);
 
   const currentLanguage = headerViewModel?.menuLanguageList?.find(
     (l: any) => l.selected,
@@ -66,6 +83,19 @@ const SiteLayout = ({
 
   const languageCode = getLanguageCode(currentLanguage);
 
+  const openCookieBanner = () => {
+    clear();
+    focusOnOpenRef.current = true;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (window.location.hash === `#${CONSENT_REOPEN_HASH}`) {
+      window.history.replaceState(
+        null,
+        "",
+        window.location.pathname + window.location.search,
+      );
+    }
+  };
+
   // Config from hooks
   const { headerProps, color } = useHeaderConfig(
     headerViewModel || ({} as any),
@@ -74,7 +104,10 @@ const SiteLayout = ({
 
   // Client-side locale auto-select from the profile (never SSR — cached per URL).
   useLanguagePreference(headerViewModel?.menuLanguageList);
-  const footerProps = useFooterConfig(footerViewModel || ({} as any));
+  const footerProps = useFooterConfig(
+    footerViewModel || ({} as any),
+    consentBanner ? openCookieBanner : undefined,
+  );
   const sidebarConfig = useSidebarConfig(pageSidebarViewModel);
 
   // Pages that have their own width constraints and should not be constrained by layout
@@ -91,13 +124,55 @@ const SiteLayout = ({
   const hasSidebar = !!sidebarConfig;
 
   const contentColor: "company" = "company";
+  const shouldShowCookieBanner = hydrated && !!consentBanner && !isAnswered;
+
+  // Client-only: the page is edge-cached per URL, so visibility must never be
+  // decided at SSR. Show only when a (re)decision is needed.
+  useEffect(() => {
+    deleteLegacyConsentCookie();
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (consent.statistics) loadSiteimprove();
+  }, [consent.statistics]);
+
+  // Reopen on direct hash visits. Footer clicks are wired through FooterLink's
+  // own onClick support from altinn-components.
+  useEffect(() => {
+    if (window.location.hash === `#${CONSENT_REOPEN_HASH}`) openCookieBanner();
+  }, []);
+
+  // After an explicit reopen, move focus to the banner so keyboard and
+  // screen-reader users land on it (announced via aria-labelledby).
+  useEffect(() => {
+    if (shouldShowCookieBanner && focusOnOpenRef.current) {
+      focusOnOpenRef.current = false;
+      const banner = document.querySelector<HTMLElement>(".consent-banner");
+      banner?.setAttribute("tabindex", "-1");
+      banner?.focus();
+    }
+  }, [shouldShowCookieBanner]);
+
+  const acceptCookieConsent = () => {
+    acceptAll();
+  };
+  const rejectCookieConsent = () => {
+    rejectAll();
+  };
 
   return (
     <RootProvider languageCode={languageCode}>
       <SkipLink className="site-layout__skip-link" href="#main-content">
         {skipLinkText}
       </SkipLink>
-      {consentBanner && <ConsentBanner {...consentBanner} />}
+      {shouldShowCookieBanner && (
+        <CookieBanner
+          className="consent-banner"
+          onAccept={acceptCookieConsent}
+          onReject={rejectCookieConsent}
+        />
+      )}
       {headerViewModel?.banner && <BannerBlock {...headerViewModel.banner} />}
       <Layout
         color={color}
