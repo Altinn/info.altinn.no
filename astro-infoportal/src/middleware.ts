@@ -1,4 +1,5 @@
 import {defineMiddleware} from 'astro:middleware';
+import {CSP_POLICY} from '@utils/csp';
 
 /**
  * Adds defense-in-depth security headers to every response.
@@ -76,23 +77,6 @@ function inferContentType(pathname: string): string | null {
 	const ext = pathname.toLowerCase().match(/\.[a-z0-9]+$/)?.[0];
 	return ext ? MIME_TYPES[ext] ?? null : null;
 }
-
-// Note: `report-uri` is the legacy CSP reporting directive, but it still has
-// materially broader browser support today than the newer `report-to` +
-// `Reporting-Endpoints` header pair. Revisit if/when that changes.
-const CSP_POLICY = [
-	"default-src 'self'",
-	"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://player.vimeo.com https://siteimproveanalytics.com",
-	"style-src 'self' 'unsafe-inline' https://altinncdn.no",
-	"img-src 'self' data: blob: https:",
-	"font-src 'self' data: https:",
-	"connect-src 'self' https://*.altinn.cloud https://*.altinn.no https://altinncdn.no https://*.siteimproveanalytics.io",
-	"frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com",
-	"frame-ancestors 'self'",
-	"base-uri 'self'",
-	"form-action 'self'",
-	"report-uri /api/csp-reports",
-].join('; ');
 
 function applySecurityHeaders(response: Response, pathname: string): void {
 	// Skip if already set (e.g. by a downstream handler that overrides).

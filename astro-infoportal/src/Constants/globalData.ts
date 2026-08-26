@@ -10,6 +10,7 @@ import {
   buildBanner,
   buildLink,
   isHelpPageType,
+  resolvePickerUrl,
 } from "@constants/startPageLinks";
 import { type Locale, t } from "@i18n/index";
 
