@@ -41,6 +41,8 @@ public class ContentTextExtractor
         "helpProcessArticlePage",
         "newsArticlePage",
         "articlePage"
+        "themePage"
+        "sectionPage"
     ];
 
     private static readonly HashSet<string> TextEditors =
