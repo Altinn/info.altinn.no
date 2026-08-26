@@ -33,6 +33,7 @@ public class ContentTextExtractor
     private static readonly HashSet<string> IndexableContentTypes =
     [
         "sectionArticlePage",
+        "sectionPage",
         "subsidyPage",
         "schemaPage",
         "schemaCollectionPage",
@@ -40,7 +41,9 @@ public class ContentTextExtractor
         "helpQuestionPage",
         "helpProcessArticlePage",
         "newsArticlePage",
-        "articlePage"
+        "articlePage",
+        "themePage",
+        
     ];
 
     private static readonly HashSet<string> TextEditors =
