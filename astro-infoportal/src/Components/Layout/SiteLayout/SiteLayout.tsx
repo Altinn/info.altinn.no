@@ -3,6 +3,7 @@ import {
   DsAlert,
   Layout,
   RootProvider,
+  SkyraSurvey,
   useConsent,
 } from "@altinn/altinn-components";
 import { useEffect, useRef, useState } from "react";
@@ -173,6 +174,10 @@ const SiteLayout = ({
           onReject={rejectCookieConsent}
         />
       )}
+      {/* Headless: loads the SRI-pinned Skyra SDK and follows the statistics
+          consent decision. Renders nothing, so SSR output is unchanged and
+          the edge-cached HTML stays identical for every visitor. */}
+      <SkyraSurvey consent={consent.statistics} />
       {headerViewModel?.banner && <BannerBlock {...headerViewModel.banner} />}
       <Layout
         color={color}
