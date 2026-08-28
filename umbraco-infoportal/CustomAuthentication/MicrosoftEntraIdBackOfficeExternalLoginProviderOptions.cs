@@ -103,6 +103,13 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
                 if (roles.Contains("umbraco-tad"))
                     mappedGroups.Add("tjenesterTad");
 
+                if (roles.Contains("umbraco-svv"))
+                    mappedGroups.Add("tjenesterSvv"); 
+
+                if (roles.Contains("umbraco-nve"))
+                    mappedGroups.Add("tjenesterNve");                     
+                    
+
                 // Deny om ingen andre er roller er spesifisert
                 if (!mappedGroups.Any())
                 {
