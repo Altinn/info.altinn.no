@@ -107,7 +107,13 @@ export const GET: APIRoute = async ({url}) => {
         }
     }
 
-    return new Response(JSON.stringify(healthCheck, null, 2), {
+    const responseJson:string = JSON.stringify(healthCheck, null, 2);
+
+    if (overAllStatus !== "Healthy") {
+        console.error("Health status is " + overAllStatus + ":\n" + responseJson);
+    }
+
+    return new Response(responseJson, {
         status: 200,
         headers: {
             "Content-Type": "application/json",
