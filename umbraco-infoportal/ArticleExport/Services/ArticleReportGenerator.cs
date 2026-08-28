@@ -28,7 +28,9 @@ public sealed class ArticleReportGenerator(
     IDocumentCacheService documentCacheService,
     IPublishedContentTypeCache publishedContentTypeCache,
     IPublishedValueFallback publishedValueFallback,
-    ILanguageService languageService)
+    ILanguageService languageService,
+    IVariationContextAccessor variationContextAccessor,
+    IConfiguration configuration)
 {
     private const string DocxMime = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
@@ -125,6 +127,9 @@ public sealed class ArticleReportGenerator(
 
     public async Task<ArticleReport> BuildReportAsync(ExportFilters filters, string culture, CancellationToken cancellationToken)
     {
+        // Sets culture in a way that is picked up by RichTextPropertyConverter
+        variationContextAccessor.VariationContext = new VariationContext(culture);
+
         string? provider = NormalizeFilter(filters.Provider);
         string? author = NormalizeFilter(filters.Author);
 
@@ -350,7 +355,7 @@ public sealed class ArticleReportGenerator(
 
     private string BuildHtml(IReadOnlyList<IPublishedContent> pages, string culture, IPublishedContent? start)
     {
-        string? publicBase = GetPublicBase(start, culture);
+        string? publicBase = configuration["Umbraco:CMS:WebRouting:UmbracoApplicationUrl"];
 
         var sb = new StringBuilder();
         sb.Append("<html><head><title></title><style>a{color:blue;}</style></head><body>");
@@ -360,7 +365,7 @@ public sealed class ArticleReportGenerator(
         foreach (IPublishedContent page in pages)
         {
             string owner = string.Join(", ", GetCategoryNames(page, culture));
-            string url = page.Url(culture, UrlMode.Absolute);
+            string url = page.Url(culture, UrlMode.Relative);
             string name = page.Name(culture);
             name ??= page.Name;
 
@@ -510,12 +515,6 @@ public sealed class ArticleReportGenerator(
                 sb.Append("<p><a href=\"").Append(item["url"]).Append("\">").Append(item["linkText"]).Append("</a></p>");
                 break;
         }
-    }
-
-    private static string? GetPublicBase(IPublishedContent? start, string culture)
-    {
-        string? absolute = start?.Url(culture, UrlMode.Absolute);
-        return Uri.TryCreate(absolute, UriKind.Absolute, out Uri? uri) ? uri.GetLeftPart(UriPartial.Authority) : null;
     }
 
     // Rewrites relative href/src to absolute against the public site base (NOT the

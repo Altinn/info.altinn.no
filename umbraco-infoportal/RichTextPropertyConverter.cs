@@ -15,10 +15,13 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
     private readonly MarkupFilter _markupFilter;   
 
+    private readonly IVariationContextAccessor _variationContextAccessor;
+
     public RichTextPropertyConverter(IPublishedContentCache publishedContentCache, IMediaService mediaService, IVariationContextAccessor variationContextAccessor)
     {
         _publishedContentCache = publishedContentCache;
-        _markupFilter = new MarkupFilter(publishedContentCache, mediaService, variationContextAccessor);
+        _variationContextAccessor = variationContextAccessor;
+        _markupFilter = new MarkupFilter(publishedContentCache, mediaService, _variationContextAccessor);
     }
 
     // Make sure the Property Value Converter only applies to the RichText property editor
@@ -335,11 +338,13 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
     private JsonObject AddContentProperties(JsonObject jsonObject, IPublishedContent content)
     {
+        string culture = _variationContextAccessor.VariationContext?.Culture;
+
         if (content != null)
         {
             foreach (IPublishedProperty property in content.Properties)
             {
-                object? value = property.GetDeliveryApiValue(true);
+                object? value = property.GetDeliveryApiValue(true, culture);
                 if (value is null)
                 {
                     continue;
