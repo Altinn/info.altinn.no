@@ -22,7 +22,14 @@ async function getHealthItem(name:string, url:URL, expectedContent:string):Promi
     const startTime = performance.now();
 
     const request:Request = new Request(url);
-    const response:Response = await fetch(request, { signal: AbortSignal.timeout(5000) });
+
+    let response: Response;
+    try {
+        response = await fetch(request, { signal: AbortSignal.timeout(5000) });
+    } catch (error) {
+        console.error("[health] probe request failed", { name, url: String(url), error });
+        return { status: "Unhealthy", duration: formatDuration(performance.now() - startTime), tags: getTags(name) };
+    }
 
     let healthy:boolean = false;
 
@@ -30,10 +37,17 @@ async function getHealthItem(name:string, url:URL, expectedContent:string):Promi
         const content:string = await response.text();
         healthy = content.indexOf(expectedContent) > -1;
         if (!healthy) {
-            console.error("Could not find expected content in response from " + url + ". Actual content (truncated): " + content.substring(0, 1000));
+            console.error("[health] expected content missing", {
+                name,
+                url: String(url),
+                contentLength: content.length,
+                snippet: content.substring(0, 500),
+            });
         }
     } else {
-        console.error("Unexpected status from " + url + ". HTTP code: " + response.status + " Message: " + response.statusText);
+        console.error("[health] unexpected status", {
+            name, url: String(url), status: response.status, statusText: response.statusText,
+        });
     }
 
     const duration = performance.now() - startTime;
@@ -89,11 +103,11 @@ export const GET: APIRoute = async ({url}) => {
         getHealthItem("elasticsearch", new URL(baseUrl + "/sok?q=starte&cachebuster=" + Date.now()), "registrere en forening")],
     );
 
-    const duration = performance.now() - startTime;    
+    const duration = performance.now() - startTime;
     
     var overAllStatus:Status = homePage.status === "Healthy" ? "Healthy" : "Unhealthy";
 
-    for (const healthEntry of [homePage, starteOgDrive, skjemaoversikt, hjelp, umbraco, elasticsearch]) {
+    for (const healthEntry of [starteOgDrive, skjemaoversikt, hjelp, umbraco, elasticsearch]) {
         if (healthEntry.status !== "Healthy") {
             overAllStatus = "Degraded";
         }
@@ -115,10 +129,10 @@ export const GET: APIRoute = async ({url}) => {
     const responseJson:string = JSON.stringify(healthCheck, null, 2);
 
     if (overAllStatus !== "Healthy") {
-        console.error("Health status is " + overAllStatus + ":\n" + responseJson);
+        console.error("[health] status not healthy", JSON.stringify(healthCheck));
     }
 
-    return new Response(responseJson, {    
+    return new Response(responseJson, {
         status: 200,
         headers: {
             "Content-Type": "application/json",
