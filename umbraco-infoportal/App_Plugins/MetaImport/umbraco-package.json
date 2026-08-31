@@ -1,0 +1,23 @@
+{
+  "$schema": "../../umbraco-package-schema.json",
+  "name": "Altinn.MetaImport",
+  "version": "0.1.0",
+  "extensions": [
+    {
+      "type": "dashboard",
+      "alias": "Altinn.Dashboard.MetaImport",
+      "name": "Search Reindex",
+      "element": "/App_Plugins/MetaImport/dashboard.js",
+      "elementName": "altinn-meta-import",
+      "weight": 30,
+      "meta": {
+        "label": "Import meta tags",
+        "pathname": "meta-import"
+      },
+      "conditions": [
+        { "alias": "Umb.Condition.SectionAlias", "match": "Umb.Section.Settings" },
+        { "alias": "Umb.Condition.CurrentUser.IsAdmin" }
+      ]
+    }
+  ]
+}
