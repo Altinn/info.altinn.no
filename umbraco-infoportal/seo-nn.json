@@ -1,0 +1,630 @@
+﻿[
+  {
+    "ContentGUID": "F04E3BBC-CF8F-4C18-80A7-34D67785C7B9",
+    "MetaDescription": "Altinn er ein offentleg portal med over 1500 skjema og digitale tenester, samt rettleiing om å starte og drive verksemd og informasjon om statlege støtteordningar."
+  },
+  {
+    "ContentGUID": "C2D64368-22BF-4A0E-B8CE-492E1CD69FD2",
+    "MetaKeywords": "støtte, støtteordning,"
+  },
+  {
+    "ContentGUID": "697DDD80-97C0-4775-BAF1-BB58A65D43C9",
+    "MetaKeywords": "journalist"
+  },
+  {
+    "ContentGUID": "064E8F09-2C41-49FA-9EDE-43F18F3B2848",
+    "MetaKeywords": "støtte, støtteordning,"
+  },
+  {
+    "ContentGUID": "C863C87D-5863-47F9-BA69-EC6EAFD4BFFF",
+    "MetaKeywords": "støtte, støtteordning,"
+  },
+  {
+    "ContentGUID": "815C4B03-2834-427A-9A09-247FA8DDED4A",
+    "MetaKeywords": "støtte, støtteordning,"
+  },
+  {
+    "ContentGUID": "AA5C459E-C56C-40C2-B130-6D63BDE5DB48",
+    "MetaKeywords": "produksjonstilskot film, utviklingstilskot "
+  },
+  {
+    "ContentGUID": "A717ACAC-072C-4F59-9E3A-D218D9D7F1BB",
+    "MetaDescription": "Her finner du en oversikt over feilmeldinger du kan få når du sender/henter informasjon via et datasystem.",
+    "MetaKeywords": "Lønnssystem datasystem feilmelding"
+  },
+  {
+    "ContentGUID": "194F2A6D-0B15-45AE-8342-74051F2610FC",
+    "MetaKeywords": "skjenkeløyve skjenkebevilling alkohol øl vin brennevin"
+  },
+  {
+    "ContentGUID": "2B4370D6-78E0-4304-927B-FA63A18E6C1C",
+    "MetaKeywords": "BEST486 486 178 riving fjerning asbest asbestholdig materiale"
+  },
+  {
+    "ContentGUID": "31431581-1563-481D-8875-C9C83C880A31",
+    "MetaDescription": "Informasjon om norsk designråds tilbud innen næringsrettet design og designdrevet innovasjon ",
+    "MetaKeywords": "støtte, støtteordning, kompetanseutvikling, kompetanseheving, innovasjon, design, bedriftsutvikling, produkutvikling, tjenesteutvikling, merkevarebygging, emballasjedesign, emballasje design, visuell identitet, kommersialisering "
+  },
+  {
+    "ContentGUID": "E349FEF2-A15B-4BAF-8921-D099F03DBC18",
+    "MetaKeywords": "Årsoppgåve, kontoinformasjon, låntakar, Husbanken"
+  },
+  {
+    "ContentGUID": "486B2D2B-50DE-4831-ACA2-96750FA8FA19",
+    "MetaKeywords": "Patentstyret, korrespondanse"
+  },
+  {
+    "ContentGUID": "5A3E0D3D-83E3-442E-A8F9-1034537C16E4",
+    "MetaKeywords": "eksportattest, fisk"
+  },
+  {
+    "ContentGUID": "EB6308B7-73BE-4B93-B25A-A0F4C38E2D67",
+    "MetaKeywords": "Stifting stiftelsesdokument stift aksjeselskap "
+  },
+  {
+    "ContentGUID": "FFB981CD-1E94-442B-947E-A04FE0C8DD07",
+    "MetaKeywords": "Tilganger"
+  },
+  {
+    "ContentGUID": "7229BF97-C609-4D8D-8743-CE1AEE7F0640",
+    "MetaKeywords": "konkurs, buside, kreditor"
+  },
+  {
+    "ContentGUID": "7ED3DCFB-8B5E-46D3-A38C-A2F089F91227",
+    "MetaKeywords": "Abandon, abandonering, konkurs, buside, konkursbu"
+  },
+  {
+    "ContentGUID": "DC7E1198-344D-4F61-AC2B-69BF5B890A44",
+    "MetaKeywords": "Kredittilsynet, Finanstilsynet, rekneskapsførerselskap, eigenmelding"
+  },
+  {
+    "ContentGUID": "F252247F-7A56-42EA-8CA0-BDD16D17F14C",
+    "MetaKeywords": "Jeger, avgift, jegeravgift, jegeravgiftskort, lisensjeger, jegernummer"
+  },
+  {
+    "ContentGUID": "745959FF-6459-456F-B377-B4C43D50A475",
+    "MetaKeywords": "frivilligregisteret friv foreining stiftelse aksjeselskap grasrot grasrotandel tilknytning momskompensasjon frivillig "
+  },
+  {
+    "ContentGUID": "C8E7AABB-E41D-486A-A4AA-EA02AEE6A20F",
+    "MetaKeywords": "konkurs, buside, kreditor, konkursmelding"
+  },
+  {
+    "ContentGUID": "24200BF2-7BED-4E58-8A27-27753A95A5BA",
+    "MetaKeywords": "rett, bok, konkurs, buside"
+  },
+  {
+    "ContentGUID": "C7B20AA4-EB00-4928-9D54-270A2D6B2CD1",
+    "MetaKeywords": "reservasjon, adressert reklame"
+  },
+  {
+    "ContentGUID": "EB688E4A-3AF4-4364-88E4-8EC3D2867E43",
+    "MetaKeywords": "patentstyret, design, registrering"
+  },
+  {
+    "ContentGUID": "198057AC-F27B-49E5-B6A9-2B2DA8202F7E",
+    "MetaKeywords": "Kredittilsynet, revisjonsselskap, eigamelding"
+  },
+  {
+    "ContentGUID": "DAEB89E6-BE83-4024-B309-A39F72904A11",
+    "MetaKeywords": "Import, landbruk, landbruksvarer, landbruksimport"
+  },
+  {
+    "ContentGUID": "23CB66BD-D200-4278-8B3C-5F5449C1639E",
+    "MetaKeywords": "Rekneskapsfører, Kredittilsynet, Finanstilsynet, eignemelding"
+  },
+  {
+    "ContentGUID": "0B9F9E4A-89D0-411B-A9CE-515FED66B961",
+    "MetaDescription": "Midlene skal brukes til støtte for profesjonelle utøvere som bor og har sitt virke i Norge, og går i hovedsak til freelancevirksomhet og til frie grupper.",
+    "MetaKeywords": "støtte, støtteordning, utøvende, kunstnere, fond"
+  },
+  {
+    "ContentGUID": "395D6C07-F1CC-43A7-B44B-F534A243BC99",
+    "MetaKeywords": "Partshavars, aksjonærs,  bustadselskapet, RF-1139, 1139, rf1139"
+  },
+  {
+    "ContentGUID": "5C442F97-9555-45D1-AD9B-F06A61856649",
+    "MetaKeywords": "Lotteri, rekneskapsskjema"
+  },
+  {
+    "ContentGUID": "A1DA813B-FA5B-4F5B-AA6A-D5EB0AF360A0",
+    "MetaKeywords": "støtte, støtteordning,"
+  },
+  {
+    "ContentGUID": "13FD7C7C-F628-42A2-9641-E1E6B9A0D791",
+    "MetaKeywords": "konkurs, rapportering, buside, kreditor"
+  },
+  {
+    "ContentGUID": "F1F59D74-8F18-4298-B612-9D60635F9757",
+    "MetaKeywords": "støtte, støtteordning,"
+  },
+  {
+    "ContentGUID": "F344537B-4385-4FEC-9356-F4BF4DBF651E",
+    "MetaKeywords": "klage på likninga skatteoppgjeret sjølvmeldinga"
+  },
+  {
+    "ContentGUID": "1305F7D0-2C4A-41BA-94DA-4367C1C0E3BE",
+    "MetaKeywords": "HR130 130 184 rapport el-ulykke ulykke personskade skade HR-130"
+  },
+  {
+    "ContentGUID": "EAF55CFF-C600-40A8-90E2-881987DE5F59",
+    "MetaKeywords": "støtte, støtteordning,"
+  },
+  {
+    "ContentGUID": "8981A7FC-9E6E-4825-9C26-8DA282EC03BE",
+    "MetaKeywords": "rekneskap, årsrekneskap, skadeforsikring"
+  },
+  {
+    "ContentGUID": "5422929E-0DFE-4F62-A16A-14DA6E3CE575",
+    "MetaKeywords": "SLF, skogfond"
+  },
+  {
+    "ContentGUID": "F32B8AF5-03F6-4982-B429-3E47FBB0AFA2",
+    "MetaKeywords": "regionalt miljøtilskudd"
+  },
+  {
+    "ContentGUID": "6B98837D-026F-41F1-B90A-969F651A0EB7",
+    "MetaKeywords": "skatt, sjølvmelding, kreditfrådrag"
+  },
+  {
+    "ContentGUID": "0B139859-2269-4825-92D4-9161B65FB8A1",
+    "MetaKeywords": "Inkasso, inkassoverksemd, kredittilsynet, 0006, krt0006, krt-0006, krt, kreditt, tilsyn, rapportering, rapporteringsskjema"
+  },
+  {
+    "ContentGUID": "1560387B-7E30-4536-8058-5ECE1E4ED585",
+    "MetaKeywords": "skatt, sjølvmelding, næringsoppgåve, RF-1170, 1170, forsikringsselskap, næringsoppgåve, pensjonskassar"
+  },
+  {
+    "ContentGUID": "CD6E7923-77C8-4163-979C-BA1A49969CCF",
+    "MetaKeywords": "akvatisk, fiske, settefiskanlegg"
+  },
+  {
+    "ContentGUID": "D544E16D-935C-4CAC-A55F-0CE496352ABD",
+    "MetaKeywords": "1086, Aksje, aksjonær, RF-1086, rf-1086, Aksjonæroppgåva, aksjonæroppgåve, Aksjonærregister, aksjeregister"
+  },
+  {
+    "ContentGUID": "4FCA4040-6DBB-4C73-B24E-9677A054D057",
+    "MetaKeywords": "skatt, sjølvmelding, servering, overnatting, øl, vin, brennevin"
+  },
+  {
+    "ContentGUID": "DF7CBA3A-36A4-4953-9E19-109A3BE92A61",
+    "MetaKeywords": "Forundersøking, undersøking, patent"
+  },
+  {
+    "ContentGUID": "0F1FA7E6-C224-4885-B684-3E79E06581E9",
+    "MetaKeywords": "1084, skattemelding, avskrivning"
+  },
+  {
+    "ContentGUID": "AEADA934-E98B-4B45-A060-DD44EF78997C",
+    "MetaKeywords": "mjølk, kvotekjøp, mjølkekvote, geit, kvote"
+  },
+  {
+    "ContentGUID": "C532B562-BA46-4BA4-B87C-9FF1A65433D5",
+    "MetaKeywords": "RF-1321,rf1321,1321"
+  },
+  {
+    "ContentGUID": "43A9DA2F-3D8B-423E-88AD-2BBFC3F5232F",
+    "MetaKeywords": "RF-1348, Kassasystem, 1348 , Systemleverandørars produkterklæring om kassasystem "
+  },
+  {
+    "ContentGUID": "3EC24F0A-590D-4EC1-AC57-400D27925FF8",
+    "MetaKeywords": "skatt, sjølvmelding, deltakar, ansvarleg selskap, skattemelding, selskapsmelding"
+  },
+  {
+    "ContentGUID": "29D65640-A527-43BF-94D8-46D6F3E12A05",
+    "MetaKeywords": "RF-1306 rf1360 1360 boligsparing for ungdom"
+  },
+  {
+    "ContentGUID": "99A76A3B-AF69-4DB8-91E2-AC98D3099698",
+    "MetaKeywords": "MVA-konto mvakonto momskonto bedrifter Merverdiavgift moms oms "
+  },
+  {
+    "ContentGUID": "9A1C796E-82E4-4E54-8FB7-DD78382169B0",
+    "MetaKeywords": "samordna registermelding registrering føretak verksemd organisasjonsnummer registermelding 1010 BR1010 adresseendring nyregistrering opphøyr fratreden kontonummer kontonr"
+  },
+  {
+    "ContentGUID": "77F47D40-A906-4A25-B378-28209AAA363E",
+    "MetaKeywords": "fisk, eksportattest, mattilsynet"
+  },
+  {
+    "ContentGUID": "982F948D-F730-46E3-8267-5203955F92D9",
+    "MetaKeywords": "ulovleg, mistenkeleg, kvitvasking, hvitvasking, pengevasking, økonomisk kriminalitet"
+  },
+  {
+    "ContentGUID": "070345E8-20D7-4886-A8A8-75839E7E7D24",
+    "MetaKeywords": "kreditor, konkurs, buside, liste"
+  },
+  {
+    "ContentGUID": "1A3A75EF-4BC0-4AC9-B48E-CA8AACBF946E",
+    "MetaKeywords": "skatteoppgjer"
+  },
+  {
+    "ContentGUID": "9D4107B0-2EED-4ED2-9D7E-908B160414E8",
+    "MetaKeywords": "RF-1115 RF1115 1115 skattemelding inntektsår utsettelse privatperson privat utsettelse utsett utsatt"
+  },
+  {
+    "ContentGUID": "9673A706-EE14-4F32-AFD5-984C2FD2AB7E",
+    "MetaKeywords": "skatt, sjølvmelding, lottfiskarar"
+  },
+  {
+    "ContentGUID": "1C4774DF-FD78-4650-A1AF-90E9540FCDE1",
+    "MetaKeywords": "investering utland statistikk statistikkloven statistikklova"
+  },
+  {
+    "ContentGUID": "238D55D8-26C0-4F58-8699-A610652858F5",
+    "MetaKeywords": "skatt,sjølvmelding, skattemelding stadbunden inntekt og formue, stadbunden formue og inntekt"
+  },
+  {
+    "ContentGUID": "18B4CA57-D0E7-4077-B677-B92C264DFCDB",
+    "MetaKeywords": "patentstyret, varemerke"
+  },
+  {
+    "ContentGUID": "F62E9CA8-8764-4755-8233-BC30A97FB96F",
+    "MetaKeywords": "konkurs, fordringar, konkursbu, buside, kreditor"
+  },
+  {
+    "ContentGUID": "708580C6-33C7-49E4-8C6A-D2C67E87F7EB",
+    "MetaKeywords": "støtte, støtteordning,"
+  },
+  {
+    "ContentGUID": "FCF21BD7-E6FA-445C-8353-E182A8074AB4",
+    "MetaKeywords": "skatt, sjølvmelding, formue, skog"
+  },
+  {
+    "ContentGUID": "E2231B78-D339-43E2-84DA-2F9CA53F3D8B",
+    "MetaKeywords": "0002, nb-0002, 0628, ra-0628, Valuta, Valutahandelsstatistikk, valutahandel, NB0002, 0002, NB-0002,  RA0628, 0628, RA-0628"
+  },
+  {
+    "ContentGUID": "5E727F2B-FAE7-4AF1-A13F-D694525A5EAF",
+    "MetaKeywords": "RF-1123, 1123, Opplysningar, kontrollerte, transaksjonar, mellomverande"
+  },
+  {
+    "ContentGUID": "88358FD1-A117-42CA-AA58-CCF3A6675063",
+    "MetaKeywords": "Jeger, jegeravgift, avgift, jegerkort"
+  },
+  {
+    "ContentGUID": "F887EBAF-2320-4C01-A2B9-F3DA5BA6EA30",
+    "MetaKeywords": "skatt, sjølvmelding, skattemelding"
+  },
+  {
+    "ContentGUID": "C9946BE8-FD9C-4530-BACF-B2CD8524D610",
+    "MetaKeywords": "Oppgåve, betaling, pass, stell, barn, RF-1241, 1241"
+  },
+  {
+    "ContentGUID": "2EB785D3-41E2-464E-AFDE-C15DAF6CF293",
+    "MetaKeywords": "Skatt, sjølvmelding, kontrolloppstilling skattemelding"
+  },
+  {
+    "ContentGUID": "12DCE56D-B30F-4F67-A4D2-2F459D3E83AD",
+    "MetaKeywords": "RF-1309.rf1309, vitenskapeleg forskning"
+  },
+  {
+    "ContentGUID": "DA433462-0D33-48FE-AC7C-6E9F6F4D34EC",
+    "MetaKeywords": "nav, oppgjersrapport"
+  },
+  {
+    "ContentGUID": "EFEAC9EF-E11F-4535-9018-2AD90CEBABEE",
+    "MetaKeywords": "kredittilsynet, forsikringsformidling"
+  },
+  {
+    "ContentGUID": "06A4EC51-7554-480F-9B62-93D43A5AD667",
+    "MetaKeywords": "RF-1361 1361 Søknad utsett betaling  formuesskatt utsettelse utsatt"
+  },
+  {
+    "ContentGUID": "1044E80A-D22A-4272-A9B9-C39E81B98F70",
+    "MetaKeywords": "Statistisk sentralbyrå, statistikk, betalingsformidling, Betalingsformidlingsstatistikk, betaling, formidling, NB0003, 0003, NB-0003, RA0629, 0629, RA-0629"
+  },
+  {
+    "ContentGUID": "819D4A46-7261-4D58-BC34-689428DC9B19",
+    "MetaKeywords": "delegering, oversikt over tilganger, rettigheter, tilganger"
+  },
+  {
+    "ContentGUID": "8F851FFE-337B-4FB5-9126-D378AA389DB8",
+    "MetaKeywords": "kompensasjon kompensasjonsordninga tilskot omsetningsfall koronapandemien"
+  },
+  {
+    "ContentGUID": "7B735DF3-1136-4244-ADC0-F70D9D67436B",
+    "MetaKeywords": "bustønad"
+  },
+  {
+    "ContentGUID": "7CC3DCED-5436-4E80-83EC-D48C5ECAEC85",
+    "MetaKeywords": "kontonummer, konto, nytt kontonummer, endre konntonummer, tilbakebetaling, utbetaling"
+  },
+  {
+    "ContentGUID": "FC02CA28-1FA7-4259-A690-6AC51AD864C9",
+    "MetaKeywords": "stønadstildeling stønadsgivar stønadstildelingar stønadsregisteret "
+  },
+  {
+    "ContentGUID": "7D1A757A-02B1-4665-8743-FBEE413F8383",
+    "MetaKeywords": "Opphav, opphavsgaranti, opphavsgarantiar, garantiar, NVE, kraftverk"
+  },
+  {
+    "ContentGUID": "2EBF6FBE-1969-4684-8981-B8EFBAFCE224",
+    "MetaKeywords": "stønadstildeling stønadsgivar stønadstildelingar stønadsregisteret endringar"
+  },
+  {
+    "ContentGUID": "FD7D4458-9B98-4969-BE5B-38DDEC942C5A",
+    "MetaKeywords": "mattilsynet, import, planter"
+  },
+  {
+    "ContentGUID": "60E934DC-E002-4960-B66C-4D5658160130",
+    "MetaKeywords": "dokument, konkurs, buside, konkursbu"
+  },
+  {
+    "ContentGUID": "2A69E880-D0BB-4299-A781-36BFCFC2D691",
+    "MetaKeywords": "hausting, tillatelse, haustetillatelse, muslingar, skjell"
+  },
+  {
+    "ContentGUID": "9D240749-473A-4D29-ADF9-BD87EE330470",
+    "MetaKeywords": "skatt, selvangivelse, innskott i utanlandsk bank"
+  },
+  {
+    "ContentGUID": "E9AC515A-EBB9-49BD-BC80-7F20CD673D06",
+    "MetaKeywords": "101 PS101 patent patentstyret søknad industrielle rettsvern patentbeskyttelse beskyttelse PS-101"
+  },
+  {
+    "ContentGUID": "509782B1-7ACA-49D0-821E-03E677D29AAF",
+    "MetaKeywords": "samordna registermelding registrering føretak verksemd organisasjonsnummer registermelding 1010 BR1010 adresseendring nyregistrering opphøyr fratreden kontonummer kontonr"
+  },
+  {
+    "ContentGUID": "03676433-6F49-4481-846F-B837C656E457",
+    "MetaKeywords": "skatt, sjølvmelding, vinst, tap, konto"
+  },
+  {
+    "ContentGUID": "541BA9CF-4ECB-4B6E-9489-E4D75A127F55",
+    "MetaKeywords": "skatt, sjølvmelding, kostpris"
+  },
+  {
+    "ContentGUID": "BB65527C-F98D-4B8B-A27C-C1B4948CFDAF",
+    "MetaKeywords": "eigamelding, revisor, kredittilsynet"
+  },
+  {
+    "ContentGUID": "C4F38F9C-6306-4BF0-8AAA-2C4A239D86C1",
+    "MetaKeywords": "skatt, sjølvmelding, eigedom"
+  },
+  {
+    "ContentGUID": "CAEB239B-7274-43B7-870F-7ED33EE8A8D2",
+    "MetaKeywords": "bruktbutikk, "
+  },
+  {
+    "ContentGUID": "50BBD970-393F-4D72-A71F-6F3D4A914D50",
+    "MetaKeywords": "RF-1344,RF1344,1344,tollkreditt,endring av tollkreditt, gjenåpning av tollkreditt "
+  },
+  {
+    "ContentGUID": "B24BF0AB-C32B-42AB-A605-74080005404B",
+    "MetaKeywords": "tenesteytande, avfall, søppel"
+  },
+  {
+    "ContentGUID": "68D397FD-8BD4-4AF8-96E2-F7BAC3DD862C",
+    "MetaKeywords": "halvårsoppgåve verdipapirføretak verdipapir KRT-1008 1008 KRT1008"
+  },
+  {
+    "ContentGUID": "10C2BB27-CA9D-4B3A-B26A-3272E2023A17",
+    "MetaKeywords": "0001, nb-0001, 0627, ra-0627, Verdipapir, statistikk, Verdipapirforetak, forvaltningsselskaper, verdipapirfond, verdipapirstatistikk, NB0001, 0001, NB-0001, NB 0001, RA0627, 0627, RA-0627"
+  },
+  {
+    "ContentGUID": "9A8D9ED9-4E09-4534-9585-DB04DD38210A",
+    "MetaKeywords": "Finanstilsynet, Oslo børs, utskrivarføretak"
+  },
+  {
+    "ContentGUID": "64345C30-A660-42DF-A35B-0B1F285FD349",
+    "MetaKeywords": "1052"
+  },
+  {
+    "ContentGUID": "B8BDDDC0-5049-4B8B-84B9-2AB30C155C7F",
+    "MetaKeywords": "kontonummer, kontonummerendring, kontonummer MVA "
+  },
+  {
+    "ContentGUID": "E5ADA333-0E39-4D96-9DA9-3AB4765BCBEB",
+    "MetaKeywords": "skatt, sjølvmelding, personinntekt"
+  },
+  {
+    "ContentGUID": "E8A2A90D-A0EE-45D8-8508-E1A1322D51EB",
+    "MetaKeywords": "sjølvmelding, skattemelding, rf-1027, 1027, rf1027"
+  },
+  {
+    "ContentGUID": "5539CA53-D4A9-41F5-B5F0-39981846691F",
+    "MetaKeywords": "samordna registermelding Einingsregisteret Verksemds- og føretaksregisteret hos SSB registrering einingar offentleg forvaltning Meirverdiavgiftsregisteret  mva-registrering organisasjonsnummer nyregistrering endring adresseendring"
+  },
+  {
+    "ContentGUID": "A4289F7A-465B-484D-AF82-7AA9DD73E916",
+    "MetaKeywords": "RF-1114, RF1114,1114, søknad om utsatt frist for næring utsett utsettelse"
+  },
+  {
+    "ContentGUID": "07B4B7F0-272A-435C-9921-1FF17CC18C6E",
+    "MetaKeywords": "RF-1354 1354 offentleg støtte Skatteetaten sine stønadsordningar"
+  },
+  {
+    "ContentGUID": "BED01AC2-4A4D-4CB9-9CD7-E1C3A251FDA1",
+    "MetaKeywords": "skatt, sjølvmelding, drosje, lastebil godstransport, skattemelding"
+  },
+  {
+    "ContentGUID": "FA608FC4-0812-414D-854F-20AE9AC8E3C6",
+    "MetaKeywords": "årsrekneskap, livsforsikring"
+  },
+  {
+    "ContentGUID": "CAD8811A-3258-4B08-A47D-5B89FEAA0275",
+    "MetaKeywords": "Skattemelding, kreditfrådrag, 1147"
+  },
+  {
+    "ContentGUID": "8C69A7FE-A4DC-4ED8-9878-DDBB9D720D51",
+    "MetaKeywords": "RF-1304,rf1304,1304, kjøp frå primærnæring mjølk,mjølk"
+  },
+  {
+    "ContentGUID": "6BD07102-9215-4BA0-B62C-6DC85FFF4D7E",
+    "MetaKeywords": "skatt, sjølvmelding, konsernbidrag"
+  },
+  {
+    "ContentGUID": "17694287-8267-49B8-A5C4-8CD737A03922",
+    "MetaKeywords": "innbetaling,tilbakebetaling,utbetaling,betalingsutsetting,betalingsavtale,lønnstrekk,trekk i lønn,utleggstrekk,betalingsdetaljar,skattetrekkskonto,solidaransvar,kontakt"
+  },
+  {
+    "ContentGUID": "F37B7579-430D-4FF6-BF09-C69CF7914A77",
+    "MetaKeywords": "skatt, skattemelding, kraftføretak"
+  },
+  {
+    "ContentGUID": "8154AFD8-C079-45D8-9404-9CDE79ABB937",
+    "MetaKeywords": "skatt, sjølvmelding, næringsoppgåve, rf-1167,1167, akjse, aksjeselskap, skattemelding "
+  },
+  {
+    "ContentGUID": "A63683FF-9D33-482C-BFB5-BEA1D9F2C05D",
+    "MetaKeywords": "Betalingsutsettelse, utsettelse, betalingsavtale,avtale,restskatt,betalingsplan"
+  },
+  {
+    "ContentGUID": "D7B7D7AE-E653-4409-BEB9-40FFE0178F9C",
+    "MetaKeywords": "Oppgåve, betaling, pass, stell, barn, RF-1241, 1241"
+  },
+  {
+    "ContentGUID": "E63087BB-AD36-4556-9D70-E394335EA29B",
+    "MetaKeywords": "skatt,sjølvmelding, deltakar, skattemelding"
+  },
+  {
+    "ContentGUID": "2969F66D-6368-408E-B7ED-B6762D0EBA2C",
+    "MetaKeywords": "1245 RF1245 RF-1245 1245 selvangivelse skatt NOKUS selskapsoppgåve NOKUS-selskap skattegrunnlag avstemming avskrivingsskjema næringsdrivande næringsoppgåve egenoppgave eigenoppgåve"
+  },
+  {
+    "ContentGUID": "602D34D6-4696-429E-A87D-E75AED8DB782",
+    "MetaKeywords": "rf-1351"
+  },
+  {
+    "ContentGUID": "326860A2-275B-4001-8EF5-114F0CC3D9A8",
+    "MetaDescription": "Skjemaet skal nyttast for å bestille utvalde attestar og utskrifter frå Skatteetaten.",
+    "MetaKeywords": "likningsverdi, ligningsverdi, boligverdi, Skatteattest, MVA attest, attester, attestbestilling, 1316, RF-1316; formuesverdi bolig"
+  },
+  {
+    "ContentGUID": "98809469-BD2C-4134-868D-D4EF66731BFA",
+    "MetaKeywords": "skatt, sjølvmelding, kreditfrådrag, 1145"
+  },
+  {
+    "ContentGUID": "E08522E8-AD8A-4B30-AE5C-51F6898D6718",
+    "MetaKeywords": "skatt,sjølvmelding, FOU, 1053, skattemelding, selskapsmelding"
+  },
+  {
+    "ContentGUID": "8562AE70-C94D-412A-B0EB-18049BB8B3F2",
+    "MetaKeywords": "RF-1303,rf1303,1303,kjøp frå primærnæring,slakt"
+  },
+  {
+    "ContentGUID": "9931D04B-DBDA-4CE2-AC45-F2D1A6762BBE",
+    "MetaKeywords": "skatt, sjølvmelding, inntektsskatt"
+  },
+  {
+    "ContentGUID": "D4C305FC-8F57-4954-8637-DD8B6764278E",
+    "MetaKeywords": "skatt, sjølvmelding, næringsoppgåve 1, næringsoppgåve, 1175, rf-1175, sln, sjølvmelding, næring, næringsdrivande, skattemelding"
+  },
+  {
+    "ContentGUID": "DD0B15E8-AA6C-448B-93B5-2ED355EE1C6A",
+    "MetaKeywords": "skatt, sjølvmelding, reiarlag"
+  },
+  {
+    "ContentGUID": "C48FD382-838C-46A6-91B4-6B421B635747",
+    "MetaKeywords": "Særavgiftsmeldinga "
+  },
+  {
+    "ContentGUID": "93AA2CA0-2113-4431-A324-5091CECE68A7",
+    "MetaKeywords": "skatt, sjølvmelding, rekneskapsutdrag"
+  },
+  {
+    "ContentGUID": "28A93664-1A64-4CFE-884F-08B1DFB3D63B",
+    "MetaKeywords": "skatt, sjølvmelding, vasskraftverk"
+  },
+  {
+    "ContentGUID": "E02B2EE9-91DA-4FE7-A952-511764B6220E",
+    "MetaKeywords": "RF-1336, RF - 1336, 1336, tilbakebetaling av engangsavgift"
+  },
+  {
+    "ContentGUID": "9F243CA4-512A-418D-8A60-E54A5E3A7DA2",
+    "MetaKeywords": "RF-1113  RF1113 1113 skattemelding inntektsår utsettelse utsett utsatt"
+  },
+  {
+    "ContentGUID": "EB7E5046-FCAC-430A-9727-6F7C0CB79DB8",
+    "MetaKeywords": "skatt, sjølvmelding, årsoppgjer, utleige, fast eigedom"
+  },
+  {
+    "ContentGUID": "9450A02C-7975-4BB9-9B5E-27B7CD078144",
+    "MetaKeywords": "KRT-1178,1178,OMF"
+  },
+  {
+    "ContentGUID": "0D1281EA-FCB1-46D2-A807-7BA27195FEF8",
+    "MetaKeywords": "stønadsordningar stønad stønadsgivar stønadsregisteret endringar"
+  },
+  {
+    "ContentGUID": "14F2AEDF-571F-4B9B-827B-4C6C1D8F3FD8",
+    "MetaKeywords": "Kontoutskrift, Saldoutskrift, Bestilling, Arbeidsgivaravgift, Oversikt, Skuldige krav, Innbetaling"
+  },
+  {
+    "ContentGUID": "3FF78AB2-BD09-49CE-A2AD-A7A4DFEAD013",
+    "MetaKeywords": "Søknad om tilgang til Folkeregisteret, søkje om tilgang til folkeregisteret, utlevering frå folkeregisteret, utlevering av folkeregisteropplysningar, opplysningar frå folkeregisteret, folkeregisteropplysningar, data frå folkeregisteret, folkeregisterdata, Deling frå folkeregisteret, deling av folkeregisteropplysningar, Folkeregisteret, Det sentrale folkeregisteret, Modernisert folkeregister, FREG, freg,RF1514,rf1514"
+  },
+  {
+    "ContentGUID": "4FE19171-C323-4B20-BC3B-DB20CA58C051",
+    "MetaKeywords": "skatt, sjølvmelding, bilskjema"
+  },
+  {
+    "ContentGUID": "E6ADF569-54A8-423E-9DC8-94F9557EBFAD",
+    "MetaKeywords": "skatt, sjølvmelding,skattemelding, deltakar, NOKUS, 1246, rf-1246, norskeigd, utanlandsk, selsap, formue, inntekt, lågskatteland, lavskatteland"
+  },
+  {
+    "ContentGUID": "1D77D159-B628-4D4A-8F89-1242385DFC27",
+    "MetaKeywords": "RF-1310.1310,Gåver til visse frivillige organisasjonser og trus- og livssynssamfunn"
+  },
+  {
+    "ContentGUID": "E312BACC-A519-424E-87C4-AF34DC8F23A5",
+    "MetaKeywords": "rf-1183, rf1183, rf-1183b, rf1183b, 1183, 1183b, oppgåve over innskott, utlån og renter mv, saldo, renter"
+  },
+  {
+    "ContentGUID": "2699CCC6-0965-4BD8-80E5-CF2F5EB1494A",
+    "MetaKeywords": "skatteattest fødselsattest likningsattest bostedsattest skattekort arv gave gåve flytting ekteskap fødsel navnevalg namneval"
+  },
+  {
+    "ContentGUID": "A8A5B124-B92F-4458-8D5A-8FBC58F4084E",
+    "MetaKeywords": "RF1030A RF-1030A 1030 1030A endring av kontonummer kontonummerendring "
+  },
+  {
+    "ContentGUID": "F75AB7CF-248D-4690-9C49-B0BF9BD6C0B4",
+    "MetaKeywords": "RF-1312"
+  },
+  {
+    "ContentGUID": "A1CC386D-8A80-4C64-AC4C-68621DFA9322",
+    "MetaKeywords": "skatt, sjølvmelding, næringsoppgåve"
+  },
+  {
+    "ContentGUID": "DD6298EB-7FA7-4C7C-B0D1-7CB9358AEA70",
+    "MetaKeywords": "skatt, sjølvmelding, næringsoppgåve, biletkunstnar,skattemelding"
+  },
+  {
+    "ContentGUID": "40CBBAA3-FE61-4E72-9D8A-9132582AFA03",
+    "MetaKeywords": "skatt, sjølvmelding, noverdi, kraftanlegg, "
+  },
+  {
+    "ContentGUID": "5C5FC1D3-6011-4B1D-AD39-42841283C3C5",
+    "MetaKeywords": "skatt, sjølvmelding, lån, renter"
+  },
+  {
+    "ContentGUID": "C37BFFC3-D793-4A69-9EF6-7FA046FFBEE0",
+    "MetaKeywords": "skattemelding, selskapsmelding"
+  },
+  {
+    "ContentGUID": "A590D139-B54F-458F-8C3D-F6CCB02692F8",
+    "MetaKeywords": "RF-1364 1364 klage vedtak tvangsmulkt"
+  },
+  {
+    "ContentGUID": "FE60D056-3D31-4AFF-95B7-0D1488C487AF",
+    "MetaKeywords": "Kortdata, rapportering, Norges Bank, Noregs Bank, SSB, RA-0551, 0551, ra-0551, ra0551"
+  },
+  {
+    "ContentGUID": "A3BB6FFE-1C64-4003-B4B3-68F79DAD3CEF",
+    "MetaKeywords": "Fødselsattest, Bustadsattest, Registrerte opplysningar, Stadfesting foreldreansvar, Stadfesting av namneendring, Vigselattest, Skattemessig stadfesting på bustad, Andre folkeregistersaker, Attest, Attestbestilling, Utskrift, Folkeregister, Stadfesting, RF1306, rf1306"
+  },
+  {
+    "ContentGUID": "E75F896B-DDEF-4CD8-8554-AB7DAF0D4EC4",
+    "MetaKeywords": "taushetsbelagt "
+  },
+  {
+    "ContentGUID": "58F46F80-9D7C-4AB2-884A-86322F62BD19",
+    "MetaKeywords": "BEST486 486 178 riving fjerning asbest asbestholdig materiale"
+  },
+  {
+    "ContentGUID": "B66C17A0-6F89-4321-A954-2FB96586D12B",
+    "MetaKeywords": "rrh-0100 rrh 0100 reelle rettshavarar reell rettshavar"
+  }
+]
