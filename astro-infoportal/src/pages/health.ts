@@ -27,8 +27,13 @@ async function getHealthItem(name:string, url:URL, expectedContent:string):Promi
     let healthy:boolean = false;
 
     if (response.ok) {
-        let content:string = await response.text();
+        const content:string = await response.text();
         healthy = content.indexOf(expectedContent) > -1;
+        if (!healthy) {
+            console.error("Could not find expected content in response from " + url + ". Actual content (truncated): " + content.substring(0, 1000));
+        }
+    } else {
+        console.error("Unexpected status from " + url + ". HTTP code: " + response.status + " Message: " + response.statusText);
     }
 
     const duration = performance.now() - startTime;
@@ -107,13 +112,7 @@ export const GET: APIRoute = async ({url}) => {
         }
     }
 
-    const responseJson:string = JSON.stringify(healthCheck, null, 2);
-
-    if (overAllStatus !== "Healthy") {
-        console.error("Health status is " + overAllStatus + ":\n" + responseJson);
-    }
-
-    return new Response(responseJson, {
+    return new Response(JSON.stringify(healthCheck, null, 2), {
         status: 200,
         headers: {
             "Content-Type": "application/json",
