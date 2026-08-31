@@ -12,8 +12,24 @@ services:
       - umbraco_logs:/app/umbraco/Logs
       - umbraco_data:/app/umbraco/Data
       - umbraco_media:/app/wwwroot/media
-      
+
+  mssql:
+    image: ${MSSQL_IMAGE:-mcr.microsoft.com/mssql/server:2022-latest}
+    platform: ${MSSQL_PLATFORM:-linux/amd64}
+    container_name: infoportal-mssql
+    profiles: ["localdb"]
+    restart: unless-stopped
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+      MSSQL_SA_PASSWORD: "${MSSQL_SA_PASSWORD:-}"
+    ports:
+      - "${MSSQL_PORT:-1433}:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+
 volumes:
   umbraco_logs:
   umbraco_data:
   umbraco_media:
+  mssql_data:
