@@ -1,6 +1,6 @@
 import type { Locale } from "@i18n/index";
 
-export function buildMetadata(umbracoPageData: any, locale: Locale) {
+export function buildMetadata(umbracoPageData: any, locale: Locale, baseUrl: string) {
   const p = umbracoPageData?.properties ?? {};
   const name = umbracoPageData?.name ?? "";
 
@@ -12,6 +12,6 @@ export function buildMetadata(umbracoPageData: any, locale: Locale) {
     title,
     metaDescription: (p.metaDescription as string) || "",
     metaKeywords: (p.metaKeywords as string) || "",
-    canonicalUrl: (p.canonicalUrl as string) || "",
+    canonicalUrl: (p.canonicalUrl as string) || baseUrl + umbracoPageData?.route?.path,
   };
 }
