@@ -69,8 +69,21 @@ export default defineConfig({
               return 'vendor';
             }
           },
+          assetFileNames: '[name][extname]'
         },
       },
     },
+    environments: {
+      client: {
+        build: {
+          rollupOptions: {
+            output: {
+              entryFileNames: '[name].js',
+              chunkFileNames: '[name].js'
+            },
+          },
+        },
+      },
+    },    
   },
 });
