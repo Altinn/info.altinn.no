@@ -2,6 +2,7 @@ using Microsoft.Extensions.Options;
 using Umbraco.Cms.Api.Management.Security;
 using Umbraco.Cms.Core;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 
 namespace umbraco_infoportal.CustomAuthentication;
 
@@ -57,58 +58,26 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
 
                 var mappedGroups = new List<string>();
 
-                //  Mapping: App Role til Umbraco gruppe
-                if (roles.Contains("umbraco-admin"))
-                    mappedGroups.Add("admin");
+                var regex = new Regex(@"^umbraco-(.+)$");
 
-                if (roles.Contains("umbraco-redaktor"))
-                    mappedGroups.Add("editor");
+                foreach (var role in roles)
+                {
+                    var match = regex.Match(role);
 
-                if (roles.Contains("umbraco-aordningen"))
-                    mappedGroups.Add("tjenesterAOrdningen");
+                    if (match.Success)
+                    {
+                        var shortname = match.Groups["value"].Value;
 
-                if (roles.Contains("umbraco-brg"))
-                    mappedGroups.Add("tjenesterBrg");
+                        var umbracoUserGroup = shortname switch
+                        {
+                            "redaktor" => "editor",
+                            "admin" or "beredskapsvakt" or "servicedesk" => shortname,
+                            _ => "tjenester" + char.ToUpper(shortname[0]) + shortname[1..]
+                        };
 
-                if (roles.Contains("umbraco-dat"))
-                    mappedGroups.Add("tjenesterDat");
-
-                 if (roles.Contains("umbraco-fd"))
-                    mappedGroups.Add("tjenesterFd");
-
-                 if (roles.Contains("umbraco-krt"))
-                    mappedGroups.Add("tjenesterKrt");
-
-                if (roles.Contains("umbraco-mdir"))
-                    mappedGroups.Add("tjenesterMdir");
-                
-                 if (roles.Contains("umbraco-skatt"))
-                    mappedGroups.Add("tjenesterSkatt");
-                
-                 if (roles.Contains("umbraco-slf"))
-                    mappedGroups.Add("tjenesterSlf");
-                
-                 if (roles.Contains("umbraco-ssb"))
-                    mappedGroups.Add("tjenesterSsb");
-
-                if (roles.Contains("umbraco-staf"))
-                    mappedGroups.Add("tjenesterStaf");
-                
-                if (roles.Contains("umbraco-beredskapsvakt"))
-                    mappedGroups.Add("beredskapsvakt");
-                
-                if (roles.Contains("umbraco-servicedesk"))
-                    mappedGroups.Add("servicedesk");
-                
-                if (roles.Contains("umbraco-tad"))
-                    mappedGroups.Add("tjenesterTad");
-
-                if (roles.Contains("umbraco-svv"))
-                    mappedGroups.Add("tjenesterSvv"); 
-
-                if (roles.Contains("umbraco-nve"))
-                    mappedGroups.Add("tjenesterNve");                     
-                    
+                        mappedGroups.Add(umbracoUserGroup);
+                    }
+                }             
 
                 // Deny om ingen andre er roller er spesifisert
                 if (!mappedGroups.Any())
