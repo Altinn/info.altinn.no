@@ -66,7 +66,7 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
 
                     if (match.Success)
                     {
-                        var shortname = match.Groups["value"].Value;
+                        var shortname = match.Groups[1].Value;
 
                         var umbracoUserGroup = shortname switch
                         {
