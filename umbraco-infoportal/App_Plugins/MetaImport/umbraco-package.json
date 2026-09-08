@@ -11,7 +11,7 @@
       "elementName": "altinn-meta-import",
       "weight": 30,
       "meta": {
-        "label": "Import meta tags",
+        "label": "Unpublish pages",
         "pathname": "meta-import"
       },
       "conditions": [

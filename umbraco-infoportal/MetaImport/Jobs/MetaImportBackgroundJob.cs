@@ -14,8 +14,6 @@ public class MetaImportBackgroundJob : IHostedService
     private static int _processedItems;
     private static string _status = "idle";
 
-    private static readonly string[] Cultures = ["nb", "nn", "en"];
-
     public static bool IsRunning => _isRunning == 1;
     public static string Status => _status;
     public static int TotalItems => _totalItems;
@@ -38,75 +36,43 @@ public class MetaImportBackgroundJob : IHostedService
             return;
         _status = "starting";
         _processedItems = 0;
-        _totalItems = 1043;
+        _totalItems = 157;
 
-        _logger.LogInformation("Meta tags import started");
+        _logger.LogInformation("Page unpublishing started");
 
         try
         {
             using var scope = _scopeFactory.CreateScope();
             var contentService = scope.ServiceProvider.GetRequiredService<IContentService>();
 
-            foreach (var culture in Cultures)
+            string json = System.IO.File.ReadAllText("unpublish.json");
+            using JsonDocument doc = JsonDocument.Parse(json);
+
+            foreach (JsonElement item in doc.RootElement.EnumerateArray())
             {
-                _status = "importing for culture " + culture;
+                Guid guid = item.GetProperty("uniqueid").GetGuid();
 
-                _logger.LogInformation(_status);
+                _status = "Unpublishing guid " + guid;
 
-                string json = System.IO.File.ReadAllText($"seo-{culture}.json");
-                using JsonDocument doc = JsonDocument.Parse(json);
+                IContent? content = contentService.GetById(guid);
 
-                foreach (JsonElement item in doc.RootElement.EnumerateArray())
+                if (content is null)
                 {
-                    Guid guid = item.GetProperty("ContentGUID").GetGuid();
-
-                    _status = "importing for guid " + guid;
-
-                    item.TryGetProperty("MetaKeywords", out JsonElement metaKeywords);
-                    item.TryGetProperty("MetaDescription", out JsonElement metaDescription);
-
-                    IContent? content = contentService.GetById(guid);
-
-                    if (content is null)
-                    {
-                        _logger.LogInformation($"Could not find content {guid}");
-                        continue;
-                    }
-
-                    _status = "importing meta tags for " + content.Name;
-
-                    bool changed = false;
-                    
-                    string? existingValue = content.GetValue<string>("metaKeywords", culture);
-
-                    Console.WriteLine("Existing value: " + existingValue);
-
-                    if (metaKeywords.ValueKind != JsonValueKind.Null && string.IsNullOrEmpty(content.GetValue<string>("metaKeywords", culture)))
-                    {
-                        content.SetValue("metaKeywords", metaKeywords, culture);
-                        changed = true;
-                    }
-
-                    if (metaDescription.ValueKind != JsonValueKind.Null && string.IsNullOrEmpty(content.GetValue<string>("metaDescription", culture)))
-                    {
-                        content.SetValue("metaDescription", metaDescription, culture);
-                        changed = true;
-                    }
-
-                    if (changed)
-                    {
-                        contentService.Save(content);
-                        contentService.Publish(content, [culture]);
-                    }
-
-                    // Update and republish
-                    Interlocked.Increment(ref _processedItems);
+                    _logger.LogInformation($"Could not find content {guid}");
+                    continue;
                 }
-            }            
+
+                _status = "Unpublishing " + content.Name;
+
+                contentService.Unpublish(content);
+
+                // Update and republish
+                Interlocked.Increment(ref _processedItems);
+            }   
 
             _status = "completed";
             _logger.LogInformation(
-                "Meta import completed. {Processed}/{Total} items processed",
+                "Page unpublishing completed. {Processed}/{Total} items processed",
                 _processedItems, _totalItems);
         }
         catch (Exception ex)
