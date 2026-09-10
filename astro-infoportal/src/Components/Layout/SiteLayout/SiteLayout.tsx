@@ -35,6 +35,7 @@ const SiteLayout = ({
   skipLinkText,
   consentBanner,
   missingTranslationText,
+  locale
 }: SiteLayoutProps) => {
   const Comp = child ? (Components as any)[child.componentName] : null;
 
@@ -50,39 +51,6 @@ const SiteLayout = ({
   // Set by open() so the focus effect only fires on an explicit reopen
   // (footer / personvern / programmatic), not when the banner first appears.
   const focusOnOpenRef = useRef(false);
-
-  const currentLanguage = headerViewModel?.menuLanguageList?.find(
-    (l: any) => l.selected,
-  )?.languageName;
-
-  const normalize = (s?: string) =>
-    (s || "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase();
-  const getLanguageCode = (langName?: string): "nb" | "nn" | "en" => {
-    const v = normalize(langName);
-    if (!v) return "nb";
-    if (
-      v === "nn" ||
-      v === "nnno" ||
-      v.startsWith("nn-") ||
-      v.includes("nynorsk")
-    )
-      return "nn";
-    if (v === "en" || v.startsWith("en-") || v.includes("english")) return "en";
-    if (
-      v === "no" ||
-      v === "nonb" ||
-      v.startsWith("no-") ||
-      v.includes("norsk") ||
-      v.includes("bokmal")
-    )
-      return "nb";
-    return "nb";
-  };
-
-  const languageCode = getLanguageCode(currentLanguage);
 
   const openCookieBanner = () => {
     clear();
@@ -100,7 +68,7 @@ const SiteLayout = ({
   // Config from hooks
   const { headerProps, color } = useHeaderConfig(
     headerViewModel || ({} as any),
-    languageCode,
+    locale,
   );
 
   // Client-side locale auto-select from the profile (never SSR — cached per URL).
@@ -163,7 +131,7 @@ const SiteLayout = ({
   };
 
   return (
-    <RootProvider languageCode={languageCode}>
+    <RootProvider languageCode={locale}>
       <SkipLink className="site-layout__skip-link" href="#main-content">
         {skipLinkText}
       </SkipLink>
