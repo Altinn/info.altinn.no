@@ -25,7 +25,9 @@
     "message-channel": "^2.0.0",
     "node-html-parser": "^9.0.1",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "sharp": "^0.35.4",
+    "svgo": "^4.1.0"
   },
   "devDependencies": {
     "@babel/core": "^8.0.1",
@@ -46,22 +48,24 @@
     "storybook": "^10.5.7",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10",
-    "wrangler": "^4.120.1"
+    "wrangler": "^4.130.0"
   },
   "overrides": {
     "undici": "^8.10.0",
-    "picomatch": ">=4.0.5",
+    "picomatch": "^4.0.5",
     "uuid": "^14.0.1",
     "postcss": "^8.5.26",
     "@babel/plugin-transform-modules-systemjs": "^8.0.1",
     "devalue": "^5.9.0",
-    "esbuild": "^0.28.2"
+    "esbuild": "^0.28.2",
+    "sharp": "^0.35.4",
+    "svgo": "^4.1.0"
   },
   "allowScripts": {
-    "@parcel/watcher@2.5.6": true,
     "fsevents@2.3.3": true,
-    "sharp@0.34.5": true,
+    "sharp@0.35.4": true,
     "esbuild@0.28.2": true,
-    "workerd@1.20260804.1": true
+    "@parcel/watcher@2.6.0": true,
+    "workerd@1.20260908.1": true
   }
 }
