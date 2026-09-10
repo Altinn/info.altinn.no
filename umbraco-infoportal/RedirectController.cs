@@ -36,14 +36,9 @@ public class RedirectController : ControllerBase
 
         using IScope scope = _scopeProvider.CreateScope();
 
-        // Checking if path is added through Skybrud Redirects Add-On.
-        // Skybrud stores the inbound url WITHOUT a trailing slash: its own lookup does
-        // `path.Trim().TrimEnd('/')` before comparing (RedirectsService.GetRedirectByPathAndQuery),
-        // so a trailing slash here never matches. Note NormalizePath() above adds one, because it
-        // also normalizes the *outgoing* destination path at the end of this method.
         RedirectQueryRow? row = scope.Database.FirstOrDefault<RedirectQueryRow>(
                 @"SELECT destinationKey as ContentGuid, destinationCulture as Culture, destinationUrl as DestinationUrl
-                    FROM skybrudRedirects WHERE url = @0", pathWithoutTrailingSlash);
+                    FROM skybrudRedirects WHERE url = @0 OR url = @1", path, pathWithoutTrailingSlash);
 
         // If not, checking if path is a "Enkel adresse" / umbracoUrlAlias
         row ??= scope.Database.FirstOrDefault<RedirectQueryRow>(
