@@ -46,6 +46,10 @@ body {
   line-height: 1.25;
 }
 
+.consent-banner {
+  padding-inline: var(--dsc-spacing-page, var(--ds-size-6));
+}
+
 /* Issue #576: feed the infoportal banner-stack height into
    @altinn/altinn-components. The library positions the actor-selector
    drawer/backdrop at `top: calc(4.5rem + var(--altinn-banner-height))` and

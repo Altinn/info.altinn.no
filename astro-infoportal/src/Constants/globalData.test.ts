@@ -26,43 +26,32 @@ describe("buildConsentBanner", () => {
     expect(buildConsentBanner({})).toBeNull();
   });
 
-  it("returns null when a mandatory field is empty (no fallback)", () => {
-    const noHeading = { properties: { ...full.properties, heading: "" } };
-    expect(buildConsentBanner(noHeading)).toBeNull();
-    const noAccept = { properties: { ...full.properties, acceptLabel: "  " } };
-    expect(buildConsentBanner(noAccept)).toBeNull();
+  it("returns null when the footer link text is empty", () => {
     const noFooter = { properties: { ...full.properties, footerLinkText: "" } };
     expect(buildConsentBanner(noFooter)).toBeNull();
   });
 
-  it("maps a complete CMS node to a view model and resolves link urls", () => {
+  it("maps a CMS node to the footer reopen link view model", () => {
     const vm = buildConsentBanner(full);
     expect(vm).not.toBeNull();
-    expect(vm?.heading).toBe(full.properties.heading);
-    expect(vm?.acceptLabel).toBe("Ja");
     expect(vm?.footerLinkText).toBe("Informasjonskapsler");
-    expect(vm?.changeLinkUrl).toBe("/om-altinn/personvern/");
-    expect(vm?.necessaryLinkUrl).toBe("/om-altinn/personvern/");
   });
 
   it("accepts the value wrapped in an array (Delivery API shape)", () => {
-    expect(buildConsentBanner([full])?.heading).toBe(full.properties.heading);
+    expect(buildConsentBanner([full])?.footerLinkText).toBe(
+      "Informasjonskapsler",
+    );
   });
 
-  it("omits optional links when their url is absent", () => {
-    const noLinks = {
+  it("does not require the text fields now owned by altinn-components", () => {
+    const footerOnly = {
       properties: {
-        heading: full.properties.heading,
-        bodyText: full.properties.bodyText,
-        acceptLabel: "Ja",
-        rejectLabel: "Nei",
-        necessaryText: full.properties.necessaryText,
         footerLinkText: "Informasjonskapsler",
       },
     };
-    const vm = buildConsentBanner(noLinks);
-    expect(vm?.changeLinkUrl).toBeUndefined();
-    expect(vm?.necessaryLinkUrl).toBeUndefined();
+    expect(buildConsentBanner(footerOnly)).toEqual({
+      footerLinkText: "Informasjonskapsler",
+    });
   });
 });
 
