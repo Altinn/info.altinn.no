@@ -14,36 +14,6 @@ import {
 } from "@constants/startPageLinks";
 import { type Locale, t } from "@i18n/index";
 
-export type ConsentBannerViewModel = {
-  footerLinkText: string;
-};
-
-const asText = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
-
-// Build the consent banner view model from the editor-controlled CMS property.
-// Single source of truth: returns null (banner does not render) when the
-// property is missing or any mandatory field is empty. There is no fallback.
-// Mirrors buildBanner's handling of the Delivery API value shape.
-export function buildConsentBanner(
-  value: unknown,
-): ConsentBannerViewModel | null {
-  const first = Array.isArray(value) ? value[0] : value;
-  const props = (
-    first as { properties?: Record<string, unknown> } | null | undefined
-  )?.properties;
-  if (!props) return null;
-
-  const footerLinkText = asText(props.footerLinkText);
-
-  if (!footerLinkText) {
-    return null;
-  }
-
-  return {
-    footerLinkText,
-  };
-}
-
 // Old-portal behaviour, restored: a page with no variant in the requested
 // language renders its NB content (see `contentLocale` in [...slug].astro), and
 // the reader is told so rather than being left to wonder why the page turned
@@ -82,7 +52,6 @@ export function getGlobalData(
   const amUiBase = endpoints.amUiBaseUrl.replace(/\/$/, "");
   const platformBase = endpoints.platformBaseUrl.replace(/\/$/, "");
   const p = startPage?.properties;
-  const consentBanner = buildConsentBanner(p?.consentBanner);
 
   return {
     headerViewModel: {
@@ -154,9 +123,14 @@ export function getGlobalData(
         p?.accessibilityLocation,
         t("footer.accessibility", locale),
       ),
-      cookieConsent: consentBanner
-        ? { text: consentBanner.footerLinkText, url: `#${CONSENT_REOPEN_HASH}` }
-        : null,
+      // Always present. The shared banner is not editor-controlled in v1, so
+      // the label comes from our own i18n — altinn-components ships the banner
+      // copy but no footer label. A missing CMS node must never remove the
+      // only way back to the banner.
+      cookieConsent: {
+        text: t("footer.cookieConsent", locale),
+        url: `#${CONSENT_REOPEN_HASH}`,
+      },
       searchContext:
         currentPageContentType === "schemaOverviewPage"
           ? SearchContext.Schema
@@ -167,7 +141,6 @@ export function getGlobalData(
         : searchPageUrl,
     },
     skipLinkText: t("common.skipToContent", locale),
-    consentBanner,
     missingTranslationText: buildMissingTranslationText(locale, contentLocale),
     locale,
     contentLocale,

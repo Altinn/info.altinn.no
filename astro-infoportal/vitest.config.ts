@@ -15,6 +15,8 @@ export default defineConfig({
       "@models": resolve(__dirname, "src/Models"),
       "@transformers": resolve(__dirname, "src/transformers"),
       "@i18n": resolve(__dirname, "src/i18n"),
+      // Workers-only virtual module; see src/test-utils/cloudflareWorkers.ts.
+      "cloudflare:workers": resolve(__dirname, "src/test-utils/cloudflareWorkers.ts"),
     },
   },
   test: {

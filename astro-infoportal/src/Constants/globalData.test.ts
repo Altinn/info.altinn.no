@@ -1,57 +1,33 @@
+import { type Locale, t } from "@i18n/index";
 import en from "@i18n/locales/en.json";
 import nn from "@i18n/locales/nn.json";
 import { describe, expect, it } from "vitest";
-import { buildConsentBanner, buildMissingTranslationText } from "./globalData";
+import { buildMissingTranslationText, getGlobalData } from "./globalData";
 
-const full = {
-  properties: {
-    heading: "Får vi samle informasjon om hvordan du bruker nettsiden?",
-    bodyText:
-      "Hvis du svarer ja, lagrer vi informasjon til statistikk og analyse.",
-    acceptLabel: "Ja",
-    rejectLabel: "Nei",
-    necessaryText: "Vi lagrer også nødvendig informasjon.",
-    footerLinkText: "Informasjonskapsler",
-    changeLinkText: "Du kan endre valget ditt når som helst.",
-    changeLink: [{ route: { path: "/om-altinn/personvern/" } }],
-    necessaryLinkText: "Se oversikt over nødvendig informasjon.",
-    necessaryLink: [{ route: { path: "/om-altinn/personvern/" } }],
-  },
-};
+const LOCALES: Locale[] = ["nb", "nn", "en"];
 
-describe("buildConsentBanner", () => {
-  it("returns null when the value is missing", () => {
-    expect(buildConsentBanner(null)).toBeNull();
-    expect(buildConsentBanner(undefined)).toBeNull();
-    expect(buildConsentBanner({})).toBeNull();
+// The banner is reachable again only through the footer link, and both used to
+// hang off a CMS node that exists on the NB start page alone — so nn/en lost
+// the banner *and* the way back to it. While the shared banner is not
+// editor-controlled, neither may depend on Umbraco.
+describe("consent footer link", () => {
+  it.each(LOCALES)("is present with no CMS content (%s)", (locale) => {
+    expect(getGlobalData(locale).footerViewModel.cookieConsent).toEqual({
+      text: t("footer.cookieConsent", locale),
+      url: "#informasjonskapsler",
+    });
   });
 
-  it("returns null when the footer link text is empty", () => {
-    const noFooter = { properties: { ...full.properties, footerLinkText: "" } };
-    expect(buildConsentBanner(noFooter)).toBeNull();
-  });
-
-  it("maps a CMS node to the footer reopen link view model", () => {
-    const vm = buildConsentBanner(full);
-    expect(vm).not.toBeNull();
-    expect(vm?.footerLinkText).toBe("Informasjonskapsler");
-  });
-
-  it("accepts the value wrapped in an array (Delivery API shape)", () => {
-    expect(buildConsentBanner([full])?.footerLinkText).toBe(
-      "Informasjonskapsler",
-    );
-  });
-
-  it("does not require the text fields now owned by altinn-components", () => {
-    const footerOnly = {
+  it("ignores editor-supplied text from Umbraco", () => {
+    const startPage = {
       properties: {
-        footerLinkText: "Informasjonskapsler",
+        consentBanner: [{ properties: { footerLinkText: "Redaktørtekst" } }],
       },
     };
-    expect(buildConsentBanner(footerOnly)).toEqual({
-      footerLinkText: "Informasjonskapsler",
-    });
+    const vm = getGlobalData("nb", "/sok/", undefined, {}, startPage);
+    expect(vm.footerViewModel.cookieConsent.text).toBe(
+      t("footer.cookieConsent", "nb"),
+    );
   });
 });
 
