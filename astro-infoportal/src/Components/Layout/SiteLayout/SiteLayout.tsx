@@ -33,7 +33,6 @@ const SiteLayout = ({
   footerViewModel,
   pageSidebarViewModel,
   skipLinkText,
-  consentBanner,
   missingTranslationText,
   locale
 }: SiteLayoutProps) => {
@@ -75,7 +74,7 @@ const SiteLayout = ({
   useLanguagePreference(headerViewModel?.menuLanguageList);
   const footerProps = useFooterConfig(
     footerViewModel || ({} as any),
-    consentBanner ? openCookieBanner : undefined,
+    openCookieBanner,
   );
   const sidebarConfig = useSidebarConfig(pageSidebarViewModel);
 
@@ -93,7 +92,7 @@ const SiteLayout = ({
   const hasSidebar = !!sidebarConfig;
 
   const contentColor: "company" = "company";
-  const shouldShowCookieBanner = hydrated && !!consentBanner && !isAnswered;
+  const shouldShowCookieBanner = hydrated && !isAnswered;
 
   // Client-only: the page is edge-cached per URL, so visibility must never be
   // decided at SSR. Show only when a (re)decision is needed.

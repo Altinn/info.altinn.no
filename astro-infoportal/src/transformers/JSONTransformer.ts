@@ -55,6 +55,11 @@ export class JSONTransformer implements IJSONTransformer {
         globalData?.properties?.missingTranslationText ??
         globalData?.missingTranslationText ??
         null,
+      // Must be forwarded, not just read for t() above: SiteLayout hands it to
+      // RootProvider, and every altinn-components component resolves its texts
+      // from that context. Undefined here silently renders bokmål everywhere,
+      // and stops SkyraSurvey calling skyra.setLanguage() at all.
+      locale: globalData?.locale,
       componentName: "SiteLayout",
       child: null,
     };
