@@ -8,6 +8,7 @@ using Umbraco.Cms.Core.PublishedCache;
 using umbraco_infoportal.Options;
 using Azure.Communication.Email;
 using Azure.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace umbraco_infoportal.Controllers.ContactForm;
 
@@ -42,6 +43,7 @@ public sealed class ContactFormController(
     [HttpPost("send")]
     [IgnoreAntiforgeryToken]
     [Consumes("multipart/form-data")]
+    [EnableRateLimiting("Max100RequestsPerHour")]
     public async Task<IActionResult> Send([FromForm] ContactFormModel model, CancellationToken cancellationToken)
     {
         if (!string.IsNullOrWhiteSpace(model.Location))
