@@ -13,7 +13,7 @@ public class RateLimitingComposer : IComposer
                     "global",
                     _ => new FixedWindowRateLimiterOptions
                     {
-                        PermitLimit = 2,
+                        PermitLimit = 100,
                         Window = TimeSpan.FromHours(1),
                         QueueLimit = 0
                     }));
