@@ -46,7 +46,7 @@ const SubCategoryPage = ({
 
       {schemas?.length ? (
         <List size="sm" color="neutral" spacing={0}>
-          {schemas.map(({ providers, title, url, id }: any, idx: any) => {
+          {schemas.map(({ providers, title, titleLang, url, id }: any, idx: any) => {
             const providerItems: ProviderInlineItem[] = (providers || [])
               .filter(
                 (p: any): p is typeof p & { name: string } =>
@@ -58,6 +58,9 @@ const SubCategoryPage = ({
                 url: (p as any).url || undefined,
               }));
 
+            // titleLang is set only on services served from bokmål in an
+            // otherwise localized list, so a screen reader switches voice for
+            // those titles (issues #705 and #713).
             return (
               <>
                 <SearchItem
@@ -65,7 +68,9 @@ const SubCategoryPage = ({
                   key={id ?? idx}
                   as="a"
                   href={url}
-                  title={title}
+                  title={
+                    titleLang ? <span lang={titleLang}>{title}</span> : title
+                  }
                   summary={
                     providerItems.length ? (
                       <ProvidersInline

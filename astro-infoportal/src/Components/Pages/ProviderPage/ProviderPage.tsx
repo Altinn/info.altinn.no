@@ -43,7 +43,7 @@ const ProviderPage = ({
 
           {schemas?.length ? (
             <List className="provider-page" size="sm" color="neutral" spacing={0}>
-              {schemas.map(({ providers, title, url, id }: any, idx: any) => {
+              {schemas.map(({ providers, title, titleLang, url, id }: any, idx: any) => {
                 const providerItems: ProviderInlineItem[] = (providers || [])
                   .filter(
                     (p: any): p is typeof p & { name: string } =>
@@ -55,13 +55,18 @@ const ProviderPage = ({
                     url: p.url || undefined,
                   }));
 
+                // titleLang is set only on services served from bokmål in an
+                // otherwise localized list, so a screen reader switches voice
+                // for those titles (issues #705 and #713).
                 return (
                   <Fragment key={id ?? idx}>
                     <SearchItem
                       className="search-item__item"
                       as="a"
                       href={url}
-                      title={title}
+                      title={
+                        titleLang ? <span lang={titleLang}>{title}</span> : title
+                      }
                       summary={
                         providerItems.length ? (
                           <ProvidersInline

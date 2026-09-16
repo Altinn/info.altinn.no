@@ -4,6 +4,10 @@ import {
   ProviderResolver,
 } from "@services/Providers/ProviderResolver";
 import {
+  fallbackLocaleFor,
+  localeChannelPath,
+} from "../api/umbraco/childrenWithFallback";
+import {
   fetchUmbracoAncestors,
   fetchUmbracoChildren,
   fetchUmbracoContentById,
@@ -74,12 +78,16 @@ export class SubCategoryPageTransformer implements IJSONTransformer {
         }
 
         const name = fullSchema?.name ?? s.name;
-        const url = fullSchema?.route?.path ?? s.route?.path;
+        const resolvedPath = fullSchema?.route?.path ?? s.route?.path;
         const title = schemaCode ? `${name} (${schemaCode})` : name;
         return {
           id: s.id,
           title,
-          url,
+          // The related query runs in bokmål, so an untranslated service is
+          // served from there with a Norwegian title and a bokmål URL. Tag the
+          // language and keep the link in this language channel (issue #705).
+          titleLang: fallbackLocaleFor(resolvedPath, contentLocale),
+          url: localeChannelPath(resolvedPath, contentLocale),
           providers,
           componentName: "SchemaData",
         };
