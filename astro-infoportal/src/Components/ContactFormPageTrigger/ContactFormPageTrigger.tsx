@@ -66,8 +66,6 @@ const ContactFormPageTrigger = ({ contactFormUrl }: ContactFormPageTriggerProps)
           formTypeArea={pageData.formTypeArea}
           teaserText={pageData.teaserText}
           teaserHeading={pageData.teaserHeading}
-          useRecaptcha={pageData.useRecaptcha}
-          recaptchaSiteKey={pageData.recaptchaSiteKey}
           title={pageData.pageName}
         />
       )}

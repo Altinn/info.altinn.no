@@ -14,7 +14,6 @@ public sealed class ContactFormModel
 
     public string? SchemaId { get; set; }
     public string? Language { get; set; }
-    public string? RecaptchaToken { get; set; }
 
     public IFormFile? Attachment { get; set; }
 }

@@ -135,10 +135,6 @@ async function transformSectionContentItem(
         labels: props.labels ?? undefined,
         contactFormSchemaId: props.contactFormSchemaId ?? 0,
         showAttachment: props.showAttachment ?? false,
-        useRecaptcha:
-          props.useRecaptcha ?? startPageData?.properties?.useRecaptcha ?? false,
-        recaptchaSiteKey:
-          props.recaptchaSiteKey ?? startPageData?.properties?.reCaptchaSiteKey ?? undefined,
         contactFormPageData: props.contactFormPageData ?? undefined,
       };
     case "latestNewsBlock":
