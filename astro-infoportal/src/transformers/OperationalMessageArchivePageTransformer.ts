@@ -15,7 +15,9 @@ export class OperationalMessageArchivePageTransformer implements IJSONTransforme
 
     const [ancestors, children] = await Promise.all([
       path ? fetchUmbracoAncestors(path, contentLocale) : Promise.resolve([]),
-      path ? fetchUmbracoChildren(path, 100, contentLocale, isPreview) : Promise.resolve([]),
+      path
+        ? fetchUmbracoChildren(path, 100, contentLocale, { isPreview })
+        : Promise.resolve([]),
     ]);
 
     const articles = children

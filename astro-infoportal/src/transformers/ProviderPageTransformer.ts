@@ -49,7 +49,7 @@ export class ProviderPageTransformer implements IJSONTransformer {
       cmsPageData.route.path,
       2147483647,
       contentLocale,
-      isPreview
+      { isPreview },
     );
     const schemaPages = children.filter(
       (c: any) =>
