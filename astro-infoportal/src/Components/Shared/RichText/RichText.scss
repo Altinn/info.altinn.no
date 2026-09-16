@@ -27,6 +27,7 @@
   .rich-text-table {
     overflow-x: auto;
     margin-bottom: 1.5rem;
+    word-wrap: normal;
 
     &:focus-visible {
       outline: 2px solid currentColor;
