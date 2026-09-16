@@ -19,4 +19,15 @@ describe("JSONTransformer", () => {
     const data = await new JSONTransformer().Transform(null, {});
     expect(data.locale).toBeUndefined();
   });
+
+  // Issue #713: SiteLayout compares the two to decide whether the chrome and
+  // the content need separate lang attributes. Without the forward it only ever
+  // sees `locale`, and every page looks translated.
+  it("forwards contentLocale to the SiteLayout props", async () => {
+    const data = await new JSONTransformer().Transform(null, {
+      locale: "en",
+      contentLocale: "nb",
+    });
+    expect(data.contentLocale).toBe("nb");
+  });
 });

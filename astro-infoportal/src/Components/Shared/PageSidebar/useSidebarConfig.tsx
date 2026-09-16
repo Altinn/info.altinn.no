@@ -1,4 +1,5 @@
 import type {LayoutProps, MenuItemProps} from '@altinn/altinn-components';
+import type {Locale} from '@i18n/index';
 import * as AkselIcons from '@navikt/aksel-icons';
 import './PageSidebar.scss';
 
@@ -10,7 +11,7 @@ const resolveAkselIcon = (iconName?: string) => {
 
 export default function useSidebarConfig(
   vm?: any,
-  opts?: {reserveWhenEmpty?: boolean},
+  opts?: {reserveWhenEmpty?: boolean; lang?: Locale},
 ): LayoutProps['sidebar'] {
   const items: MenuItemProps[] = [];
   const hasMainItems = !!vm?.mainItems?.length;
@@ -42,7 +43,10 @@ export default function useSidebarConfig(
         icon: resolveAkselIcon(mainItem.icon),
         size: 'md',
         label: (
-          <span className={mainItem.current ? 'sidebar-current' : ''}>
+          <span
+            lang={opts?.lang}
+            className={mainItem.current ? 'sidebar-current' : ''}
+          >
             {mainItem.label}
           </span>
         ),
@@ -59,7 +63,10 @@ export default function useSidebarConfig(
             groupId: 'sub-group',
             size: 'sm',
             label: (
-              <span className={subItem.current ? 'sidebar-current' : ''}>
+              <span
+                lang={opts?.lang}
+                className={subItem.current ? 'sidebar-current' : ''}
+              >
                 {subItem.label}
               </span>
             ),

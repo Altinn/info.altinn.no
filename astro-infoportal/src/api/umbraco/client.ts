@@ -225,13 +225,19 @@ export async function resolveBlockReferences(
   );
 }
 
+/**
+ * The two optional tails are an object rather than positional arguments: as
+ * `sort?: string, isPreview?: boolean` three call sites passed isPreview in the
+ * sort slot, sending `sort=true` (a 400 from the Delivery API) and dropping the
+ * preview headers. `globalData` is `any`, so the compiler never saw it.
+ */
 export async function fetchUmbracoChildren(
   path: string,
   take = 100,
   culture?: string,
-  sort?: string,
-  isPreview?: boolean
+  options?: { sort?: string; isPreview?: boolean },
 ) {
+  const { sort, isPreview } = options ?? {};
   const params = new URLSearchParams({
     fetch: `children:${normalizeDeliveryPath(path)}`,
     take: String(take),
@@ -269,7 +275,10 @@ export async function fetchUmbracoChildrenInEditorOrder(
   culture?: string,
   isPreview?: boolean
 ) {
-  return fetchUmbracoChildren(path, take, culture, "sortOrder:asc", isPreview);
+  return fetchUmbracoChildren(path, take, culture, {
+    sort: "sortOrder:asc",
+    isPreview,
+  });
 }
 
 export async function fetchUmbracoContentList(

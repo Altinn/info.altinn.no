@@ -20,6 +20,11 @@ const [errorPageResult, startPageResult] = await Promise.allSettled([
 const umbracoPageData = errorPageResult.status === 'fulfilled' ? errorPageResult.value : null;
 const startPageData = startPageResult.status === 'fulfilled' ? startPageResult.value : null;
 
+// Use the effective content language for <html lang> (an NB-only error page
+// served at /en/ falls back to nb content), not the URL locale (issue #494).
+const contentLocale: Locale =
+  umbracoPageData?.cultures && umbracoPageData.cultures[locale] ? locale : "nb";
+
 const globalData: any = getGlobalData(
   locale,
   "/sok/",
@@ -27,12 +32,13 @@ const globalData: any = getGlobalData(
   umbracoPageData?.cultures,
   startPageData,
   umbracoPageData?.contentType,
+  // currentPath stays unset, as before — it only drives the language-switcher
+  // targets, which should keep leading out of the error page. contentLocale is
+  // what the layout needs to tell that the error page fell back to bokmål, so
+  // the English chrome around it gets tagged for screen readers (issue #713).
+  undefined,
+  contentLocale,
 );
-
-// Use the effective content language for <html lang> (an NB-only error page
-// served at /en/ falls back to nb content), not the URL locale (issue #494).
-const contentLocale: Locale =
-  umbracoPageData?.cultures && umbracoPageData.cultures[locale] ? locale : "nb";
 
 const pageData = await new JSONTransformer().Transform(umbracoPageData, globalData);
 const metadata = buildMetadata(umbracoPageData, contentLocale);

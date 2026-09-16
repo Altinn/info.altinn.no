@@ -1,8 +1,8 @@
 import { type Locale, t } from "@i18n/index";
 import { ProviderResolver } from "@services/Providers/ProviderResolver";
+import { fetchChildrenWithNbFallback } from "../api/umbraco/childrenWithFallback";
 import {
   fetchUmbracoAncestors,
-  fetchUmbracoChildren,
   fetchUmbracoContentById,
   resolveBlockReferences,
   resolveContentReference,
@@ -45,12 +45,16 @@ export class ProviderPageTransformer implements IJSONTransformer {
     // API's max int. schemaAttachmentPage is a sibling content type — same
     // editorial role as schemaPage (a service the provider offers, with
     // schemaCode/providers/URL), so it must be listed too.
-    const children = await fetchUmbracoChildren(
-      cmsPageData.route.path,
-      2147483647,
-      contentLocale,
-      isPreview
-    );
+    // Completed from the bokmål tree: Umbraco only returns children published
+    // in the requested culture, so an English provider page would otherwise
+    // list only the handful of services that have been translated (issue #705).
+    const children = await fetchChildrenWithNbFallback({
+      localizedPath: cmsPageData.route.path,
+      nbPath: cmsPageData.cultures?.nb?.path,
+      take: 2147483647,
+      locale: contentLocale,
+      isPreview,
+    });
     const schemaPages = children.filter(
       (c: any) =>
         c.contentType === "schemaPage" ||
@@ -81,6 +85,9 @@ export class ProviderPageTransformer implements IJSONTransformer {
         return {
           id: schema.id,
           title: schemaCode ? `${schema.name} (${schemaCode})` : schema.name,
+          // Set only on services merged in from bokmål, so the list can tag
+          // their language for screen readers (issue #713).
+          titleLang: schema.fallbackLocale,
           url: schema.route?.path,
           providers,
         };

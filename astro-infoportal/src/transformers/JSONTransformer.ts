@@ -60,6 +60,10 @@ export class JSONTransformer implements IJSONTransformer {
       // from that context. Undefined here silently renders bokmål everywhere,
       // and stops SkyraSurvey calling skyra.setLanguage() at all.
       locale: globalData?.locale,
+      // Issue #713: the language the content actually came back in. SiteLayout
+      // compares it with `locale` to decide whether the English chrome and the
+      // bokmål content need to be tagged apart for screen readers.
+      contentLocale: globalData?.contentLocale,
       componentName: "SiteLayout",
       child: null,
     };

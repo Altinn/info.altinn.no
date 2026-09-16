@@ -34,9 +34,21 @@ const SiteLayout = ({
   pageSidebarViewModel,
   skipLinkText,
   missingTranslationText,
-  locale
+  locale,
+  contentLocale,
 }: SiteLayoutProps) => {
   const Comp = child ? (Components as any)[child.componentName] : null;
+
+  // Issue #713 (WCAG 3.1.2). A page with no variant in the requested language
+  // renders bokmål content, and <html lang> follows that content (issue #555),
+  // so the English chrome around it would be read with Norwegian phonetics.
+  // Tag the chrome with the language it is actually written in, and hand the
+  // content region back the language it fell back to. Both stay undefined —
+  // rendering no attribute at all — whenever the page really is translated.
+  const hasLocaleFallback =
+    !!locale && !!contentLocale && locale !== contentLocale;
+  const uiLang = hasLocaleFallback ? locale : undefined;
+  const contentLang = hasLocaleFallback ? contentLocale : undefined;
 
   // Scroll to a #section target on cold loads once layout has settled.
   useHashScroll();
@@ -76,7 +88,12 @@ const SiteLayout = ({
     footerViewModel || ({} as any),
     openCookieBanner,
   );
-  const sidebarConfig = useSidebarConfig(pageSidebarViewModel);
+  // The sidebar is built from the same Umbraco tree as the page content, but
+  // the library renders it outside <main>, so its labels carry the content
+  // language themselves (issue #713).
+  const sidebarConfig = useSidebarConfig(pageSidebarViewModel, {
+    lang: contentLang,
+  });
 
   // Pages that have their own width constraints and should not be constrained by layout
   const exludedPages = [
@@ -131,59 +148,65 @@ const SiteLayout = ({
 
   return (
     <RootProvider languageCode={locale}>
-      <SkipLink className="site-layout__skip-link" href="#main-content">
-        {skipLinkText}
-      </SkipLink>
-      {shouldShowCookieBanner && (
-        <CookieBanner
-          className="consent-banner"
-          onAccept={acceptCookieConsent}
-          onReject={rejectCookieConsent}
-        />
-      )}
-      {/* Headless: loads the SRI-pinned Skyra SDK and follows the statistics
-          consent decision. Renders nothing, so SSR output is unchanged and
-          the edge-cached HTML stays identical for every visitor. */}
-      <SkyraSurvey consent={consent.statistics} />
-      {headerViewModel?.banner && <BannerBlock {...headerViewModel.banner} />}
-      <Layout
-        color={color}
-        header={headerViewModel ? headerProps : undefined}
-        footer={footerProps}
-        content={{ color: contentColor }}
-        {...(sidebarConfig ? { sidebar: sidebarConfig } : {})}
-        theme="default"
-      >
-        {missingTranslationText && (
-          <div
-            className={`layout-content-constrained${
-              hasSidebar ? " layout-content-constrained--sidebar" : ""
-            } site-layout__missing-translation`}
-          >
-            {/* DsAlert, not the altinn-components Alert: that one always renders
-                a heading element, and an empty heading both trips the
-                :empty safety net below and swallows the info icon, which
-                .ds-alert hangs off the first-child heading. Headingless is the
-                shape Designsystemet documents for a one-line notice. */}
-            <DsAlert data-color="info">{missingTranslationText}</DsAlert>
-          </div>
+      {/* Carries the chrome's own language when the content fell back;
+          wraps the whole tree so the banner/layout sibling rules in
+          BannerBlock.scss keep matching. */}
+      <div lang={uiLang}>
+        <SkipLink className="site-layout__skip-link" href="#main-content">
+          {skipLinkText}
+        </SkipLink>
+        {shouldShowCookieBanner && (
+          <CookieBanner
+            className="consent-banner"
+            onAccept={acceptCookieConsent}
+            onReject={rejectCookieConsent}
+          />
         )}
-        {shouldConstrainWidth ? (
-          <div
-            className={`layout-content-constrained${
-              hasSidebar ? " layout-content-constrained--sidebar" : ""
-            }`}
-          >
-            <Comp {...child} />
-          </div>
-        ) : (
-          child && (
-            <div>
+        {/* Headless: loads the SRI-pinned Skyra SDK and follows the statistics
+            consent decision. Renders nothing, so SSR output is unchanged and
+            the edge-cached HTML stays identical for every visitor. */}
+        <SkyraSurvey consent={consent.statistics} />
+        {headerViewModel?.banner && <BannerBlock {...headerViewModel.banner} />}
+        <Layout
+          color={color}
+          header={headerViewModel ? headerProps : undefined}
+          footer={footerProps}
+          content={{ color: contentColor }}
+          {...(sidebarConfig ? { sidebar: sidebarConfig } : {})}
+          theme="default"
+        >
+          {missingTranslationText && (
+            <div
+              className={`layout-content-constrained${
+                hasSidebar ? " layout-content-constrained--sidebar" : ""
+              } site-layout__missing-translation`}
+            >
+              {/* DsAlert, not the altinn-components Alert: that one always renders
+                  a heading element, and an empty heading both trips the
+                  :empty safety net below and swallows the info icon, which
+                  .ds-alert hangs off the first-child heading. Headingless is the
+                  shape Designsystemet documents for a one-line notice. */}
+              <DsAlert data-color="info">{missingTranslationText}</DsAlert>
+            </div>
+          )}
+          {shouldConstrainWidth ? (
+            <div
+              lang={contentLang}
+              className={`layout-content-constrained${
+                hasSidebar ? " layout-content-constrained--sidebar" : ""
+              }`}
+            >
               <Comp {...child} />
             </div>
-          )
-        )}
-      </Layout>
+          ) : (
+            child && (
+              <div lang={contentLang}>
+                <Comp {...child} />
+              </div>
+            )
+          )}
+        </Layout>
+      </div>
     </RootProvider>
   );
 };

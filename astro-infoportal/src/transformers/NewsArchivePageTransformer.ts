@@ -26,7 +26,7 @@ export class NewsArchivePageTransformer implements IJSONTransformer {
       cmsPageData.route.path,
       2147483647,
       contentLocale,
-      isPreview,
+      { isPreview },
     );
     const newsChildren = sortNewsByEffectiveDateDesc(
       allChildren.filter(isNewsArticle),
