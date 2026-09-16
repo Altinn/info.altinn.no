@@ -11,7 +11,6 @@ import { useEffect, useMemo, useState } from "react";
 import { buildDesktopMenu } from "./builders/menuBuilder";
 import { fetchCurrentUserOnce } from "./hooks/useCurrentUser";
 import { useFavorites } from "./hooks/useFavorites";
-import { suppressLanguageRedirect } from "./hooks/useLanguagePreference";
 import type { MenuPages } from "./types/headerTypes";
 import { isBrowser } from "./utils/browserUtils";
 
@@ -309,7 +308,6 @@ const useHeaderConfig = (
           onSelect: async (value: string) => {
             if (!isBrowser || !isLocale(value)) return;
             const locale = value;
-            suppressLanguageRedirect();
             // Persist the choice to the profile (logged-in only).
             if (isLoggedIn) {
               try {
