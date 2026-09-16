@@ -48,7 +48,7 @@ public sealed class ContactFormController(
     {
         if (!string.IsNullOrWhiteSpace(model.Location))
         {
-            logger.LogWarning("Contact form rejected: honeypot triggered.");
+            logger.LogError("Contact form rejected: honeypot triggered.");
             return BadRequest(new { success = false, errorMessage = GenericErrorMessage });
         }
 

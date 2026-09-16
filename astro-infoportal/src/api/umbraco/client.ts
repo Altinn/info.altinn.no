@@ -1,7 +1,6 @@
 import { env } from "cloudflare:workers";
 
-export const UMBRACO_API_URL =
-  env.UMBRACO_API_URL || "https://infoportal.at22.dis-core.altinn.cloud/";
+export const UMBRACO_API_URL = "http://localhost:43450";
 
 // Expand the banner + consentBanner pickers so their view models get the picked
 // node's properties inline. Shared by the start-page fetches (front page, locale

@@ -17,8 +17,6 @@ export class ContactFormBlockTransformer implements IJSONTransformer {
                         locationSuccessUrl: block.LocationSuccess != null ? urlResolver.GetUrl(block.LocationSuccess) : "",
                         locationErrorUrl: block.LocationError != null ? urlResolver.GetUrl(block.LocationError) : "",
                         formId: "form-" + Guid.NewGuid().ToString("N"),
-                        useRecaptcha: startPage.UseRecaptcha,
-                        recaptchaSiteKey: startPage.ReCaptchaSiteKey,
                         schemaId: isIContent(block) blockContent ? blockContent.ContentLink.iD: 0,
                         labels: BuildContactFormLabels(localizationService, culture),
                         ope: withOnPageEdit ? {} : null
@@ -36,8 +34,6 @@ export class ContactFormBlockTransformer implements IJSONTransformer {
             locationSuccessUrl: props?.locationSuccessUrl ?? null,
             locationErrorUrl: props?.locationErrorUrl ?? null,
             formId: props?.formId ?? null,
-            useRecaptcha: props?.useRecaptcha ?? null,
-            recaptchaSiteKey: props?.recaptchaSiteKey ?? null,
             schemaId: props?.schemaId ?? null,
             labels: props?.labels ?? null,
             ope: props?.ope ?? null,

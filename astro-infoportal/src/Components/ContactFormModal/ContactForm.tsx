@@ -86,8 +86,6 @@ const formatFileSize = (bytes: number): string => {
 const ContactForm = ({
   schemaId,
   showAttachment,
-  useRecaptcha,
-  recaptchaSiteKey,
   onSuccess,
   onError,
   labels,
@@ -354,19 +352,6 @@ const ContactForm = ({
     setErrors((prev) => ({ ...prev, general: undefined }));
 
     try {
-      let recaptchaToken = "";
-
-      if (useRecaptcha && recaptchaSiteKey && typeof window !== "undefined") {
-        if (window.grecaptcha?.enterprise?.execute) {
-          recaptchaToken = await window.grecaptcha.enterprise.execute(
-            recaptchaSiteKey,
-            {
-              action: "contact_form",
-            }
-          );
-        }
-      }
-
       const formData = new FormData();
       formData.append("name", name);
       formData.append("email", email);
@@ -376,10 +361,6 @@ const ContactForm = ({
       formData.append("location", location);
       formData.append("schemaId", schemaId?.toString() || "");
       formData.append("language", getCurrentLanguage());
-
-      if (recaptchaToken) {
-        formData.append("recaptchaToken", recaptchaToken);
-      }
 
       if (attachment) {
         formData.append("attachment", attachment);

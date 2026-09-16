@@ -23,7 +23,7 @@ public class RateLimitingComposer : IComposer
                 var logger = context.HttpContext.RequestServices
                     .GetRequiredService<ILogger<RateLimitingComposer>>();
 
-                logger.LogWarning(
+                logger.LogError(
                     "Rate limit exceeded. Path: {Path}, IP: {IP}",
                     context.HttpContext.Request.Path,
                     context.HttpContext.Connection.RemoteIpAddress);

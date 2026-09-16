@@ -40,8 +40,6 @@ export class ContactListBlockTransformer implements IJSONTransformer {
       contactFormPageData: props.contactFormPageData ?? null,
       contactFormSchemaId: props.contactFormSchemaId ?? null,
       showAttachment: props.showAttachment ?? null,
-      useRecaptcha: props.useRecaptcha ?? null,
-      recaptchaSiteKey: props.recaptchaSiteKey ?? null,
       labels: props.labels ?? null,
     };
   }
