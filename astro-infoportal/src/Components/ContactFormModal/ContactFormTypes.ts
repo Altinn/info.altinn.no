@@ -14,8 +14,6 @@ export interface ContactFormModalProps {
   teaserHeading?: string;
 
   // Shared props
-  useRecaptcha: boolean;
-  recaptchaSiteKey?: string;
   labels?: any;
   title?: string;
 }
@@ -31,7 +29,6 @@ export interface ContactFormData {
   location: string; // honeypot - must remain empty
   schemaId: number;
   language: string;
-  recaptchaToken?: string;
 }
 
 export interface ContactFormApiResponse {

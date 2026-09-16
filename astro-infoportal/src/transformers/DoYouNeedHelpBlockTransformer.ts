@@ -17,8 +17,6 @@ export class DoYouNeedHelpBlockTransformer implements IJSONTransformer {
       labels: p.labels ?? undefined,
       contactFormSchemaId: p.contactFormSchemaId ?? 0,
       showAttachment: p.showAttachment ?? false,
-      useRecaptcha: p.useRecaptcha ?? false,
-      recaptchaSiteKey: p.recaptchaSiteKey ?? undefined,
       contactFormPageData: p.contactFormPageData ?? undefined,
     };
   }
