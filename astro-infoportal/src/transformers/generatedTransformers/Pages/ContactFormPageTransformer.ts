@@ -13,8 +13,6 @@ export class ContactFormPageTransformer implements IJSONTransformer {
                             contentArea: page.FormTypeArea,
                             propertyName: "page.FormTypeArea"
                         }, withOnPageEdit),
-                        useRecaptcha: startPage.UseRecaptcha,
-                        recaptchaSiteKey: startPage.ReCaptchaSiteKey,
                         ope: withOnPageEdit ? {} : null
                     }
         */
@@ -25,8 +23,6 @@ export class ContactFormPageTransformer implements IJSONTransformer {
             teaserHeading: props?.teaserHeading ?? null,
             teaserText: props?.teaserText ?? null,
             formTypeArea: props?.formTypeArea ?? null,
-            useRecaptcha: props?.useRecaptcha ?? null,
-            recaptchaSiteKey: props?.recaptchaSiteKey ?? null,
             ope: props?.ope ?? null,
         };
 
