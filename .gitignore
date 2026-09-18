@@ -444,3 +444,10 @@ override.tf.json
 
 # MacOS
 .DS_Store
+
+# Local database copies — may contain production personal data. Never commit.
+.bacpacs/
+*.bacpac
+# Local developer config overrides (may contain local credentials). Never commit.
+appsettings.Local.json
+appsettings.*.Local.json
