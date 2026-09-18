@@ -14,6 +14,7 @@ import {
 } from "@altinn/altinn-components";
 import { ContentArea, RichTextArea } from "/App.Components";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
+import { UiText } from "../../Shared/UiLanguage/UiLanguage";
 import "./SubsidyPage.scss";
 import type { SubsidyPageProps } from "./SubsidyPage.types";
 
@@ -27,10 +28,17 @@ const SubsidyPage = ({
   lastUpdatedDateString,
   bottomContentArea,
 }: SubsidyPageProps) => {
-  const lastUpdateText =
-    lastUpdatedDateText && lastUpdatedDateString
-      ? `${lastUpdatedDateText} ${lastUpdatedDateString}`
-      : lastUpdatedDateText || lastUpdatedDateString || "";
+  // `lastUpdatedDateText` is interface text from t("common.lastUpdated"); the
+  // dd.mm.yyyy string beside it is digits and belongs to no language, so only
+  // the label is marked (issue #713).
+  const hasLastUpdate = Boolean(lastUpdatedDateText || lastUpdatedDateString);
+  const lastUpdate = (
+    <>
+      {lastUpdatedDateText && <UiText>{lastUpdatedDateText}</UiText>}
+      {lastUpdatedDateText && lastUpdatedDateString ? " " : null}
+      {lastUpdatedDateString}
+    </>
+  );
   const hasTimeline = (timeline?.length ?? 0) > 0;
 
   return (
@@ -41,8 +49,8 @@ const SubsidyPage = ({
           {pageName || ""}
         </Heading>
         {mainIntro && <Typography>{mainIntro}</Typography>}
-        {lastUpdateText && <Byline size="sm">{lastUpdateText}</Byline>}
-        {lastUpdateText && <Divider />}
+        {hasLastUpdate && <Byline size="sm">{lastUpdate}</Byline>}
+        {hasLastUpdate && <Divider />}
       </ArticleHeader>
 
       {mainBody && (

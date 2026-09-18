@@ -26,6 +26,7 @@ import { useHashScroll } from "./useHashScroll";
 import "./SiteLayout.scss";
 import { SkipLink } from "@digdir/designsystemet-react";
 import BannerBlock from "../../../Components/Blocks/BannerBlock/BannerBlock";
+import { UiLanguageProvider } from "../../Shared/UiLanguage/UiLanguage";
 
 const SiteLayout = ({
   child,
@@ -148,65 +149,71 @@ const SiteLayout = ({
 
   return (
     <RootProvider languageCode={locale}>
-      {/* Carries the chrome's own language when the content fell back;
-          wraps the whole tree so the banner/layout sibling rules in
-          BannerBlock.scss keep matching. */}
-      <div lang={uiLang}>
-        <SkipLink className="site-layout__skip-link" href="#main-content">
-          {skipLinkText}
-        </SkipLink>
-        {shouldShowCookieBanner && (
-          <CookieBanner
-            className="consent-banner"
-            onAccept={acceptCookieConsent}
-            onReject={rejectCookieConsent}
-          />
-        )}
-        {/* Headless: loads the SRI-pinned Skyra SDK and follows the statistics
-            consent decision. Renders nothing, so SSR output is unchanged and
-            the edge-cached HTML stays identical for every visitor. */}
-        <SkyraSurvey consent={consent.statistics} />
-        {headerViewModel?.banner && <BannerBlock {...headerViewModel.banner} />}
-        <Layout
-          color={color}
-          header={headerViewModel ? headerProps : undefined}
-          footer={footerProps}
-          content={{ color: contentColor }}
-          {...(sidebarConfig ? { sidebar: sidebarConfig } : {})}
-          theme="default"
-        >
-          {missingTranslationText && (
-            <div
-              className={`layout-content-constrained${
-                hasSidebar ? " layout-content-constrained--sidebar" : ""
-              } site-layout__missing-translation`}
-            >
-              {/* DsAlert, not the altinn-components Alert: that one always renders
-                  a heading element, and an empty heading both trips the
-                  :empty safety net below and swallows the info icon, which
-                  .ds-alert hangs off the first-child heading. Headingless is the
-                  shape Designsystemet documents for a one-line notice. */}
-              <DsAlert data-color="info">{missingTranslationText}</DsAlert>
-            </div>
+      {/* uiLang also reaches the interface strings rendered inside the bokmål
+          content region, which cannot inherit it from the wrapper below. */}
+      <UiLanguageProvider lang={uiLang}>
+        {/* Carries the chrome's own language when the content fell back;
+            wraps the whole tree so the banner/layout sibling rules in
+            BannerBlock.scss keep matching. */}
+        <div lang={uiLang}>
+          <SkipLink className="site-layout__skip-link" href="#main-content">
+            {skipLinkText}
+          </SkipLink>
+          {shouldShowCookieBanner && (
+            <CookieBanner
+              className="consent-banner"
+              onAccept={acceptCookieConsent}
+              onReject={rejectCookieConsent}
+            />
           )}
-          {shouldConstrainWidth ? (
-            <div
-              lang={contentLang}
-              className={`layout-content-constrained${
-                hasSidebar ? " layout-content-constrained--sidebar" : ""
-              }`}
-            >
-              <Comp {...child} />
-            </div>
-          ) : (
-            child && (
-              <div lang={contentLang}>
+          {/* Headless: loads the SRI-pinned Skyra SDK and follows the statistics
+              consent decision. Renders nothing, so SSR output is unchanged and
+              the edge-cached HTML stays identical for every visitor. */}
+          <SkyraSurvey consent={consent.statistics} />
+          {headerViewModel?.banner && (
+            <BannerBlock {...headerViewModel.banner} />
+          )}
+          <Layout
+            color={color}
+            header={headerViewModel ? headerProps : undefined}
+            footer={footerProps}
+            content={{ color: contentColor }}
+            {...(sidebarConfig ? { sidebar: sidebarConfig } : {})}
+            theme="default"
+          >
+            {missingTranslationText && (
+              <div
+                className={`layout-content-constrained${
+                  hasSidebar ? " layout-content-constrained--sidebar" : ""
+                } site-layout__missing-translation`}
+              >
+                {/* DsAlert, not the altinn-components Alert: that one always renders
+                    a heading element, and an empty heading both trips the
+                    :empty safety net below and swallows the info icon, which
+                    .ds-alert hangs off the first-child heading. Headingless is the
+                    shape Designsystemet documents for a one-line notice. */}
+                <DsAlert data-color="info">{missingTranslationText}</DsAlert>
+              </div>
+            )}
+            {shouldConstrainWidth ? (
+              <div
+                lang={contentLang}
+                className={`layout-content-constrained${
+                  hasSidebar ? " layout-content-constrained--sidebar" : ""
+                }`}
+              >
                 <Comp {...child} />
               </div>
-            )
-          )}
-        </Layout>
-      </div>
+            ) : (
+              child && (
+                <div lang={contentLang}>
+                  <Comp {...child} />
+                </div>
+              )
+            )}
+          </Layout>
+        </div>
+      </UiLanguageProvider>
     </RootProvider>
   );
 };

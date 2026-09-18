@@ -12,6 +12,7 @@ import {
   Section,
   Typography,
 } from "@altinn/altinn-components";
+import { UiText, useUiLanguage } from "../UiLanguage/UiLanguage";
 export interface MunicipalityCountySearchProps {
   apiSourceUrl: string;
   whatText: string;
@@ -25,6 +26,9 @@ const MunicipalityCountySearch = ({
   searchPlaceholder,
   noHitText,
 }: MunicipalityCountySearchProps) => {
+  // Both the heading and the no-hits line are interface text sitting inside the
+  // content region, which is marked with the content's language (issue #713).
+  const uiLang = useUiLanguage();
   const [items, setItems] = useState<MunicipalityItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -52,9 +56,10 @@ const MunicipalityCountySearch = ({
     fetchData();
   }, [apiSourceUrl]);
 
-  const filteredItems = items.filter((item: any) =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.parent.toLowerCase().includes(searchTerm.toLowerCase()),
+  const filteredItems = items.filter(
+    (item: any) =>
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.parent.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   if (error) {
@@ -67,9 +72,16 @@ const MunicipalityCountySearch = ({
 
   return (
     <div className="municipality-county-search">
-      <Typography as="h2">{whatText}</Typography>
+      <Typography as="h2">
+        <UiText>{whatText}</UiText>
+      </Typography>
 
-      <div className="municipality-county-search__search-container">
+      {/* placeholder and aria-label are attributes; the container carries
+          the language for them (issue #713) */}
+      <div
+        className="municipality-county-search__search-container"
+        lang={uiLang}
+      >
         <Searchbar
           name="municipality-county-search"
           placeholder={searchPlaceholder}
@@ -106,6 +118,7 @@ const MunicipalityCountySearch = ({
             <p
               className="municipality-county-search__no-results"
               aria-live="polite"
+              lang={uiLang}
             >
               {noHitText}
             </p>

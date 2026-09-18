@@ -17,6 +17,7 @@ import {
   HourglassIcon,
 } from "@navikt/aksel-icons";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
+import { UiText } from "../../Shared/UiLanguage/UiLanguage";
 import MunicipalityCountySearch from "../../Shared/MunicipalityCountySearch/MunicipalityCountySearch";
 import ProvidersInline, {
   type ProviderInlineItem,
@@ -69,15 +70,19 @@ const SchemaPage = ({
     startSchemaLink &&
     (preInstansiated || (!schemaNotInUse && !deactivateButton)) ? (
       <Button as="a" href={startSchemaLink} className="altinn-skjema-link">
-        {preInstansiated
-          ? (buttonInboxText ?? "Åpne")
-          : (startSchemaLinkText ?? "Start")}
+        <UiText>
+          {preInstansiated
+            ? (buttonInboxText ?? "Åpne")
+            : (startSchemaLinkText ?? "Start")}
+        </UiText>
       </Button>
     ) : null;
 
   const shallowLinkButton = shallowLink ? (
     <DsLink href={shallowLink} className="external-skjema-link">
-      {shallowLinkText}
+      {/* Built from t("schema.shallowLink") plus the target's domain, so the
+          whole label is interface text (issue #713). */}
+      <UiText>{shallowLinkText}</UiText>
     </DsLink>
   ) : null;
 

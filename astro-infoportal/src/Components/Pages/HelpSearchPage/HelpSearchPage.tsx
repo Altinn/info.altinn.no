@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
 import RichTextArea from "../../Shared/RichTextArea/RichTextArea";
 import SearchInput from "../../Shared/SearchInput/SearchInput";
+import { UiText } from "../../Shared/UiLanguage/UiLanguage";
 import "./HelpSearchPage.scss";
 
 const isBrowser =
@@ -89,22 +90,25 @@ const HelpSearchPage = ({
 
       {query && (
         <div className="help-search-page__search-info">
+          {/* Every label here is interface text, so each carries its own
+              language; the query is what the visitor typed (issue #713). */}
           {searchPageUrl && (
             <Typography>
-              {advertisementIntroText}.{" "}
+              <UiText>{advertisementIntroText}</UiText>.{" "}
               <DsLink href={`${searchPageUrl}?q=${encodeURIComponent(query)}`}>
-                {clickHereText}
+                <UiText>{clickHereText}</UiText>
               </DsLink>{" "}
-              {toSearchForText} <strong>"{query}"</strong> {inText}{" "}
-              {otherContentText}.
+              <UiText>{toSearchForText}</UiText>{" "}
+              <strong>"{query}"</strong> <UiText>{inText}</UiText>{" "}
+              <UiText>{otherContentText}</UiText>.
             </Typography>
           )}
 
           <Typography as="h2">
             <strong>
-              {totalHits} {searchHitsText}
+              {totalHits} <UiText>{searchHitsText}</UiText>
             </strong>{" "}
-            {searchForText} <strong>"{query}"</strong>
+            <UiText>{searchForText}</UiText> <strong>"{query}"</strong>
           </Typography>
         </div>
       )}

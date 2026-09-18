@@ -1,3 +1,4 @@
+import type { HTMLElement } from "node-html-parser";
 import { parse } from "node-html-parser";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
@@ -30,9 +31,11 @@ const langOfTitle = (markup: string, title: string) => {
     .filter((element) => element.textContent.trim() === title)
     .at(-1);
   if (!owner) throw new Error(`Expected the list to render "${title}"`);
-  for (let node = owner; node; node = node.parentNode) {
+  let node: HTMLElement | null = owner;
+  while (node) {
     const lang = node.getAttribute?.("lang");
     if (lang) return lang;
+    node = node.parentNode;
   }
   return undefined;
 };
