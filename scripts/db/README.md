@@ -37,7 +37,9 @@ colima start --vm-type=vz --vz-rosetta --cpu 4 --memory 8 --disk 60
 
 ```bash
 sudo apt-get install -y docker.io sqlcmd        # or your distro's equivalent
-```
+sudo usermod -aG docker $USER
+
+newgrp docker```
 
 **Windows** — work inside WSL2 (Ubuntu); the scripts are not run from PowerShell. Either
 enable Docker Desktop's WSL2 integration, or install Docker inside the distro, then follow the
