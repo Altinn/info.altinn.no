@@ -9,6 +9,7 @@ import TimelineBlock from "../../Blocks/TimelineBlock/TimelineBlock";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
 import ContentArea from "../../Shared/ContentArea/ContentArea";
 import RichTextArea from "../../Shared/RichTextArea/RichTextArea";
+import { UiText } from "../../Shared/UiLanguage/UiLanguage";
 import "./HelpProcessArticlePage.scss";
 
 const HelpProcessArticlePage = ({
@@ -54,7 +55,8 @@ const HelpProcessArticlePage = ({
 
       {lastUpdatedDateText && lastUpdatedDateString && (
         <Typography size="sm">
-          {lastUpdatedDateText}: {lastUpdatedDateString}
+          {/* The label is interface text; the date itself is digits (#713). */}
+          <UiText>{lastUpdatedDateText}</UiText>: {lastUpdatedDateString}
         </Typography>
       )}
     </Article>

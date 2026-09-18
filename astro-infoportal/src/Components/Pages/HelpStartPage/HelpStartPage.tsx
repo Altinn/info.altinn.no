@@ -11,7 +11,28 @@ import * as AkselIcons from "@navikt/aksel-icons";
 import ContentArea from "../../Shared/ContentArea/ContentArea";
 import RichTextArea from "../../Shared/RichTextArea/RichTextArea";
 import SearchInput from "../../Shared/SearchInput/SearchInput";
+import { UiText } from "../../Shared/UiLanguage/UiLanguage";
 import "./HelpStartPage.scss";
+
+// `heading` is the editor's own, in the language of the content; `translated`
+// is the interface fallback and needs its own language when the page fell back
+// to bokmål content in a non-bokmål interface (issue #713).
+const SectionHeading = ({
+  heading,
+  translated,
+  className,
+}: {
+  heading?: string;
+  translated?: string;
+  className?: string;
+}) => {
+  if (!heading && !translated) return null;
+  return (
+    <Heading className={className} as="h2" size="md">
+      {heading ?? <UiText>{translated}</UiText>}
+    </Heading>
+  );
+};
 
 // ListItem renders the card as an <a> and defaults its aria-label to `title`,
 // which would hide the description from screen readers. Announce both so the
@@ -71,14 +92,20 @@ const HelpStartPage = ({
   newDrilldownPages,
   oldDrilldownPages,
   questionAreaHeading,
+  translatedQuestionAreaHeading,
   questionArea,
   helpContentArea,
   currentVersionHeading,
+  translatedCurrentVersionHeading,
   newVersionHeading,
+  translatedNewVersionHeading,
+  searchHeading,
+  translatedSearchHeading,
   searchPlaceholder,
   searchAriaLabel,
   helpSearchPageUrl,
   helpContentAreaHeading,
+  translatedHelpContentAreaHeading,
   // breadcrumb,
 }: any) => {
   return (
@@ -93,11 +120,10 @@ const HelpStartPage = ({
 
       {newDrilldownPages && newDrilldownPages.length > 0 && (
         <div className="help-start-page__drilldown-section">
-          {newVersionHeading && (
-            <Heading as="h2" size="md">
-              {newVersionHeading}
-            </Heading>
-          )}
+          <SectionHeading
+            heading={newVersionHeading}
+            translated={translatedNewVersionHeading}
+          />
           <Grid
             as="ul"
             className="help-start-page__drilldown-grid"
@@ -114,11 +140,10 @@ const HelpStartPage = ({
 
       {oldDrilldownPages && oldDrilldownPages.length > 0 && (
         <div className="help-start-page__drilldown-section">
-          {currentVersionHeading && (
-            <Heading as="h2" size="md">
-              {currentVersionHeading}
-            </Heading>
-          )}
+          <SectionHeading
+            heading={currentVersionHeading}
+            translated={translatedCurrentVersionHeading}
+          />
           <Grid
             as="ul"
             className="help-start-page__drilldown-grid"
@@ -134,11 +159,10 @@ const HelpStartPage = ({
       )}
 
       <div className="help-start-page__question-section">
-        {questionAreaHeading && (
-          <Heading as="h2" size="md">
-            {questionAreaHeading}
-          </Heading>
-        )}
+        <SectionHeading
+          heading={questionAreaHeading}
+          translated={translatedQuestionAreaHeading}
+        />
 
         {questionArea && questionArea.length > 0 && (
           <Card data-color="neutral">
@@ -161,9 +185,10 @@ const HelpStartPage = ({
         )}
       </div>
       <div className="help-start-page__search-section">
-        <Heading as="h2" size="md">
-          {searchPlaceholder}
-        </Heading>
+        <SectionHeading
+          heading={searchHeading}
+          translated={translatedSearchHeading}
+        />
         {helpSearchPageUrl && (
           <SearchInput
             placeholder={searchPlaceholder || ""}
@@ -175,13 +200,11 @@ const HelpStartPage = ({
 
       {helpContentArea && (
         <>
-          <Heading
+          <SectionHeading
             className="help-start-page__help-content-area-heading"
-            as="h2"
-            size="md"
-          >
-            {helpContentAreaHeading}
-          </Heading>
+            heading={helpContentAreaHeading}
+            translated={translatedHelpContentAreaHeading}
+          />
           <ContentArea {...helpContentArea} />
         </>
       )}

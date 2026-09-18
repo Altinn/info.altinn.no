@@ -13,6 +13,7 @@ import { Fragment } from "react";
 import { ContentArea, OperationalMessage, RichTextArea } from "/App.Components";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
 import ProvidersInline from "../../Shared/ProvidersInline/ProvidersInline";
+import { UiText, useUiLanguage } from "../../Shared/UiLanguage/UiLanguage";
 import type { ProviderInlineItem } from "../../Shared/ProvidersInline/ProvidersInline";
 import { SearchItem } from "/Components/Shared/SearchItem/SearchItem";
 
@@ -33,6 +34,9 @@ const SchemaAttachmentPage = ({
   missingTranslation,
   missingTranslationText,
 }: any) => {
+  // Badge.label and Alert.message are typed `string` upstream, so the mark
+  // goes on the element around them and the text inherits it (issue #713).
+  const uiLang = useUiLanguage();
   const title = schemaCode
     ? `${pageName || ""} (${schemaCode})`
     : pageName || "";
@@ -57,14 +61,25 @@ const SchemaAttachmentPage = ({
       ))}
 
       {missingTranslation && missingTranslationText && (
-        <Alert variant="info" heading={""} message={missingTranslationText || ""} />
+        <div lang={uiLang}>
+          <Alert
+            variant="info"
+            heading={""}
+            message={missingTranslationText || ""}
+          />
+        </div>
       )}
 
       <ArticleHeader>
         <Heading size="xl" as="h1">
           {title}
           {attachmentBadgeText && (
-            <span style={{ display: "inline-flex", alignItems: "center", verticalAlign: "middle", marginLeft: "0.25em" }}><Badge label={attachmentBadgeText} size="sm" color="alert" variant="base" /></span>
+            <span
+              lang={uiLang}
+              style={{ display: "inline-flex", alignItems: "center", verticalAlign: "middle", marginLeft: "0.25em" }}
+            >
+              <Badge label={attachmentBadgeText} size="sm" color="alert" variant="base" />
+            </span>
           )}
         </Heading>
         {owners.length > 0 && (
@@ -93,7 +108,9 @@ const SchemaAttachmentPage = ({
         <Section>
           {whereToFindSchemaText && (
             <Typography as="p">
-              {whereToFindSchemaText}:
+              {/* t("schema.whereToFindSchema") — interface text, unlike the
+                  editor-written schema titles listed below (issue #713). */}
+              <UiText>{whereToFindSchemaText}:</UiText>
             </Typography>
           )}
           <List size="sm" color="neutral" spacing={0}>

@@ -2,6 +2,7 @@ import { DsSearch } from "@altinn/altinn-components";
 import { MagnifyingGlassIcon } from "@navikt/aksel-icons";
 import { useState } from "react";
 import { useIsDesktop } from "/Services/Hooks/UseMediaQuery";
+import { useUiLanguage } from "../UiLanguage/UiLanguage";
 import "./SearchInput.scss";
 
 const isBrowser =
@@ -31,6 +32,10 @@ const SearchInput = ({
   className,
   autoFocus,
 }: SearchInputProps) => {
+  // Everything this renders is interface text, and the placeholder and
+  // accessible name reach the reader as attributes, which cannot carry a lang of
+  // their own — the form element they hang off can (issue #713).
+  const uiLang = useUiLanguage();
   const [internalQuery, setInternalQuery] = useState<string>(initialValue);
   const isDesktop = useIsDesktop();
 
@@ -73,11 +78,9 @@ const SearchInput = ({
         handleSearchSubmit();
       }}
       className={className}
+      lang={uiLang}
     >
-      <DsSearch
-        className="global-search"
-        data-size={isDesktop ? "lg" : "md"}
-      >
+      <DsSearch className="global-search" data-size={isDesktop ? "lg" : "md"}>
         <DsSearch.Input
           placeholder={placeholder}
           onChange={(e) => handleChange(e.target.value)}
