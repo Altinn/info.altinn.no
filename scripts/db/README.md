@@ -38,8 +38,8 @@ colima start --vm-type=vz --vz-rosetta --cpu 4 --memory 8 --disk 60
 ```bash
 sudo apt-get install -y docker.io sqlcmd        # or your distro's equivalent
 sudo usermod -aG docker $USER
-
-newgrp docker```
+newgrp docker
+```
 
 **Windows** — work inside WSL2 (Ubuntu); the scripts are not run from PowerShell. Either
 enable Docker Desktop's WSL2 integration, or install Docker inside the distro, then follow the
@@ -74,7 +74,7 @@ Then, to log in:
    `No authentication handler is registered for the scheme 'Umbraco.MicrosoftEntraId'`.
 
 2. **Open https://localhost:44391/umbraco** and log in as `alv.gullbrand.lia@digdir.no` /
-   `Test1234`. Use the local username and password form, not the Microsoft button.
+   `Testing1234`. Use the local username and password form, not the Microsoft button.
 
    The backoffice requires HTTPS — plain `http://` returns
    `error:invalid_request ... This server only accepts HTTPS requests`. If the browser
