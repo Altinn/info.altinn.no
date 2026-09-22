@@ -19,6 +19,7 @@ import {
   expandSharedBlocks,
   resolvePromoAreaWithNbFallback,
 } from "./promoAreaContact";
+import { getAccessPackagesHtml } from "./accessPackages";
 
 
 // Altinn2 form deeplinks must stay environment-relative — an absolute URL like
@@ -77,7 +78,15 @@ export class SchemaPageTransformer implements IJSONTransformer {
       }
     }
 
+    const accessPackages = await getAccessPackagesHtml(props.resourceId, globalData.host, locale);
+
     props.accordianList?.items?.forEach((item: any) => {
+      if (item.translatedHeading == "schema.accordions.access") {
+        if (props.resourceId) {
+          
+          item.description.items[0].html = item.description.items[0].html + accessPackages;
+        }
+      }
       item.translatedHeading = t(item.translatedHeading, locale);
     });
 
