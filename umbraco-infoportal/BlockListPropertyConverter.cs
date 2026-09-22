@@ -129,7 +129,7 @@ public class BlockListPropertyConverter : IPropertyValueConverter
                 }
                 else
                 {
-                    // SchemaAccordianBlock constructed based on one of the 6 standard form blocks
+                    // SchemaAccordianBlock constructed based on one of the standard form blocks
                     JsonArray richText = [];
                     richText.Add(new JsonObject
                         {
@@ -159,6 +159,13 @@ public class BlockListPropertyConverter : IPropertyValueConverter
                     } else
                     {
                         schemaAccordianBlock.Add("translatedHeading", GetTranslationCode(contentTypeKey));
+                    }
+
+                    if ("03fd6b74-8be9-46cc-bb03-4a4f2cf3fedf".Equals(contentTypeKey))
+                    {
+                        if ("1".Equals(GetListAccessPackages(jsonObject))) {
+                            schemaAccordianBlock.Add("listAccessPackages", true);
+                        }
                     }
 
                     items.Add(schemaAccordianBlock);
@@ -210,6 +217,28 @@ public class BlockListPropertyConverter : IPropertyValueConverter
         foreach (JsonObject value in values.Cast<JsonObject>())
         {
             if ("heading".Equals(value.GetPropertyAsString("alias")))
+            {
+                return value.GetPropertyAsString("value");
+            }
+        }
+
+        return null;
+    }
+
+        private string? GetListAccessPackages(JsonObject jsonObject)
+    {
+        string listAccessPackages = jsonObject.GetPropertyAsString("listAccessPackages");
+
+        if (!string.IsNullOrEmpty(listAccessPackages))
+        {
+            return listAccessPackages;
+        }    
+
+        JsonArray values = jsonObject.GetPropertyAsArray("values");
+
+        foreach (JsonObject value in values.Cast<JsonObject>())
+        {
+            if ("listAccessPackages".Equals(value.GetPropertyAsString("alias")))
             {
                 return value.GetPropertyAsString("value");
             }

@@ -1,5 +1,5 @@
 import type { AltinnPlatformConfig } from "./config";
-import { getAltinnPlatformConfig, getResourceApiUrl } from "./config";
+import { getAltinnPlatformConfig, getResourceApiUrl, getRolesApiUrl, getAccessPackagesApiUrl } from "./config";
 
 export interface AuthContext {
   isAuthenticated: boolean;
@@ -124,6 +124,31 @@ export async function getResource(resourceId:string, hostname:string | undefined
 
   if (!response.ok) {
       throw new Error(`Resource retrieval failed: ${response.statusText} ${url}`);
+  }
+
+  return response.json();
+}
+
+export async function getRoles(hostname:string | undefined, acceptLanguage:string) {
+  const url = getRolesApiUrl(hostname);
+
+  const response:Response = await fetch(url, { headers: {"Accept-Language": acceptLanguage}, signal: AbortSignal.timeout(5000) });
+
+  if (!response.ok) {
+    throw new Error(`Roles metadata retrieval failed: ${response.statusText} ${url}`);
+  }
+
+  return response.json();
+}
+
+export async function getAccessPackages(hostname:string | undefined, acceptLanguage:string) {
+  const url = getAccessPackagesApiUrl(hostname);
+
+  
+  const response:Response = await fetch(url, { headers: {"Accept-Language": acceptLanguage}, signal: AbortSignal.timeout(5000) });
+
+  if (!response.ok) {
+    throw new Error(`Access packages metadata retrieval failed: ${response.statusText} ${url}`);
   }
 
   return response.json();
