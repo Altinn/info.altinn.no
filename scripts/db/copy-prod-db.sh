@@ -58,8 +58,8 @@ else
   BACPAC="$("$SCRIPT_DIR/export-bacpac.sh" "prod" $EXPORT_ARGS | tail -1)"
 fi
 
-log "==> step 2/4: Renaming ${ENV_NAME} db to umbraco-old"
-run_sqlcmd -S "$HOST,1433" -d master -G -U "$DB_USER" -P "$DB_PASSWORD" -C -Q "alter database umbraco modify name = 'umbraco-old';"
+log "==> step 2/4: Renaming ${ENV_NAME} db to umbracoold"
+run_sqlcmd -S "$HOST,1433" -d master -G -U "$DB_USER" -P "$DB_PASSWORD" -C -Q "alter database umbraco modify name = umbracoold;"
 
 log "==> step 3/4: Importing db in ${ENV_NAME}"
 BACPAC="$("$SCRIPT_DIR/import-bacpac.sh" "$ENV_NAME" "$BACPAC" | tail -1)"
