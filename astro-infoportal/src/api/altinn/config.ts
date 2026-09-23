@@ -40,3 +40,18 @@ export function getAccessManagementApiBaseUrl(
 ): string {
   return `${config.endpoints.platformBaseUrl.replace(/\/$/, "")}/accessmanagement/api/v1`;
 }
+
+export function getResourceApiUrl(resourceId:string, hostname:string|undefined): string {
+  const platformEndpoints:PlatformEndpoints = resolveEnvironment(hostname);
+  return `${platformEndpoints.platformBaseUrl.replace(/\/$/, "")}/resourceregistry/api/v1/resource/${resourceId}/policy/subjects`;
+}
+
+export function getRolesApiUrl(hostname:string|undefined): string {
+  const platformEndpoints:PlatformEndpoints = resolveEnvironment(hostname);
+  return `${platformEndpoints.platformBaseUrl.replace(/\/$/, "")}/accessmanagement/api/v1/meta/info/roles/`;
+}
+
+export function getAccessPackagesApiUrl(hostname:string|undefined): string {
+  const platformEndpoints:PlatformEndpoints = resolveEnvironment(hostname);
+  return `${platformEndpoints.platformBaseUrl.replace(/\/$/, "")}/accessmanagement/api/v1/meta/info/accesspackages/export`;
+}

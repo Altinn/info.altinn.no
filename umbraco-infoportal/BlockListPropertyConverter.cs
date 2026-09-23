@@ -129,7 +129,7 @@ public class BlockListPropertyConverter : IPropertyValueConverter
                 }
                 else
                 {
-                    // SchemaAccordianBlock constructed based on one of the 5 standard form blocks
+                    // SchemaAccordianBlock constructed based on one of the standard form blocks
                     JsonArray richText = [];
                     richText.Add(new JsonObject
                         {
@@ -159,6 +159,13 @@ public class BlockListPropertyConverter : IPropertyValueConverter
                     } else
                     {
                         schemaAccordianBlock.Add("translatedHeading", GetTranslationCode(contentTypeKey));
+                    }
+
+                    if ("03fd6b74-8be9-46cc-bb03-4a4f2cf3fedf".Equals(contentTypeKey))
+                    {
+                        if ("1".Equals(GetListAccessPackages(jsonObject))) {
+                            schemaAccordianBlock.Add("listAccessPackages", true);
+                        }
                     }
 
                     items.Add(schemaAccordianBlock);
@@ -218,6 +225,28 @@ public class BlockListPropertyConverter : IPropertyValueConverter
         return null;
     }
 
+        private string? GetListAccessPackages(JsonObject jsonObject)
+    {
+        string listAccessPackages = jsonObject.GetPropertyAsString("listAccessPackages");
+
+        if (!string.IsNullOrEmpty(listAccessPackages))
+        {
+            return listAccessPackages;
+        }    
+
+        JsonArray values = jsonObject.GetPropertyAsArray("values");
+
+        foreach (JsonObject value in values.Cast<JsonObject>())
+        {
+            if ("listAccessPackages".Equals(value.GetPropertyAsString("alias")))
+            {
+                return value.GetPropertyAsString("value");
+            }
+        }
+
+        return null;
+    }
+
     private string? GetMarkup(JsonObject jsonObject)
     {
 
@@ -257,6 +286,7 @@ public class BlockListPropertyConverter : IPropertyValueConverter
             "00b049e5-5c33-4245-86fe-b95fbb7fbf7b" => "schema.importAccordions.c",
             "f40759db-1340-4c5b-ad4f-f4f0a61fcb00" => "schema.importAccordions.d",
             "951043bd-5cff-4bde-b522-64b983d960b1" => "schema.importAccordions.e",
+            "03fd6b74-8be9-46cc-bb03-4a4f2cf3fedf" => "schema.accordions.access",
             _ => null,
         };
     }
