@@ -59,10 +59,13 @@ spec:
       containers:
         - name: umbraco
           image: umbraco:1
+          # Based on 30 days of use in prod with one pod serving all traffic (2026-08-25 to 2026-09-24):
+          # CPU p95 0.10 / p99 0.25 cores, memory p95 1.0 GiB. No CPU limit, so start-up
+          # (up to about 0.85 cores for 1-2 minutes) can use spare CPU on the node.
           resources:
             requests:
-              cpu: "1"
-              memory: 2Gi
+              cpu: 250m
+              memory: 1280Mi
           env:
             - name: ASPNETCORE_FORWARDEDHEADERS_ENABLED
               value: "true"
