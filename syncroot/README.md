@@ -14,10 +14,11 @@ I have disbaled the push trigger for the pipeline so it shouldn't publish an dep
 
 - **base/**: Contains the base Kubernetes resources for the Umbraco stack.
   - **umbraco/**:
-    - `deployment.yaml`: Defines the Umbraco pod with single replica and `Recreate` strategy.
+    - `deployment.yaml`: Defines the Umbraco Deployment with 3 replicas, spread over nodes and zones, and a `RollingUpdate` strategy.
+    - `pdb.yaml`: PodDisruptionBudget that evicts at most one pod at a time.
     - `service.yaml`: ClusterIP service for internal routing.
     - `httproute.yaml`: Gateway API routing for external access.
-    - `storage.yaml`: Persistent Volume Claims for data and media.
+    - `network-policies.yaml`: Linkerd policy: Traefik may reach the pods, and the kubelet may reach the health probe paths.
     - `serviceaccount.yaml`: Dedicated service account for the Umbraco pod.
     - `kustomization.yaml`: Orchestrates the resources and applies common labels.
 - **at22/**: Kustomize overlay for the AT22 environment.
@@ -30,24 +31,26 @@ I have disbaled the push trigger for the pipeline so it shouldn't publish an dep
 ### Deployment
 - **Name**: `umbraco`
 - **Namespace**: `product-infoportal` (inherited from base kustomization)
-- **Replicas**: 1
-- **Strategy**: `Recreate` (required for RWO storage)
+- **Replicas**: 3
+- **Strategy**: `RollingUpdate` with `maxSurge: 1` and `maxUnavailable: 0`: a new pod must be ready before an old one is removed
+- **Spread**: at most one pod per node for each ReplicaSet (`DoNotSchedule`), spread over zones when possible (`ScheduleAnyway`)
+- **Probes**: startup and liveness on `/umbraco/api/health/live`, readiness on `/umbraco/api/health/ready`
 - **Port**: 8080 (named `http`)
 
-### Storage (PVCs)
-1. **umbraco-data**: 
-   - **Size**: 10Gi
-   - **StorageClass**: `managed-csi-premium` (Azure Disk)
+### PodDisruptionBudget
+- `maxUnavailable: 1`: voluntary evictions (for example node drains) remove one pod at a time, so at least 2 of 3 keep running
+- `unhealthyPodEvictionPolicy: AlwaysAllow`: pods that are not ready can always be evicted
+
+### Storage
+The pods keep no persistent data. Content is in Azure SQL (connection string set by the publish workflow when `database: AzureSQL` is chosen) and media is in Azure Blob Storage (`Umbraco__Storage__AzureBlob__Media__*` in each overlay).
+1. **umbraco-data-cache**:
+   - **Type**: `emptyDir` (local cache such as TEMP; rebuilt when a pod starts)
    - **Mount Path**: `/app/umbraco/Data`
-   - **Access Mode**: `ReadWriteOnce`
-2. **umbraco-media**:
-   - **Size**: 50Gi
-   - **StorageClass**: `azurefile-csi-premium` (Azure Files)
-   - **Mount Path**: `/app/umbraco/wwwroot/media`
-   - **Access Mode**: `ReadWriteMany`
-3. **Logs**:
+2. **Logs**:
    - **Type**: `emptyDir`
    - **Mount Path**: `/app/umbraco/Logs`
+
+Do not deploy with `database: Sqlite`: with an `emptyDir` and 3 replicas, each pod would get its own empty database that is lost when the pod restarts.
 
 ### Networking
 - **Service**: ClusterIP on port 80 (targets container port 8080).

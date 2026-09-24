@@ -6,10 +6,10 @@ commonLabels:
   app.kubernetes.io/name: umbraco
 
 resources:
-  - storage.yaml
   - serviceaccount.yaml
   - vault.yaml
   - deployment.yaml
+  - pdb.yaml
   - service.yaml
   - httproute.yaml
   - network-policies.yaml

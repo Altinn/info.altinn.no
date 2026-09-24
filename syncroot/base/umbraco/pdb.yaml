@@ -1,0 +1,13 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: umbraco
+spec:
+  # Evict at most one pod at a time (for example during node drains), so with
+  # 3 replicas at least 2 keep running.
+  maxUnavailable: 1
+  # Pods that are not ready can always be evicted, so a broken pod cannot block a drain
+  unhealthyPodEvictionPolicy: AlwaysAllow
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: umbraco
