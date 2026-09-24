@@ -14,8 +14,7 @@ I have disbaled the push trigger for the pipeline so it shouldn't publish an dep
 
 - **base/**: Contains the base Kubernetes resources for the Umbraco stack.
   - **umbraco/**:
-    - `deployment.yaml`: Defines the Umbraco Deployment with 3 replicas, spread over nodes and zones, and a `RollingUpdate` strategy.
-    - `pdb.yaml`: PodDisruptionBudget that evicts at most one pod at a time.
+    - `deployment.yaml`: Defines the Umbraco pod with a single replica, `Recreate` strategy and health probes.
     - `service.yaml`: ClusterIP service for internal routing.
     - `httproute.yaml`: Gateway API routing for external access.
     - `network-policies.yaml`: Linkerd policy: Traefik may reach the pods, and the kubelet may reach the health probe paths.
@@ -31,15 +30,12 @@ I have disbaled the push trigger for the pipeline so it shouldn't publish an dep
 ### Deployment
 - **Name**: `umbraco`
 - **Namespace**: `product-infoportal` (inherited from base kustomization)
-- **Replicas**: 3
-- **Strategy**: `RollingUpdate` with `maxSurge: 1` and `maxUnavailable: 0`: a new pod must be ready before an old one is removed
-- **Spread**: at most one pod per node for each ReplicaSet (`DoNotSchedule`), spread over zones when possible (`ScheduleAnyway`)
+- **Replicas**: 1
+- **Strategy**: `Recreate`: never more than one Umbraco instance, so each deploy or restart has a short downtime while the new pod starts
 - **Probes**: startup and liveness on `/umbraco/api/health/live`, readiness on `/umbraco/api/health/ready`
 - **Port**: 8080 (named `http`)
 
-### PodDisruptionBudget
-- `maxUnavailable: 1`: voluntary evictions (for example node drains) remove one pod at a time, so at least 2 of 3 keep running
-- `unhealthyPodEvictionPolicy: AlwaysAllow`: pods that are not ready can always be evicted
+Umbraco needs app changes before it can run on several instances: a server role accessor, `LoadBalanceIsolatedCaches()`, SignalR with sticky sessions and a backplane (or Azure SignalR Service), a shared `Umbraco:CMS:Hosting:TemporaryFileUploadLocation`, distributed background jobs, and shared Data Protection keys. See [Load Balancing the Backoffice](https://docs.umbraco.com/umbraco-cms/run-in-production/infrastructure-and-ops/server-setup/load-balancing/load-balancing-backoffice). There is no PodDisruptionBudget: with one replica, a PDB either protects nothing or blocks every node drain.
 
 ### Storage
 The pods keep no persistent data. Content is in Azure SQL (connection string set by the publish workflow when `database: AzureSQL` is chosen) and media is in Azure Blob Storage (`Umbraco__Storage__AzureBlob__Media__*` in each overlay).
@@ -50,7 +46,7 @@ The pods keep no persistent data. Content is in Azure SQL (connection string set
    - **Type**: `emptyDir`
    - **Mount Path**: `/app/umbraco/Logs`
 
-Do not deploy with `database: Sqlite`: with an `emptyDir` and 3 replicas, each pod would get its own empty database that is lost when the pod restarts.
+Do not deploy with `database: Sqlite`: the SQLite file would be in the `emptyDir`, so the database would be empty after every restart.
 
 ### Networking
 - **Service**: ClusterIP on port 80 (targets container port 8080).

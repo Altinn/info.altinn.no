@@ -9,7 +9,6 @@ resources:
   - serviceaccount.yaml
   - vault.yaml
   - deployment.yaml
-  - pdb.yaml
   - service.yaml
   - httproute.yaml
   - network-policies.yaml

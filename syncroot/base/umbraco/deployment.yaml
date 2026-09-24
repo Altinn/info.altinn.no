@@ -3,13 +3,11 @@ kind: Deployment
 metadata:
   name: umbraco
 spec:
-  replicas: 3
+  # Umbraco does not support several instances without extra app configuration
+  # (server roles, cache versioning, SignalR, shared temp files), so keep exactly one pod.
+  replicas: 1
   strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      # Start a new pod and wait until it is ready before an old one is removed
-      maxSurge: 1
-      maxUnavailable: 0
+    type: Recreate
   selector:
     matchLabels:
       app.kubernetes.io/name: umbraco
@@ -26,36 +24,6 @@ spec:
       serviceAccountName: umbraco
       nodeSelector:
         kubernetes.io/arch: amd64
-      # Spread the replicas over nodes and zones. pod-template-hash limits each
-      # constraint to one ReplicaSet, so the extra pod in a rolling update does not
-      # need a free node of its own.
-      topologySpreadConstraints:
-        - maxSkew: 1
-          topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: DoNotSchedule
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: umbraco
-          matchLabelKeys:
-            - pod-template-hash
-        - maxSkew: 1
-          topologyKey: topology.kubernetes.io/zone
-          whenUnsatisfiable: ScheduleAnyway
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: umbraco
-          matchLabelKeys:
-            - pod-template-hash
-      # Also keep pods of the old and new ReplicaSet apart during a rollout, when possible
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              podAffinityTerm:
-                topologyKey: kubernetes.io/hostname
-                labelSelector:
-                  matchLabels:
-                    app.kubernetes.io/name: umbraco
       containers:
         - name: umbraco
           image: umbraco:1
