@@ -9,7 +9,9 @@ spec:
     matchLabels:
       app.kubernetes.io/name: umbraco
   port: http
-  proxyProtocol: HTTP/2
+  # Umbraco (Kestrel, plain HTTP on 8080) speaks HTTP/1.1. With HTTP/2 here the proxy
+  # answered the kubelet's HTTP/1.1 probes with HTTP/2 frames, and every probe failed.
+  proxyProtocol: HTTP/1
 ---
 apiVersion: policy.linkerd.io/v1beta2
 kind: HTTPRoute
