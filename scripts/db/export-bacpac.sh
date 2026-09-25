@@ -57,7 +57,7 @@ require_sqlpackage
 SQLPACKAGE="$(find_sqlpackage)"
 
 ENV_OUTPUT="$(resolve_environment "$ENV_NAME")"
-read -r HOST CATALOG <<EOF
+read -r HOST BLOB_ACCOUNT <<EOF
 $ENV_OUTPUT
 EOF
 
@@ -74,33 +74,18 @@ fi
 log "checking connectivity to $HOST:1433 ..."
 require_remote_reachable "$HOST" 1433
 
-CONN="Server=tcp:$HOST,1433; Initial Catalog=$CATALOG; Encrypt=True; TrustServerCertificate=True"
+CONN="Server=tcp:$HOST,1433; Initial Catalog=umbraco; Encrypt=True; TrustServerCertificate=True"
 
 if [ "$AUTH_METHOD" = "token" ]; then
-  command -v az >/dev/null 2>&1 || die "the token auth method needs the Azure CLI.
-Install it, run 'az login', then retry."
-
-  log "requesting an Entra access token for database.windows.net ..."
-  # Never echo, log or persist the token. It goes straight into sqlpackage's
-  # argv and nowhere else.
-  DB_TOKEN="$(az account get-access-token --resource https://database.windows.net/ \
-    --query accessToken -o tsv 2>/dev/null || true)"
-  [ -n "$DB_TOKEN" ] || die "could not get an access token. Run 'az login' and check
-that 'az account show' names the tenant that owns this database."
+   DB_TOKEN="$(get_db_access_token)"
 else
   if [ -z "$DB_USER" ]; then
     DB_USER="$(git -C "$INFOPORTAL_REPO_ROOT" config user.email 2>/dev/null || true)"
     case "$DB_USER" in *@digdir.no) ;; *) DB_USER="" ;; esac
   fi
-  printf 'Entra ID email%s: ' "${DB_USER:+ [$DB_USER]}" >&2
-  read -r USER_INPUT
-  [ -n "$USER_INPUT" ] && DB_USER="$USER_INPUT"
-  [ -n "$DB_USER" ] || die "no Entra ID email given"
 
-  printf 'Password for %s: ' "$DB_USER" >&2
-  read -rs DB_PASSWORD
-  printf '\n' >&2
-  [ -n "$DB_PASSWORD" ] || die "no password given"
+  DB_USER="$(get_db_user)"
+  DB_PASSWORD="$(get_db_password)"
 
   CONN="$CONN; Authentication=Active Directory Password; User ID=$DB_USER; Password=$DB_PASSWORD"
 fi
@@ -108,7 +93,7 @@ fi
 mkdir -p "$OUT_DIR"
 TARGET="$OUT_DIR/$ENV_NAME-umbraco-$(date +%Y%m%d-%H%M%S).bacpac"
 
-log "exporting $ENV_NAME ($CATALOG) -> $TARGET"
+log "exporting $ENV_NAME (umbraco)) -> $TARGET"
 log "this reads the whole database and can take several minutes ..."
 
 if [ "$AUTH_METHOD" = "token" ]; then
