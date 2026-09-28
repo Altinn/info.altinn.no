@@ -70,7 +70,6 @@ public class BlockListPropertyConverter : IPropertyValueConverter
 
             JsonArray items = [];
             JsonObject blockListObject = JsonSerializer.Deserialize<JsonObject>(raw);
-            Console.WriteLine(blockListObject);
             JsonArray contentDataArray = blockListObject.GetPropertyAsArray("contentData");
             JsonObject layoutObject = blockListObject.GetPropertyAsObject("layout");
             JsonArray layoutArray = layoutObject.GetPropertyAsArray("Umbraco.BlockList");
