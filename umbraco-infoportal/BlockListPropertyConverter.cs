@@ -1,14 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Markdig.Syntax;
 using Umbraco.Cms.Core;
-using Umbraco.Cms.Core.Models.Blocks;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.PropertyEditors;
 using Umbraco.Cms.Core.PublishedCache;
-using Umbraco.Cms.Core.Serialization;
 using uSync.Core.Extensions;
-using Umbraco.Cms.Core.Models.ContentEditing;
 using Umbraco.Cms.Core.Models.DeliveryApi;
 using Umbraco.Cms.Core.Services;
 
@@ -71,9 +67,25 @@ public class BlockListPropertyConverter : IPropertyValueConverter
             JsonArray items = [];
             JsonObject blockListObject = JsonSerializer.Deserialize<JsonObject>(raw);
             JsonArray contentDataArray = blockListObject.GetPropertyAsArray("contentData");
+            JsonObject layoutObject = blockListObject.GetPropertyAsObject("layout");
+            JsonArray layoutArray = layoutObject.GetPropertyAsArray("Umbraco.BlockList");
 
-            foreach (JsonObject jsonObject in contentDataArray.Cast<JsonObject>())
+            foreach (JsonObject layoutJsonObject in layoutArray.Cast<JsonObject>())
             {
+                string? contentKey = layoutJsonObject.GetPropertyAsString("contentKey");
+
+                if (contentKey == null)
+                {
+                    continue;
+                }
+
+                JsonObject? jsonObject = GetContentJson(contentKey, contentDataArray);
+
+                if (jsonObject == null)
+                {
+                    continue;
+                }
+
                 string contentTypeKey = jsonObject.GetPropertyAsString("contentTypeKey");
 
                 if ("4c7190f5-ea4b-488e-a6ae-83c11d70d861".Equals(contentTypeKey))
@@ -175,6 +187,7 @@ public class BlockListPropertyConverter : IPropertyValueConverter
             JsonObject accordianList = [];
             accordianList.Add("componentName", "ContentArea");
             accordianList.Add("items", items);
+
             return accordianList;
         }
         else
@@ -289,6 +302,20 @@ public class BlockListPropertyConverter : IPropertyValueConverter
             "03fd6b74-8be9-46cc-bb03-4a4f2cf3fedf" => "schema.accordions.access",
             _ => null,
         };
+    }
+
+    private static JsonObject? GetContentJson(string contentKeyToFind, JsonArray contentArray)
+    {
+        foreach (JsonObject jsonObject in contentArray.Cast<JsonObject>())
+        {
+            string contentKey = jsonObject.GetPropertyAsString("key");
+            if (contentKeyToFind.Equals(contentKey))
+            {
+                return jsonObject;
+            }
+        }
+
+        return null;
     }
 
     private JsonObject AddContentProperties(JsonObject jsonObject, IPublishedContent content)
