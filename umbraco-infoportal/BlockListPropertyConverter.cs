@@ -1,14 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Markdig.Syntax;
 using Umbraco.Cms.Core;
-using Umbraco.Cms.Core.Models.Blocks;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.PropertyEditors;
 using Umbraco.Cms.Core.PublishedCache;
-using Umbraco.Cms.Core.Serialization;
 using uSync.Core.Extensions;
-using Umbraco.Cms.Core.Models.ContentEditing;
 using Umbraco.Cms.Core.Models.DeliveryApi;
 using Umbraco.Cms.Core.Services;
 
@@ -76,7 +72,12 @@ public class BlockListPropertyConverter : IPropertyValueConverter
 
             foreach (JsonObject layoutJsonObject in layoutArray.Cast<JsonObject>())
             {
-                string contentKey = layoutJsonObject.GetPropertyAsString("contentKey");
+                string? contentKey = layoutJsonObject.GetPropertyAsString("contentKey");
+
+                if (contentKey == null)
+                {
+                    continue;
+                }
 
                 JsonObject? jsonObject = GetContentJson(contentKey, contentDataArray);
 
