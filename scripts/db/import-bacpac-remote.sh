@@ -36,7 +36,7 @@ require_sqlpackage
 require_sqlcmd
 SQLPACKAGE="$(find_sqlpackage)"
 
-CONN="Server=tcp:$HOST,1433; Initial Catalog=umbraco2; Encrypt=True; TrustServerCertificate=True"
+CONN="Server=tcp:$HOST,1433; Initial Catalog=umbraco; Encrypt=True; TrustServerCertificate=True"
 DB_TOKEN="$(get_db_access_token)"
 
 log "importing $(basename "$BACPAC") ..."

@@ -34,7 +34,6 @@ ENV_OUTPUT="$(resolve_environment "$ENV_NAME")"
 read -r HOST BLOB_ACCOUNT<<EOF
 $ENV_OUTPUT
 EOF
-DB_TOKEN="$(get_db_access_token)"
 DB_USER="$(get_db_user)"
 DB_PASSWORD="$(get_db_password)"
 
@@ -47,12 +46,12 @@ BACPAC="$(ls -t "$BACPAC_DIR/prod-umbraco-"*.bacpac 2>/dev/null | head -1 || tru
 [ -n "$BACPAC" ] || die "no existing .bacpac for 'prod' in $BACPAC_DIR"
 log "Found $(basename "$BACPAC")"
 
-log "==> step 2/4: Renaming ${ENV_NAME} db to umbracoold"
-run_sqlcmd -S "$HOST,1433" -d master -G -U "$DB_USER" -P "$DB_PASSWORD" -C -Q "alter database umbraco modify name = umbracoold;"
+log "==> step 2/4: Renaming ${ENV_NAME} db to umbraco-backup"
+run_sqlcmd -S "$HOST,1433" -d master -G -U "$DB_USER" -P "$DB_PASSWORD" -C -Q "alter database umbraco modify name = [umbraco-backup];"
 
 log "==> step 3/4: Importing db in ${ENV_NAME}"
 BACPAC="$("$SCRIPT_DIR/import-bacpac-remote.sh" "$ENV_NAME" "$BACPAC" | tail -1)"
 
 log "==> step 4/4: Replacing environment specific data"
-run_sqlcmd -S "$HOST,1433" -d umbraco -G -C -U "$DB_USER" -i "sql/replace-env-data-$ENV_NAME.sql"
+run_sqlcmd -S "$HOST,1433" -d umbraco -G -C -U "$DB_USER" -P "$DB_PASSWORD" -i "$SCRIPT_DIR/sql/replace-env-data-$ENV_NAME.sql"
 
