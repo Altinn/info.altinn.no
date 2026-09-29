@@ -78,19 +78,21 @@ export class SchemaPageTransformer implements IJSONTransformer {
       }
     }
 
-    for (const item of props.accordianList?.items) {
-      if (item.translatedHeading === "schema.accordions.access" 
-            && props.resourceId && item.listAccessPackages) {
-          const accessPackages = await getAccessPackagesHtml(props.resourceId, globalData.host, locale);
+    if (props.accordianList) {
+      for (const item of props.accordianList?.items) {
+        if (item.translatedHeading === "schema.accordions.access" 
+              && props.resourceId && item.listAccessPackages) {
+            const accessPackages = await getAccessPackagesHtml(props.resourceId, globalData.host, locale);
 
-          if (item.description.items[0].html == null) {
-            item.description.items[0].html = accessPackages;
-          } else {
-            item.description.items[0].html = item.description.items[0].html + accessPackages;
-          }
+            if (item.description.items[0].html == null) {
+              item.description.items[0].html = accessPackages;
+            } else {
+              item.description.items[0].html = item.description.items[0].html + accessPackages;
+            }
+        }
+
+        item.translatedHeading = t(item.translatedHeading, locale);
       }
-
-      item.translatedHeading = t(item.translatedHeading, locale);
     }
 
     const searchKind = (
