@@ -47,7 +47,7 @@ BACPAC="$(ls -t "$BACPAC_DIR/prod-umbraco-"*.bacpac 2>/dev/null | head -1 || tru
 log "Found $(basename "$BACPAC")"
 
 log "==> Step 2/5: Generating update script"
-run_sqlcmd -S "$HOST,1433" -d umbraco-backup -G -C -U "$DB_USER" -P "$DB_PASSWORD" -h -1 -w 1000 -y 1000 -b -i "$SCRIPT_DIR/sql/create-env-data-script.sql" -o "$SCRIPT_DIR/sql/update-env-data.sql";
+run_sqlcmd -S "$HOST,1433" -d umbraco -G -C -U "$DB_USER" -P "$DB_PASSWORD" -h -1 -w 1000 -y 1000 -b -i "$SCRIPT_DIR/sql/create-env-data-script.sql" -o "$SCRIPT_DIR/sql/update-env-data.sql";
 
 log "==> step 3/5: Renaming ${ENV_NAME} db to umbraco-backup"
 run_sqlcmd -S "$HOST,1433" -d master -G -U "$DB_USER" -P "$DB_PASSWORD" -C -Q "alter database umbraco modify name = [umbraco-backup];"
