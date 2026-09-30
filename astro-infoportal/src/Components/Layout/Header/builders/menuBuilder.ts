@@ -94,18 +94,6 @@ export const buildMenuItems = (pages: MenuPages, isLoggedIn: boolean, currentPat
     });
   }
 
-  if (pages.aboutNewAltinnPage?.url && pages.aboutNewAltinnPage?.text) {
-    items.push({
-      id: "about-new-altinn",
-      groupId: "shortcuts",
-      title: pages.aboutNewAltinnPage.text,
-      href: pages.aboutNewAltinnPage.url,
-      icon: InformationSquareIcon,
-      size: "sm" as const,
-      selected: isCurrentPage(currentPath, pages.aboutNewAltinnPage.url),
-    });
-  }
-
   if (pages.startAndRunCompany?.url && pages.startAndRunCompany?.text) {
     items.push({
       id: "start-company",

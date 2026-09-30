@@ -79,10 +79,6 @@ export function getGlobalData(
         text: t("header.logout", locale),
         url: `${platformBase}/authentication/api/v1/logout`,
       },
-      aboutNewAltinnPage: buildLink(
-        p?.aboutNewAltinnReference,
-        t("header.aboutNewAltinn", locale),
-      ),
       startPage: { text: "", url: "/" },
       loggedInAsText: t("header.loggedInAs", locale),
       backButtonText: t("header.back", locale),
