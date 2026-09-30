@@ -4,6 +4,7 @@ import {
   Divider,
   List,
   Typography,
+  Heading,
 } from "@altinn/altinn-components";
 import { Fragment } from "react";
 import "./ProviderPage.scss";
@@ -18,19 +19,23 @@ const ProviderPage = ({
   mainIntro,
   schemas,
   operationalMessages,
+  pageName,
   breadcrumb,
   contactInfo,
 }: any) => {
   return (
     <>
-      {breadcrumb && <BreadcrumbsView {...breadcrumb} />}
-
-      {operationalMessages?.filter(Boolean).map((om: any, idx: number) => (
-        <OperationalMessage {...om} key={idx} />
-      ))}
-
       <Article>
+        {breadcrumb && <BreadcrumbsView {...breadcrumb} />}
+
+        {operationalMessages?.filter(Boolean).map((om: any, idx: number) => (
+          <OperationalMessage {...om} key={idx} />
+        ))}
+
         <ArticleHeader>
+          <Heading size="xl" as="h1">
+            {pageName}
+          </Heading>
           {contactInfo && <ProviderContactInformationBlock {...contactInfo} />}
         </ArticleHeader>
 
