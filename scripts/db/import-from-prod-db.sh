@@ -39,19 +39,22 @@ DB_PASSWORD="$(get_db_password)"
 
 BACPAC_DIR="$INFOPORTAL_REPO_ROOT/.bacpacs"
 
-log "==> steg 1/4: Finding .bacpac file"
+log "==> Step 1/5: Finding .bacpac file"
 # Filenames are ENV-umbraco-TIMESTAMP.bacpac, a fixed alnum/dash charset from
 # export-bacpac.sh; ls -t is sufficient and simpler than find here.
 BACPAC="$(ls -t "$BACPAC_DIR/prod-umbraco-"*.bacpac 2>/dev/null | head -1 || true)"
 [ -n "$BACPAC" ] || die "no existing .bacpac for 'prod' in $BACPAC_DIR"
 log "Found $(basename "$BACPAC")"
 
-log "==> step 2/4: Renaming ${ENV_NAME} db to umbraco-backup"
+log "==> Step 2/5: Generating update script"
+run_sqlcmd -S "$HOST,1433" -d umbraco-backup -G -C -U "$DB_USER" -P "$DB_PASSWORD" -h -1 -w 1000 -y 1000 -b -i "$SCRIPT_DIR/sql/create-env-data-script.sql" -o "$SCRIPT_DIR/sql/update-env-data.sql";
+
+log "==> step 3/5: Renaming ${ENV_NAME} db to umbraco-backup"
 run_sqlcmd -S "$HOST,1433" -d master -G -U "$DB_USER" -P "$DB_PASSWORD" -C -Q "alter database umbraco modify name = [umbraco-backup];"
 
-log "==> step 3/4: Importing db in ${ENV_NAME}"
+log "==> step 4/5: Importing db in ${ENV_NAME}"
 BACPAC="$("$SCRIPT_DIR/import-bacpac-remote.sh" "$ENV_NAME" "$BACPAC" | tail -1)"
 
-log "==> step 4/4: Replacing environment specific data"
-run_sqlcmd -S "$HOST,1433" -d umbraco -G -C -U "$DB_USER" -P "$DB_PASSWORD" -i "$SCRIPT_DIR/sql/replace-env-data-$ENV_NAME.sql"
+log "==> step 5/5: Replacing environment specific data"
+run_sqlcmd -S "$HOST,1433" -d umbraco -G -C -U "$DB_USER" -P "$DB_PASSWORD" -i "$SCRIPT_DIR/sql/update-env-data.sql"
 
