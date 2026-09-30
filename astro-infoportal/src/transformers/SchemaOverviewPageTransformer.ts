@@ -24,15 +24,16 @@ export class SchemaOverviewPageTransformer implements IJSONTransformer {
       contentLocale,
     );
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
+    const categoriesGuid = "7be52f06-4b7f-43e3-be3e-7871e56c27fc";
 
     let categories = await fetchUmbracoChildren(
-      "7be52f06-4b7f-43e3-be3e-7871e56c27fc",
+      categoriesGuid,
       100,
       contentLocale,
     );
     if (categories.length === 0 && contentLocale !== "nb") {
       categories = await fetchUmbracoChildren(
-        "7be52f06-4b7f-43e3-be3e-7871e56c27fc",
+        categoriesGuid,
       );
     }
     const schemaCategories = categories
@@ -45,11 +46,14 @@ export class SchemaOverviewPageTransformer implements IJSONTransformer {
         a.category.localeCompare(b.category, locale, { sensitivity: "base" }),
       );
 
-    const providers = await fetchUmbracoChildren(
+    let providers = await fetchUmbracoChildren(
       cmsPageData.route.path,
       100,
       contentLocale,
     );
+
+    // Remove "Kategori" page from list of providers
+    providers = providers.filter((p: any) => p.id != categoriesGuid);
 
     const sortedProviders = providers
       .map((item: any) => ({
