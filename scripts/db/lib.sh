@@ -279,3 +279,35 @@ DNS is working, so this is routing or access rather than the VPN being down:
 Check with:
   sqlcmd -S $host -d umbraco -C -U <your-entra-email> -P <password>"
 }
+
+get_db_access_token() {
+  command -v az >/dev/null 2>&1 || die "the token auth method needs the Azure CLI.
+Install it, run 'az login', then retry."
+
+  log "requesting an Entra access token for database.windows.net ..."
+  # Never echo, log or persist the token. It goes straight into sqlpackage's
+  # argv and nowhere else.
+  DB_TOKEN="$(az account get-access-token --resource https://database.windows.net/ \
+    --query accessToken -o tsv 2>/dev/null || true)"
+  [ -n "$DB_TOKEN" ] || die "could not get an access token. Run 'az login' and check
+that 'az account show' names the tenant that owns this database."
+  echo $DB_TOKEN
+}
+
+get_db_user() {
+  DB_USER="$(git -C "$INFOPORTAL_REPO_ROOT" config user.email 2>/dev/null || true)"
+  case "$DB_USER" in *@digdir.no) ;; *) DB_USER="" ;; esac
+  printf 'Entra ID email%s: ' "${DB_USER:+ [$DB_USER]}" >&2
+  read -r USER_INPUT
+  [ -n "$USER_INPUT" ] && DB_USER="$USER_INPUT"
+  [ -n "$DB_USER" ] || die "no Entra ID email given"
+  printf $DB_USER
+}
+
+get_db_password() {
+  printf 'Password for %s: ' "$DB_USER" >&2
+  read -rs DB_PASSWORD
+  printf '\n' >&2
+  [ -n "$DB_PASSWORD" ] || die "no password given"
+  echo $DB_PASSWORD
+}

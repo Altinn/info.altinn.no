@@ -448,6 +448,10 @@ override.tf.json
 # Local database copies — may contain production personal data. Never commit.
 .bacpacs/
 *.bacpac
+
+# Script generated when copying prod database to another environment
+scripts/db/sql/update-env-data.sql
+
 # Local developer config overrides (may contain local credentials). Never commit.
 appsettings.Local.json
 appsettings.*.Local.json
