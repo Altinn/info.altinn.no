@@ -1,0 +1,14 @@
+{
+  "$schema": "../../umbraco-package-schema.json",
+  "name": "MaintenanceBanner",
+  "version": "1.0.0",
+  "extensions": [
+    {
+      "type": "headerApp",
+      "alias": "MaintenanceBanner.HeaderApp",
+      "name": "Maintenance Banner",
+      "element": "/App_Plugins/MaintenanceBanner/maintenance-banner.js",
+      "weight": 1000
+    }
+  ]
+}
