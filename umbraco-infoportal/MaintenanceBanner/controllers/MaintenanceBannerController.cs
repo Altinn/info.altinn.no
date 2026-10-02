@@ -17,7 +17,7 @@ public class MaintenanceBannerController : ManagementApiControllerBase
     private readonly ILogger<MaintenanceBannerController> _logger;
     private readonly IPublishedContentCache _publishedContentCache;
 
-    private static readonly Guid maintenanceMessageGuid = Guid.Parse("b4a49e28-bfa4-4d92-bb72-b1bfc28df335");
+    private static readonly Guid maintenanceMessageGuid = Guid.Parse("89e0f440-bc2d-442a-9180-ce83660447b1");
 
     public MaintenanceBannerController(IPublishedContentCache publishedContentCache, ILogger<MaintenanceBannerController> logger)
     {
