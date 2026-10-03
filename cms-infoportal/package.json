@@ -17,7 +17,7 @@
     "wrangler": "^4.130.0"
   },
   "overrides": {
-    "undici": "8.10.0",
+    "undici": "8.10.2",
     "esbuild": "^0.28.1",
     "sharp": "^0.35.4"
   },
