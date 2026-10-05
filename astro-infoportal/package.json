@@ -20,7 +20,7 @@
     "@digdir/designsystemet-react": "^1.21.1",
     "@digdir/designsystemet-theme": "^1.11.0",
     "@navikt/aksel-icons": "^8.16.2",
-    "astro": "^7.3.2",
+    "astro": "^7.3.5",
     "lodash.debounce": "^4.0.8",
     "message-channel": "^2.0.0",
     "node-html-parser": "^9.0.4",
@@ -66,6 +66,6 @@
     "sharp@0.35.4": true,
     "esbuild@0.28.2": true,
     "@parcel/watcher@2.6.0": true,
-    "workerd@1.20260911.1": true
+    "workerd@1.20260908.1": true
   }
 }
