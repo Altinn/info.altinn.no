@@ -12,6 +12,11 @@ on:
         description: "Version number / image tag"
         type: string
         required: true
+      branch:
+        description: "Branch"
+        type: string
+        required: true
+        default: "main"
 
 env:
   # Use docker.io for Docker Hub if empty
@@ -34,6 +39,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ github.event.inputs.branch }}
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
