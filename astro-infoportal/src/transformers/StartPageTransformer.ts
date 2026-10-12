@@ -55,7 +55,7 @@ export class StartPageTransformer implements IJSONTransformer {
     if (p.inboxUrl) {
       linkButtons.push({
         componentName: "LinkButtonBlock",
-        link: { text: t("start.checkInbox", locale), url: p.inboxUrl },
+        link: { text: t("start.checkInbox", locale), url: globalData?.headerViewModel.inboxPage.url },
         icon: "InboxIcon",
         buttonType: "Primary",
         displayOptionId: "full",
@@ -64,7 +64,7 @@ export class StartPageTransformer implements IJSONTransformer {
     if (p.profilUrl) {
       linkButtons.push({
         componentName: "LinkButtonBlock",
-        link: { text: t("start.accessManagement", locale), url: p.profilUrl },
+        link: { text: t("start.accessManagement", locale), url: globalData?.headerViewModel.accessManagementPage.url },
         icon: "PadlockLockedIcon",
         buttonType: "Default",
         displayOptionId: "full",
