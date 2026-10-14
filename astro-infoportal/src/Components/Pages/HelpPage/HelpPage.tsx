@@ -18,6 +18,7 @@ const HelpPage = ({
   tableOfContentsLabel,
   breadcrumb,
 }: any) => {
+  console.log({sections})
   return (
     <Article>
       {breadcrumb && <BreadcrumbsView {...breadcrumb} />}

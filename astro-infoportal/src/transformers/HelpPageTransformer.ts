@@ -8,21 +8,16 @@ import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
 import { buildHelpSidebarViewModel } from "./helpSidebar";
 import type { IJSONTransformer } from "./IJSONTransformer";
 
-// Umbraco wraps every block list item as { content: { properties }, settings }.
-// Unwrap it so the component gets flat objects to work with.
 function mapAccordion(item: any) {
-  const props = item?.content?.properties ?? {};
   return {
-    heading: props.heading,
-    content: props.content,
+    heading: item?.name,
+    content: item?.properties?.content,
   };
 }
 
-// usedIds keeps anchor ids unique on the page: two sections called "Roller"
-// become "roller" and "roller-2".
 function mapSection(item: any, usedIds: Set<string>) {
   const props = item?.content?.properties ?? {};
-  const accordions = (props.accordionList?.items ?? [])
+  const accordions = (props.accordionList ?? [])
     .map(mapAccordion)
     // Skip accordions the editor left without a heading
     .filter((accordion: any) => accordion.heading);
@@ -32,13 +27,14 @@ function mapSection(item: any, usedIds: Set<string>) {
     // The slugified heading, used as the section's id so the TOC can link to it
     anchorId: makeUniqueSlug(slugify(props.heading ?? ""), usedIds),
     heading: props.heading,
-    leadText: props.leadText,
+    leadText: props.mainBody,
     accordions,
   };
 }
 
 export class HelpPageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
+    console.log({umbraco: JSON.stringify(cmsPageData)})
     const props = cmsPageData?.properties ?? {};
     const locale: Locale = globalData?.locale ?? "nb";
     const contentLocale: Locale = globalData?.contentLocale ?? locale;
