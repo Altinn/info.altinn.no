@@ -10,6 +10,7 @@ import RichTextArea from "../../Shared/RichTextArea/RichTextArea";
 import HelpPageToc from "./HelpPageToc";
 import "./HelpPage.scss";
 import { Card } from "@digdir/designsystemet-react";
+import ContentArea from "/Components/Shared/ContentArea/ContentArea";
 
 const HelpPage = ({
   pageName,
@@ -17,6 +18,7 @@ const HelpPage = ({
   sections,
   tableOfContentsLabel,
   breadcrumb,
+  helpContentArea
 }: any) => {
   console.log({sections})
   return (
@@ -27,7 +29,7 @@ const HelpPage = ({
           {pageName}
         </Heading>
         {leadText && (
-          <Typography as="div">
+          <Typography as="div" className="help-page__lead-text">
             <RichTextArea {...leadText} />
           </Typography>
         )}
@@ -64,6 +66,10 @@ const HelpPage = ({
           )}
         </section>
       ))}
+
+      {helpContentArea && (
+        <ContentArea {...helpContentArea} />
+      )}
     </Article>
   );
 };
