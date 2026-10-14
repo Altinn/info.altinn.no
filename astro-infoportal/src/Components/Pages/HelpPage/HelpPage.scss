@@ -22,6 +22,11 @@ article[data-spacing]:has(> .help-page__section) {
   margin-block-end: 0;
 }
 
+.help-page__help-content .display-option--full {
+  margin-block: var(--ds-size-6);
+}
+
+
 .help-page__toc {
   background-color: var(--ds-color-background-tinted);
   border: none;

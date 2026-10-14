@@ -7,6 +7,7 @@ import {
 import AccordionBlock from "../../Blocks/AccordionBlock/AccordionBlock";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
 import RichTextArea from "../../Shared/RichTextArea/RichTextArea";
+import { UiText } from "../../Shared/UiLanguage/UiLanguage";
 import HelpPageToc from "./HelpPageToc";
 import "./HelpPage.scss";
 import { Card } from "@digdir/designsystemet-react";
@@ -18,7 +19,9 @@ const HelpPage = ({
   sections,
   tableOfContentsLabel,
   breadcrumb,
-  helpContentArea
+  helpContentArea,
+  helpContentAreaHeading,
+  translatedHelpContentAreaHeading,
 }: any) => {
   console.log({sections})
   return (
@@ -68,7 +71,15 @@ const HelpPage = ({
       ))}
 
       {helpContentArea && (
-        <ContentArea {...helpContentArea} />
+        <section className="help-page__help-content">
+          <Heading size="lg" as="h2" className="help-page__section-heading">
+            {/* The editor's heading, or the interface fallback text */}
+            {helpContentAreaHeading ?? (
+              <UiText>{translatedHelpContentAreaHeading}</UiText>
+            )}
+          </Heading>
+          <ContentArea {...helpContentArea} />
+        </section>
       )}
     </Article>
   );

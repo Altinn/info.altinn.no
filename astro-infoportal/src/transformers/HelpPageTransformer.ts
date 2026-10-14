@@ -5,6 +5,7 @@ import {
 import { type Locale, t } from "@i18n/index";
 import { fetchUmbracoAncestors } from "../api/umbraco/client";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
+import { buildHelpContentArea } from "./helpContentArea";
 import { buildHelpSidebarViewModel } from "./helpSidebar";
 import type { IJSONTransformer } from "./IJSONTransformer";
 
@@ -40,11 +41,15 @@ export class HelpPageTransformer implements IJSONTransformer {
     const contentLocale: Locale = globalData?.contentLocale ?? locale;
     const ancestors = await fetchUmbracoAncestors(cmsPageData.id, contentLocale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
-    const pageSidebarViewModel = await buildHelpSidebarViewModel(
-      cmsPageData,
-      ancestors,
-      contentLocale,
-    );
+    const [pageSidebarViewModel, helpContentArea] = await Promise.all([
+      buildHelpSidebarViewModel(cmsPageData, ancestors, contentLocale),
+      buildHelpContentArea(
+        props.helpContentArea,
+        locale,
+        contentLocale,
+        globalData?.isPreview,
+      ),
+    ]);
 
     const usedIds = new Set<string>();
     const sections = (props.helpSections?.items ?? []).map((item: any) =>
@@ -60,6 +65,9 @@ export class HelpPageTransformer implements IJSONTransformer {
       breadcrumb,
       pageSidebarViewModel,
       isUserLoggedIn: false,
+      helpContentArea,
+      helpContentAreaHeading: props.helpContentAreaHeading || undefined,
+      translatedHelpContentAreaHeading: t("help.helpContentAreaHeading", locale),
     };
   }
 }
