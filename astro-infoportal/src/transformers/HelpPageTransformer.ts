@@ -35,7 +35,6 @@ function mapSection(item: any, usedIds: Set<string>) {
 
 export class HelpPageTransformer implements IJSONTransformer {
   public async Transform(cmsPageData: any, globalData?: any): Promise<any> {
-    console.log({umbraco: JSON.stringify(cmsPageData)})
     const props = cmsPageData?.properties ?? {};
     const locale: Locale = globalData?.locale ?? "nb";
     const contentLocale: Locale = globalData?.contentLocale ?? locale;

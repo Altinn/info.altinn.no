@@ -23,7 +23,6 @@ const HelpPage = ({
   helpContentAreaHeading,
   translatedHelpContentAreaHeading,
 }: any) => {
-  console.log({sections})
   return (
     <Article>
       {breadcrumb && <BreadcrumbsView {...breadcrumb} />}
