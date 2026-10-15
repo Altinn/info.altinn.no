@@ -5,7 +5,7 @@ import {
 import { type Locale, t } from "@i18n/index";
 import { fetchUmbracoAncestors } from "../api/umbraco/client";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
-import { buildHelpContentArea } from "./helpContentArea";
+import { buildContactBlocks } from "./contactBlocks";
 import { buildHelpSidebarViewModel } from "./helpSidebar";
 import type { IJSONTransformer } from "./IJSONTransformer";
 
@@ -40,10 +40,10 @@ export class HelpPageTransformer implements IJSONTransformer {
     const contentLocale: Locale = globalData?.contentLocale ?? locale;
     const ancestors = await fetchUmbracoAncestors(cmsPageData.id, contentLocale);
     const breadcrumb = BreadcrumbsTransformer.Transform(ancestors, cmsPageData);
-    const [pageSidebarViewModel, helpContentArea] = await Promise.all([
+    const [pageSidebarViewModel, contactBlocks] = await Promise.all([
       buildHelpSidebarViewModel(cmsPageData, ancestors, contentLocale),
-      buildHelpContentArea(
-        props.helpContentArea,
+      buildContactBlocks(
+        props.contactBlocks,
         locale,
         contentLocale,
         globalData?.isPreview,
@@ -64,9 +64,9 @@ export class HelpPageTransformer implements IJSONTransformer {
       breadcrumb,
       pageSidebarViewModel,
       isUserLoggedIn: false,
-      helpContentArea,
-      helpContentAreaHeading: props.helpContentAreaHeading || undefined,
-      translatedHelpContentAreaHeading: t("help.helpContentAreaHeading", locale),
+      contactBlocks,
+      contactBlocksHeading: props.contactBlocksHeading || undefined,
+      translatedContactBlocksHeading: t("help.helpContactBlockHeading", locale),
     };
   }
 }

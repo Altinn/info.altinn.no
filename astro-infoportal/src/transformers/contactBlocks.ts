@@ -34,14 +34,14 @@ function mapContactListBlock(props: any, locale: Locale) {
 // The help pages' "Sitter du fortsatt fast?" area. Umbraco only sends
 // references to the picked blocks (`properties: {}`), so fetch each block
 // first, then turn it into a component the ContentArea can render.
-export async function buildHelpContentArea(
-  helpContentArea: any,
+export async function buildContactBlocks(
+  contactBlocks: any,
   locale: Locale,
   contentLocale: Locale,
   isPreview?: boolean,
 ) {
   const refs = await resolveBlockReferences(
-    helpContentArea,
+    contactBlocks,
     contentLocale,
     isPreview,
   );

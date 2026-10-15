@@ -1,7 +1,7 @@
 import type { IJSONTransformer } from "./IJSONTransformer";
 import { fetchUmbracoAncestors, resolveBlockReferences } from "../api/umbraco/client";
 import { BreadcrumbsTransformer } from "./BreadcrumbsTransformer";
-import { buildHelpContentArea } from "./helpContentArea";
+import { buildContactBlocks } from "./contactBlocks";
 import { type Locale, t } from "@i18n/index";
 
 function mapDrilldownPage(item: any) {
@@ -48,12 +48,12 @@ export class HelpStartPageTransformer implements IJSONTransformer {
       newDrilldownRefs,
       oldDrilldownRefs,
       questionAreaRefs,
-      helpContentArea,
+      contactBlocks,
     ] = await Promise.all([
       resolveBlockReferences(props.newDrilldownPages, contentLocale, isPreview),
       resolveBlockReferences(props.oldDrilldownPages, contentLocale, isPreview),
       resolveBlockReferences(props.questionArea, contentLocale, isPreview),
-      buildHelpContentArea(props.helpContentArea, locale, contentLocale, isPreview),
+      buildContactBlocks(props.contactBlocks, locale, contentLocale, isPreview),
     ]);
 
     const newDrilldownPages = newDrilldownRefs.map(mapDrilldownPage);
@@ -80,9 +80,9 @@ export class HelpStartPageTransformer implements IJSONTransformer {
       questionAreaHeading: props.questionAreaTitle || undefined,
       translatedQuestionAreaHeading: t("help.questionsYouMayHave", locale),
       questionArea,
-      helpContentAreaHeading: props.helpContentAreaTitle || undefined,
-      translatedHelpContentAreaHeading: t("help.helpContentAreaHeading", locale),
-      helpContentArea,
+      contactBlocksHeading: props.contactBlocksHeading || undefined,
+      translatedContactBlocksHeading: t("help.helpContactBlockHeading", locale),
+      contactBlocks,
       searchHeading: props.searchPageTitle || undefined,
       translatedSearchHeading: t("search.searchAfterContent", locale),
       searchPlaceholder: props.searchPageTitle || t("search.searchAfterContent", locale),

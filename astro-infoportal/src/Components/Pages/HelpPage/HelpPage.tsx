@@ -19,9 +19,9 @@ const HelpPage = ({
   sections,
   tableOfContentsLabel,
   breadcrumb,
-  helpContentArea,
-  helpContentAreaHeading,
-  translatedHelpContentAreaHeading,
+  contactBlocks,
+  contactBlocksHeading,
+  translatedContactBlocksHeading,
 }: any) => {
   return (
     <Article>
@@ -69,15 +69,15 @@ const HelpPage = ({
         </section>
       ))}
 
-      {helpContentArea && (
+      {contactBlocks && (
         <section className="help-page__help-content">
           <Heading size="lg" as="h2" className="help-page__section-heading">
             {/* The editor's heading, or the interface fallback text */}
-            {helpContentAreaHeading ?? (
-              <UiText>{translatedHelpContentAreaHeading}</UiText>
+            {contactBlocksHeading ?? (
+              <UiText>{translatedContactBlocksHeading}</UiText>
             )}
           </Heading>
-          <ContentArea {...helpContentArea} />
+          <ContentArea {...contactBlocks} />
         </section>
       )}
     </Article>

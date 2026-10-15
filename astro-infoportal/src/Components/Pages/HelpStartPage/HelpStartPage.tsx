@@ -94,7 +94,7 @@ const HelpStartPage = ({
   questionAreaHeading,
   translatedQuestionAreaHeading,
   questionArea,
-  helpContentArea,
+  contactBlocks,
   currentVersionHeading,
   translatedCurrentVersionHeading,
   newVersionHeading,
@@ -104,8 +104,8 @@ const HelpStartPage = ({
   searchPlaceholder,
   searchAriaLabel,
   helpSearchPageUrl,
-  helpContentAreaHeading,
-  translatedHelpContentAreaHeading,
+  contactBlocksHeading,
+  translatedContactBlocksHeading,
   // breadcrumb,
 }: any) => {
   return (
@@ -198,14 +198,14 @@ const HelpStartPage = ({
         )}
       </div>
 
-      {helpContentArea && (
+      {contactBlocks && (
         <>
           <SectionHeading
             className="help-start-page__help-content-area-heading"
-            heading={helpContentAreaHeading}
-            translated={translatedHelpContentAreaHeading}
+            heading={contactBlocksHeading}
+            translated={translatedContactBlocksHeading}
           />
-          <ContentArea {...helpContentArea} />
+          <ContentArea {...contactBlocks} />
         </>
       )}
     </Article>
