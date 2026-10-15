@@ -7,7 +7,7 @@ const AccordionBlock = ({
 }: any) => {    
   return (
     <Details variant="default" data-color="neutral" data-size="md">
-      <Details.Summary role="button" tabIndex={0} slot="summary">
+      <Details.Summary>
         {heading}
       </Details.Summary>
       <Details.Content>

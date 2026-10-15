@@ -94,7 +94,7 @@ export class HelpStartPageTransformer implements IJSONTransformer {
                         oldDrilldownPages: oldDrilldownPages,
                         questionAreaHeading: currentPage.QuestionAreaTitle ?? localizationService.GetStringByCulture("/help/questionyoumayhave", culture),
                         questionArea: questionAreaItems,
-                        helpContentAreaHeading: currentPage.HelpContentAreaTitle ?? localizationService.GetStringByCulture("/help/helpcontentareaheading", culture),
+                        helpContactBlockHeading: currentPage.HelpContentAreaTitle ?? localizationService.GetStringByCulture("/help/helpContactBlockHeading", culture),
                         helpContentArea: contentAreaPropsBuilder.Build({
                             contentArea: currentPage.HelpContentArea,
                             propertyName: "currentPage.HelpContentArea"
@@ -119,7 +119,7 @@ export class HelpStartPageTransformer implements IJSONTransformer {
             oldDrilldownPages: props?.oldDrilldownPages ?? null,
             questionAreaHeading: props?.questionAreaHeading ?? null,
             questionArea: props?.questionArea ?? null,
-            helpContentAreaHeading: props?.helpContentAreaHeading ?? null,
+            helpContactBlockHeading: props?.helpContactBlockHeading ?? null,
             helpContentArea: props?.helpContentArea ?? null,
             searchPlaceholder: props?.searchPlaceholder ?? null,
             helpSearchPageUrl: props?.helpSearchPageUrl ?? null,
