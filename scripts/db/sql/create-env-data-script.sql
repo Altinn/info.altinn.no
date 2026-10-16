@@ -9,24 +9,6 @@ where cv.[current] = 1
 and pd.versionId = cv.id
 and pd.propertyTypeId in (470, 471, 472);
 
-select CHAR(10) || '-- inbox link';
-select 'update pd set varcharValue = ''' || pd.varcharValue || ''' from umbracoPropertyData pd, umbracoContentVersion cv where pd.versionId = cv.id and cv.[current] = 1 and cv.nodeId = ' || cv.nodeId || ' and pd.propertyTypeId = ' || pd.propertyTypeId || ';'
-from
-    umbracoPropertyData pd,
-    umbracoContentVersion cv
-where pd.propertyTypeId = 184
-and pd.versionId = cv.id
-and cv.[current] = 1;
-
-select CHAR(10) || '-- access management link';
-select 'update pd set varcharValue = ''' || pd.varcharValue || ''' from umbracoPropertyData pd, umbracoContentVersion cv where pd.versionId = cv.id and cv.[current] = 1 and cv.nodeId = ' || cv.nodeId || ' and pd.propertyTypeId = ' || pd.propertyTypeId || ';'
-from
-    umbracoPropertyData pd,
-    umbracoContentVersion cv
-where pd.propertyTypeId = 186
-and pd.versionId = cv.id
-and cv.[current] = 1;
-
 select CHAR(10) || '-- support email';
 select 'update pd set varcharValue = ''' || pd.varcharValue || ''' from umbracoPropertyData pd, umbracoContentVersion cv where pd.versionId = cv.id and cv.[current] = 1 and cv.nodeId = ' || cv.nodeId || ' and pd.propertyTypeId = ' || pd.propertyTypeId || ';'
 from

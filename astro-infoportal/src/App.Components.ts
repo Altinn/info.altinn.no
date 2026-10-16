@@ -51,6 +51,7 @@ import AboutPage from "./Components/Pages/AboutPage/AboutPage";
 import CategoryPage from "./Components/Pages/CategoryPage/CategoryPage";
 import HelpDrilldownPage from "./Components/Pages/HelpDrilldownPage/HelpDrilldownPage";
 import HelpLandingPage from "./Components/Pages/HelpLandingPage/HelpLandingPage";
+import HelpPage from "./Components/Pages/HelpPage/HelpPage";
 import HelpProcessArticlePage from "./Components/Pages/HelpProcessArticlePage/HelpProcessArticlePage";
 import HelpQuestionPage from "./Components/Pages/HelpQuestionPage/HelpQuestionPage";
 import HelpSearchPage from "./Components/Pages/HelpSearchPage/HelpSearchPage";
@@ -139,6 +140,7 @@ export {
   HelpQuestionPage,
   HelpSearchPage,
   HelpLandingPage,
+  HelpPage,
   HelpProcessArticlePage,
   HelpDrilldownPage,
   NewsArchivePage,

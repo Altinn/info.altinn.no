@@ -54,11 +54,11 @@ describe("HelpStartPage section headings", () => {
         newDrilldownPages={[{ pageName: "Skatt og avgift", url: "/a" }]}
         oldDrilldownPages={[{ pageName: "Roller og rettigheter", url: "/b" }]}
         questionArea={[{ pageName: "Hvordan logger jeg inn?" }]}
-        helpContentArea={{ items: [] }}
+        contactBlocks={{ items: [] }}
         translatedNewVersionHeading="Get help in the new version of Altinn"
         translatedCurrentVersionHeading="Get help in the old version of Altinn"
         translatedQuestionAreaHeading="Questions you may have:"
-        translatedHelpContentAreaHeading="Contact us"
+        translatedContactBlocksHeading="Contact us"
         translatedSearchHeading="Search on altinn.no"
         searchPlaceholder="Search on altinn.no"
       />,

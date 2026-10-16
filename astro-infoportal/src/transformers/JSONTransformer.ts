@@ -8,6 +8,7 @@ import { AboutPageTransformer } from "./AboutPageTransformer";
 import { CategoryPageTransformer } from "./CategoryPageTransformer";
 import { HelpDrilldownPageTransformer } from "./HelpDrilldownPageTransformer";
 import { HelpLandingPageTransformer } from "./HelpLandingPageTransformer";
+import { HelpPageTransformer } from "./HelpPageTransformer";
 import { HelpProcessArticlePageTransformer } from "./HelpProcessArticlePageTransformer";
 import { HelpQuestionPageTransformer } from "./HelpQuestionPageTransformer";
 import { HelpSearchPageTransformer } from "./HelpSearchPageTransformer";
@@ -117,6 +118,8 @@ export class JSONTransformer implements IJSONTransformer {
         return new HelpDrilldownPageTransformer();
       case "helpLandingPage":
         return new HelpLandingPageTransformer();
+      case "helpPage":
+        return new HelpPageTransformer();
       case "helpProcessArticlePage":
         return new HelpProcessArticlePageTransformer();
       case "helpQuestionPage":
