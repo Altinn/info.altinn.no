@@ -3,7 +3,7 @@
 // className, so match it by its sections; [data-spacing] makes this win over
 // the library's ":root [data-spacing='6']" rule.
 article[data-spacing]:has(> .help-page__section) {
-  --dsc-spacing: var(--ds-spacing-14);
+  --dsc-spacing: var(--ds-spacing-15);
 }
 
 .help-page__section-heading {
