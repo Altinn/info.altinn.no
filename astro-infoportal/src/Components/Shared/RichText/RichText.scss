@@ -74,6 +74,10 @@
       opacity: 1;
     }
   }
+
+  & strong {
+    font-weight: 600;
+  }
 }
 
 .content-area .rich-text.rich-text > *:first-child {
