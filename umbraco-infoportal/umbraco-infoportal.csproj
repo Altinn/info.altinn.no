@@ -18,6 +18,12 @@
     <PackageReference Include="PreMailer.Net" Version="2.7.2" />
     <PackageReference Include="Skybrud.Umbraco.Redirects" Version="18.0.0-alpha001" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.2" />
+    <PackageReference Include="Umbraco.AI" Version="18.5.0" />
+    <PackageReference Include="Umbraco.AI.Agent.Copilot" Version="18.1.1" />
+    <PackageReference Include="Umbraco.AI.Google" Version="18.0.3" />
+    <PackageReference Include="Umbraco.AI.MicrosoftFoundry" Version="18.0.3" />
+    <PackageReference Include="Umbraco.AI.OpenAI" Version="18.3.0" />
+    <PackageReference Include="Umbraco.AI.Prompt" Version="18.3.0" />
     <PackageReference Include="Umbraco.Cms" Version="18.2.0" />
     <PackageReference Include="Umbraco.Cms.DevelopmentMode.Backoffice" Version="18.2.0" />
     <PackageReference Include="Umbraco.StorageProviders.AzureBlob" Version="18.0.0" />
