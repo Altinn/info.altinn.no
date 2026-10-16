@@ -68,7 +68,9 @@ public class AffectedUrlResolver
         ["helpPage"] = new ContentTypeRule
         {
             IncludeTreeParent = true,
-            CrossPagePurgeOnDirtyProperties = ["Name", "description", "akselIcon"]
+            CrossPagePurgeOnDirtyProperties = ["Name", "description", "akselIcon"],
+            IncludeAncestorSubtree = "helpStartPage",
+            IncludeAncestorSubtreeOnDirtyProperties = ["Name", "akselIcon"],
         },
 
         // Name/akselIcon show in every help sidebar → subtree; description/triggerWords/altImage → helpStartPage only.
