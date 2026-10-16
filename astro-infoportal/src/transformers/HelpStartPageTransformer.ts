@@ -21,6 +21,14 @@ function mapDrilldownPage(item: any) {
 function mapQuestionAreaItem(item: any) {
   const props = item?.properties ?? {};
   const ct = item?.contentType;
+  // Reusable question/answer element, the same type HelpPage uses for its
+  // accordions: the name is the question and `content` the answer.
+  if (ct === "helpDetails") {
+    return {
+      pageName: item?.name,
+      body: props.content,
+    };
+  }
   if (ct === "helpQuestionPage" || ct === "helpProcessArticlePage") {
     return {
       pageName: item?.name,
