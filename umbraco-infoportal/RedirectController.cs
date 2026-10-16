@@ -43,13 +43,15 @@ public class RedirectController : ControllerBase
         // If not, checking if path is a "Enkel adresse" / umbracoUrlAlias
         row ??= scope.Database.FirstOrDefault<RedirectQueryRow>(
                 @"SELECT n.uniqueId as ContentGuid, l.languageISOCode as Culture 
-                    FROM umbracoPropertyData pd, cmsPropertyType pt, umbracoNode n, umbracoContentVersion cv, umbracoLanguage l 
+                    FROM umbracoPropertyData pd, cmsPropertyType pt, umbracoNode n, umbracoContentVersion cv, umbracoLanguage l, umbracoDocument d
                     WHERE pd.propertyTypeId = pt.id
                     AND pt.alias = 'umbracoUrlAlias'
                     AND cv.id = pd.versionId
                     AND cv.""current"" = 1
                     AND pd.languageId = l.id
                     AND n.id = cv.nodeId
+                    AND d.nodeId = n.id
+                    AND d.published = 1
                     AND pd.varcharValue = @0", pathWithoutLanguageAndTrailingSlash[1..]);  
 
         // If not, checking if path belongs to a page that has been moved and got a new url
