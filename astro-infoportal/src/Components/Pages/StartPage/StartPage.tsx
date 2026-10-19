@@ -7,11 +7,11 @@ import {
 } from "@altinn/altinn-components";
 import { Card } from "@digdir/designsystemet-react";
 import { ArrowRightIcon } from "@navikt/aksel-icons";
+import { SearchInput } from "/App.Components";
 // import LoginBlock from "../../Blocks/LoginBlock/LoginBlock";
 // import AlternativeLoginBlock from "../../Blocks/AlternativeLoginBlock/AlternativeLoginBlock";
 import RelevantSchemasBlock from "../../Blocks/RelevantSchemasBlock/RelevantSchemasBlock";
 import ContentArea from "../../Shared/ContentArea/ContentArea";
-import SearchInput from "../../Shared/SearchInput/SearchInput";
 import OperationalMessageArticlePage from "../OperationalMessageArticlePage/OperationalMessageArticlePage";
 import "./StartPage.scss";
 import CampaignBlock from "../../Blocks/CampaignBlock/CampaignBlock";

@@ -1,8 +1,10 @@
 ---
 import SiteLayout from "../Components/Layout/SiteLayout/SiteLayout";
+import PageContent from "../Components/Shared/Island/PageContent";
 import ApplicationInsightsFilterJS from "../bundles/ApplicationInsightsFilterJS.astro";
 
 const { pageData, htmlLanguage, title, canonicalUrl, metaNoIndex, metaDescription, metaKeywords, seoScript, enableAppInsightsFiltering } = Astro.props;
+const { child, ...layoutProps } = pageData;
 ---
 <!doctype html>
 <html class="ap-profile" lang={htmlLanguage || "nb"}>
@@ -30,6 +32,8 @@ const { pageData, htmlLanguage, title, canonicalUrl, metaNoIndex, metaDescriptio
     {enableAppInsightsFiltering && <ApplicationInsightsFilterJS/>}
 </head>
 <body>
-    <SiteLayout client:load {...pageData} />
+    <SiteLayout client:load {...layoutProps} pageComponentName={child?.componentName}>
+        {child && <PageContent child={child} locale={pageData.locale} contentLocale={pageData.contentLocale} />}
+    </SiteLayout>
 </body>
 </html>

@@ -1,13 +1,7 @@
 import type { HTMLElement } from "node-html-parser";
 import { parse } from "node-html-parser";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
-
-// The real registry pulls in every page and block component; SiteLayout only
-// needs to find the one it was handed, so stub the lookup at the module edge.
-vi.mock("../../../App.Components", () => ({
-  TestPage: ({ body }: { body: string }) => <p>{body}</p>,
-}));
+import { describe, expect, it } from "vitest";
 
 import SiteLayout from "./SiteLayout";
 
@@ -22,9 +16,11 @@ const renderLayout = (props: Record<string, unknown>) =>
     renderToStaticMarkup(
       <SiteLayout
         skipLinkText="Skip to main content"
-        child={{ componentName: "TestPage", body: CONTENT }}
+        pageComponentName="TestPage"
         {...props}
-      />,
+      >
+        <p>{CONTENT}</p>
+      </SiteLayout>,
     ),
   );
 

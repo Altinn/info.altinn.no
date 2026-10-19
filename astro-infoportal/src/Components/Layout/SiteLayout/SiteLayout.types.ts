@@ -1,10 +1,12 @@
 import type { Locale } from "@i18n/index";
+import type { ReactNode } from "react";
 
 export interface SiteLayoutProps {
   headerViewModel?: any;
   footerViewModel?: any;
   pageSidebarViewModel?: any;
-  child?: { componentName: string; [key: string]: any };
+  children?: ReactNode;
+  pageComponentName?: string;
   skipLinkText?: string;
   /** Set only when the page fell back to NB content (see buildMissingTranslationText). */
   missingTranslationText?: string | null;

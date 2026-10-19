@@ -7,7 +7,6 @@ import {
   useConsent,
 } from "@altinn/altinn-components";
 import { useEffect, useRef, useState } from "react";
-import * as Components from "../../../App.Components";
 import "@altinn/altinn-components/dist/global.css";
 import "@digdir/designsystemet-theme";
 import "@digdir/designsystemet-css";
@@ -26,10 +25,12 @@ import { useHashScroll } from "./useHashScroll";
 import "./SiteLayout.scss";
 import { SkipLink } from "@digdir/designsystemet-react";
 import BannerBlock from "../../../Components/Blocks/BannerBlock/BannerBlock";
+import { hydrateIslands } from "../../Shared/Island/hydrateIslands";
 import { UiLanguageProvider } from "../../Shared/UiLanguage/UiLanguage";
 
 const SiteLayout = ({
-  child,
+  children,
+  pageComponentName,
   headerViewModel,
   footerViewModel,
   pageSidebarViewModel,
@@ -38,8 +39,6 @@ const SiteLayout = ({
   locale,
   contentLocale,
 }: SiteLayoutProps) => {
-  const Comp = child ? (Components as any)[child.componentName] : null;
-
   // Issue #713 (WCAG 3.1.2). A page with no variant in the requested language
   // renders bokmål content, and <html lang> follows that content (issue #555),
   // so the English chrome around it would be read with Norwegian phonetics.
@@ -106,7 +105,7 @@ const SiteLayout = ({
     "ProviderPage",
   ];
   const shouldConstrainWidth =
-    child && !exludedPages.includes(child.componentName);
+    !!pageComponentName && !exludedPages.includes(pageComponentName);
   const hasSidebar = !!sidebarConfig;
 
   const contentColor: "company" = "company";
@@ -117,6 +116,10 @@ const SiteLayout = ({
   useEffect(() => {
     deleteLegacyConsentCookie();
     setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    hydrateIslands();
   }, []);
 
   useEffect(() => {
@@ -202,14 +205,10 @@ const SiteLayout = ({
                   hasSidebar ? " layout-content-constrained--sidebar" : ""
                 }`}
               >
-                <Comp {...child} />
+                {children}
               </div>
             ) : (
-              child && (
-                <div lang={contentLang}>
-                  <Comp {...child} />
-                </div>
-              )
+              children && <div lang={contentLang}>{children}</div>
             )}
           </Layout>
         </div>
