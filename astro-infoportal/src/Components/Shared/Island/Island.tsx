@@ -68,7 +68,7 @@ export const withIsland = <P extends object>(
 
     const html = renderToString(
       <IslandProviders env={env}>
-        <Component {...props} />
+        <Island {...props} />
       </IslandProviders>,
       { identifierPrefix },
     );

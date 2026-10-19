@@ -1,3 +1,4 @@
+import { type ComponentProps, createElement } from "react";
 import { withIsland } from "./Components/Shared/Island/Island";
 import AccordianCollectionBlock from "./Components/Blocks/AccordianCollectionBlock/AccordianCollectionBlock";
 import AccordianThemeBlockRaw from "./Components/Blocks/AccordianThemeBlock/AccordianThemeBlock";
@@ -84,7 +85,7 @@ import SearchFormRaw from "./Components/Shared/SearchForm/SearchForm";
 import SearchInputRaw from "./Components/Shared/SearchInput/SearchInput";
 import MunicipalityCountySearchRaw from "./Components/Shared/MunicipalityCountySearch/MunicipalityCountySearch";
 import PromoBoxBlock from "./Components/Blocks/PromoBoxBlock/PromoBoxBlock";
-import BannerBlock from "./Components/Blocks/BannerBlock/BannerBlock";
+import BannerBlockRaw from "./Components/Blocks/BannerBlock/BannerBlock";
 
 const SearchPage = withIsland("SearchPage", SearchPageRaw);
 const HelpSearchPage = withIsland("HelpSearchPage", HelpSearchPageRaw);
@@ -104,6 +105,12 @@ const ContactFormPageTrigger = withIsland("ContactFormPageTrigger", ContactFormP
 // Used inside otherwise static pages (StartPage, HelpStartPage, SchemaPage).
 const SearchInput = withIsland("SearchInput", SearchInputRaw);
 const MunicipalityCountySearch = withIsland("MunicipalityCountySearch", MunicipalityCountySearchRaw);
+
+const BannerBlock = withIsland(
+  "BannerBlock",
+  (props: ComponentProps<typeof BannerBlockRaw>) =>
+    createElement(BannerBlockRaw, props),
+);
 // BoxBlock under the names its transformers emit.
 const LinkBox = withIsland("LinkBox", BoxBlockRaw);
 const ModalBox = withIsland("ModalBox", BoxBlockRaw);
