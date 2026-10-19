@@ -15,7 +15,7 @@ import {
   deleteLegacyConsentCookie,
   loadSiteimprove,
 } from "@utils/consent";
-import useSidebarConfig from "../../Shared/PageSidebar/useSidebarConfig";
+import "../../Shared/PageSidebar/PageSidebar.scss";
 import useFooterConfig from "../Footer/useFooterConfig";
 import { useLanguagePreference } from "../Header/hooks/useLanguagePreference";
 import useHeaderConfig from "../Header/useHeaderConfig";
@@ -33,7 +33,8 @@ const SiteLayout = ({
   pageComponentName,
   headerViewModel,
   footerViewModel,
-  pageSidebarViewModel,
+  sidebar,
+  hasSidebar,
   skipLinkText,
   missingTranslationText,
   locale,
@@ -88,13 +89,6 @@ const SiteLayout = ({
     footerViewModel || ({} as any),
     openCookieBanner,
   );
-  // The sidebar is built from the same Umbraco tree as the page content, but
-  // the library renders it outside <main>, so its labels carry the content
-  // language themselves (issue #713).
-  const sidebarConfig = useSidebarConfig(pageSidebarViewModel, {
-    lang: contentLang,
-  });
-
   // Pages that have their own width constraints and should not be constrained by layout
   const exludedPages = [
     "StartPage",
@@ -106,7 +100,6 @@ const SiteLayout = ({
   ];
   const shouldConstrainWidth =
     !!pageComponentName && !exludedPages.includes(pageComponentName);
-  const hasSidebar = !!sidebarConfig;
 
   const contentColor: "company" = "company";
   const shouldShowCookieBanner = hydrated && !isAnswered;
@@ -181,7 +174,7 @@ const SiteLayout = ({
             header={headerViewModel ? headerProps : undefined}
             footer={footerProps}
             content={{ color: contentColor }}
-            {...(sidebarConfig ? { sidebar: sidebarConfig } : {})}
+            {...(hasSidebar ? { sidebar: { children: sidebar } } : {})}
             theme="default"
           >
             {missingTranslationText && (

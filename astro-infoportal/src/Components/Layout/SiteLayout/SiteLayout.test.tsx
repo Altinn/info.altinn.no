@@ -3,6 +3,7 @@ import { parse } from "node-html-parser";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
+import PageSidebarNav from "../../Shared/PageSidebar/PageSidebarNav";
 import SiteLayout from "./SiteLayout";
 
 // Issue #713 (WCAG 3.1.2): an /en/ page with no English variant renders bokmål
@@ -73,9 +74,18 @@ describe("SiteLayout language tagging", () => {
     const root = renderLayout({
       locale: "en",
       contentLocale: "nb",
-      pageSidebarViewModel: {
-        mainItems: [{ label: "Skjema og tenester", url: "/skjemaoversikt/" }],
-      },
+      hasSidebar: true,
+      sidebar: (
+        <PageSidebarNav
+          viewModel={{
+            mainItems: [
+              { label: "Skjema og tenester", url: "/skjemaoversikt/" },
+            ],
+          }}
+          locale="en"
+          contentLocale="nb"
+        />
+      ),
     });
 
     expect(requireElement(root, "aside a")).toBeTruthy();

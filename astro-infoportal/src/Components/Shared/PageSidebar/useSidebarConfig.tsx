@@ -85,6 +85,7 @@ export default function useSidebarConfig(
 
   return {
     menu: {
+      id: "site-sidebar-menu",
       items,
     },
   } as LayoutProps['sidebar'];
