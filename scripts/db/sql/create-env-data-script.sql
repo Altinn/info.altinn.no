@@ -35,7 +35,7 @@ and dv.id = cv.id
 and pd.propertyTypeId = 325;
 
 select CHAR(10) || '-- Keep deeplink for forms';
-select 'update pd set varcharValue = ''' || pd.varcharValue || ''' from umbracoPropertyData pd, umbracoContentVersion cv, umbracoDocuementVersion dv where dv.published = 1 and pd.versionId = cv.id and dv.id = cv.id and cv.nodeId = ' || cv.nodeId || ' and pd.propertyTypeId = ' || pd.propertyTypeId || ';'
+select 'update pd set varcharValue = ''' || pd.varcharValue || ''' from umbracoPropertyData pd, umbracoContentVersion cv, umbracoDocumentVersion dv where dv.published = 1 and pd.versionId = cv.id and dv.id = cv.id and cv.nodeId = ' || cv.nodeId || ' and pd.propertyTypeId = ' || pd.propertyTypeId || ';'
 from
     umbracoPropertyData pd,
     umbracoContentVersion cv,
