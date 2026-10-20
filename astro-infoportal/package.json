@@ -1,6 +1,7 @@
 {
   "name": "astro-infoportal",
   "version": "0.0.1",
+  "private": true,
   "scripts": {
     "wrangler": "wrangler",
     "preview": "pnpm run build && wrangler dev -c ./dist/server/wrangler.json",
