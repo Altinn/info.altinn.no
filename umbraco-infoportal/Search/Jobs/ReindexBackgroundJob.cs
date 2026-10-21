@@ -78,8 +78,8 @@ public class ReindexBackgroundJob : IHostedService
 
                     try
                     {
-                        var document = extractor.ExtractDocument(content, culture);
-                        if (document != null)
+                        var documents = extractor.ExtractDocuments(content, culture);
+                        foreach (var document in documents)
                         {
                             await searchService.IndexDocumentAsync(document, ct);
                         }

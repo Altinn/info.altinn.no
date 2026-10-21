@@ -28,8 +28,8 @@ public class SearchIndexOnPublishHandler : INotificationHandler<ContentPublished
             {
                 try
                 {
-                    var document = _extractor.ExtractDocument(content, culture);
-                    if (document != null)
+                    var documents = _extractor.ExtractDocuments(content, culture);
+                    foreach (var document in documents)
                     {
                         _searchService.IndexDocumentAsync(document).GetAwaiter().GetResult();
                         _logger.LogInformation(

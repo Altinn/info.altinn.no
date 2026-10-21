@@ -6,8 +6,13 @@ using Infoportal.Adapters.Elasticsearch.Models;
 using Microsoft.Extensions.Options;
 using umbraco_infoportal.Search.BestBets;
 using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.PublishedCache;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Web;
+using Json.Path;
+using System.Text.Json.Nodes;
+using Json.More;
+using System.Text;
 
 namespace umbraco_infoportal.Search;
 
@@ -16,6 +21,9 @@ public class ContentTextExtractor
     private readonly IContentTypeService _contentTypeService;
     private readonly IDataTypeService _dataTypeService;
     private readonly IUmbracoContextFactory _umbracoContextFactory;
+
+    private readonly IPublishedElementCache _publishedElementCache;
+
     private readonly ElasticsearchOptions _options;
     private readonly ILogger<ContentTextExtractor> _logger;
     private readonly Dictionary<Guid, string?> _editorAliasCache = new();
@@ -43,7 +51,7 @@ public class ContentTextExtractor
         "newsArticlePage",
         "articlePage",
         "themePage",
-        
+        "helpPage"
     ];
 
     private static readonly HashSet<string> TextEditors =
@@ -58,34 +66,38 @@ public class ContentTextExtractor
     public ContentTextExtractor(
         IContentTypeService contentTypeService,
         IDataTypeService dataTypeService,
+        IPublishedElementCache publishedElementCache,
         IUmbracoContextFactory umbracoContextFactory,
         IOptions<ElasticsearchOptions> options,
         ILogger<ContentTextExtractor> logger)
     {
         _contentTypeService = contentTypeService;
         _dataTypeService = dataTypeService;
+        _publishedElementCache = publishedElementCache;
         _umbracoContextFactory = umbracoContextFactory;
         _options = options.Value;
         _logger = logger;
     }
 
-    public SearchDocument? ExtractDocument(IContent content, string culture)
+    public List<SearchDocument> ExtractDocuments(IContent content, string culture)
     {
         if (content.Trashed)
-            return null;
+            return [];
 
         var contentType = _contentTypeService.Get(content.ContentType.Id);
         if (contentType == null)
-            return null;
+            return [];
 
         if (!IndexableContentTypes.Contains(content.ContentType.Alias))
-            return null;
+            return [];
 
         var textSegments = new List<string>();
         string ingress = "";
         string metaTitle = "";
         string metaDescription = "";
         string metaKeywords = "";
+
+        var documents = new List<SearchDocument>();
 
         // Use CompositionPropertyTypes (not PropertyTypes) so we also iterate properties
         // inherited from compositions — e.g. SEO/meta fields that live on a shared SEO composition.
@@ -119,12 +131,17 @@ public class ContentTextExtractor
                 continue;
             }
 
-            var editorAlias = GetEditorAlias(propertyType);
-            if (editorAlias == null)
-                continue;
-
             var value = GetPropertyValue(content, propertyType, culture);
             if (value == null)
+                continue;
+
+            if (propertyType.Alias == "helpSections")
+            {
+                documents.AddRange(ExtractSectionDocuments(content, culture, value.ToString()));
+            }
+
+            var editorAlias = GetEditorAlias(propertyType);
+            if (editorAlias == null)
                 continue;
 
             var text = ExtractTextFromValue(value, editorAlias);
@@ -144,7 +161,7 @@ public class ContentTextExtractor
         var url = GetContentUrl(content, culture) ?? "";
         var bet = BestBetData.FindByTitle(title);
 
-        return new SearchDocument
+        documents.Add(new SearchDocument
         {
             Id = $"{content.Id}_{culture}",
             ContentId = content.Id,
@@ -162,7 +179,9 @@ public class ContentTextExtractor
             PublishDate = content.PublishDate,
             UpdateDate = content.UpdateDate,
             BestBetTriggers = bet?.TriggerPhrases.ToArray() ?? []
-        };
+        });
+
+        return documents;
     }
 
     private string? GetEditorAlias(IPropertyType propertyType)
@@ -309,6 +328,84 @@ public class ContentTextExtractor
         }
     }
 
+    private List<SearchDocument> ExtractSectionDocuments(IContent content, string culture, string? json)
+    {
+        
+        var sectionDocuments = new List<SearchDocument>();
+
+        if (string.IsNullOrWhiteSpace(json))
+            return [];
+
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+            var sectionNamePath = JsonPath.Parse($"$.values[?(@.culture == '{culture}' && @.alias == 'heading')].value");
+            var sectionMainBodyPath = JsonPath.Parse($"$.values[?(@.culture == '{culture}' && @.alias == 'mainBody')].value");
+
+            var sectionAccordionListPath = JsonPath.Parse($"$.values[?@.alias == 'accordionList'].value");
+
+            if (root.TryGetProperty("contentData", out var contentData)
+                && contentData.ValueKind == JsonValueKind.Array)
+            {
+                var segments = new List<string>();
+                int index = 0;
+                foreach (var sectionJson in contentData.EnumerateArray())
+                {
+                    string? sectionName = sectionNamePath.Evaluate(
+                        JsonNode.Parse(sectionJson.ToJsonString())).Matches.FirstOrDefault()?.Value.ToString();
+
+                    if (sectionName is null)
+                    {
+                        continue;
+                    }
+
+                    string? sectionMainBody = sectionMainBodyPath.Evaluate(
+                        JsonNode.Parse(sectionJson.ToJsonString())).Matches.FirstOrDefault()?.ToString();
+                    
+                    string url = GetContentUrl(content, culture) + "#" + Slugify(sectionName);
+
+                    Console.WriteLine("URL: " + url);
+
+                    string? guidsJson = sectionAccordionListPath.Evaluate(JsonNode.Parse(sectionJson.ToJsonString())).Matches.FirstOrDefault()?.Value?.ToString();
+
+                    string accordionText = "";
+
+                    foreach (var jsonNode in JsonDocument.Parse(guidsJson).RootElement.EnumerateArray())
+                    {
+                        accordionText += ExtractElementTextByGuid(Guid.Parse(jsonNode.ToString()), culture) + " ";
+                    }
+
+                    sectionDocuments.Add(new SearchDocument{
+                        Id = $"{content.Id}_{culture}_{index}",
+                        ContentId = content.Id,
+                        ContentGuid = content.Key,
+                        Title = sectionName,
+                        TitleSuggest = string.IsNullOrWhiteSpace(sectionName) ? [] : [sectionName],
+                        Ingress = sectionMainBody,
+                        Body = accordionText,
+                        Url = url,
+                        ContentType = content.ContentType.Alias,
+                        Culture = culture,
+                        PublishDate = content.PublishDate,
+                        UpdateDate = content.UpdateDate,
+                        //BestBetTriggers = bet?.TriggerPhrases.ToArray() ?? []
+                    });
+
+                    index++;
+                }
+
+                return sectionDocuments;
+            }
+
+            return [];
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogWarning(ex, "Failed to parse BlockList JSON");
+            return [];
+        }        
+    }
 
     private string? GetContentUrl(IContent content, string culture)
     {
@@ -329,6 +426,37 @@ public class ContentTextExtractor
         return null;
     }
 
+    private string? Slugify(string name)
+    {
+        var normalized = name
+            .Normalize(NormalizationForm.FormC)
+            .ToLowerInvariant();
+
+        var result = new StringBuilder();
+        bool lastDash = false;
+
+        foreach (char ch in normalized)
+        {
+            if (char.IsLetterOrDigit(ch))
+            {
+                result.Append(ch);
+                lastDash = false;
+            }
+            else if (char.IsWhiteSpace(ch) || ch == '-' || ch == '_')
+            {
+                if (!lastDash)
+                {
+                    result.Append('-');
+                    lastDash = true;
+                }
+            }
+        }
+
+        var output = result.ToString().Trim('-');
+
+        return string.IsNullOrEmpty(output) ? "section" : output;
+    }
+
     private static string StripHtml(string html)
     {
         if (string.IsNullOrWhiteSpace(html))
@@ -337,6 +465,26 @@ public class ContentTextExtractor
         var text = HtmlTagRegex.Replace(html, " ");
         text = WebUtility.HtmlDecode(text);
         text = WhitespaceRegex.Replace(text, " ").Trim();
+        return text;
+    }
+
+    private string ExtractElementTextByGuid(Guid guid, string culture)
+    {
+       
+        var element = _publishedElementCache.GetById(false, guid);
+        string text = element.Name(culture);
+
+        object contentProperty = element.GetProperty("content")?.GetValue(culture);
+
+        if (contentProperty is not null)
+        {
+            var elementHtmlPath = JsonPath.Parse("$.items[0].html");
+            string? html = elementHtmlPath.Evaluate(
+                        JsonNode.Parse(contentProperty.ToString())).Matches.FirstOrDefault()?.Value.ToString();
+            text += " " + StripHtml(html);
+        }
+
+
         return text;
     }
 }
