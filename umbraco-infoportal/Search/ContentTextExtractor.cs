@@ -361,7 +361,7 @@ public class ContentTextExtractor
                     }
 
                     string? sectionMainBody = sectionMainBodyPath.Evaluate(
-                        JsonNode.Parse(sectionJson.ToJsonString())).Matches.FirstOrDefault()?.ToString();
+                        JsonNode.Parse(sectionJson.ToJsonString())).Matches.FirstOrDefault()?.Value?.ToString();
                     
                     string url = GetContentUrl(content, culture) + "#" + Slugify(sectionName);
 
