@@ -146,6 +146,7 @@
   "schema.attachment": "Vedlegg",
   "schema.aboutSchema": "Om vedleggskjemaet",
   "schema.startSchema": "Start teneste",
+  "schema.startForm": "Start skjema",
   "schema.whereToFindSchema": "Dette vedleggsskjemaet kan du leggje ved følgjande skjema",
   "schema.whatMunicipality": "Kva kommune skal du søke i?",
   "schema.searchForMunicipality": "Søk etter kommune...",

@@ -1,5 +1,6 @@
+import { env } from "cloudflare:workers";
 import type { SchemaPageProps } from "@components/Pages/SchemaPage/SchemaPage.types";
-import { type Locale, t } from "@i18n/index";
+import { type Locale, t, type TranslationKey } from "@i18n/index";
 import { ProviderResolver } from "@services/Providers/ProviderResolver";
 import {
   fetchUmbracoAncestors,
@@ -42,6 +43,13 @@ function normalizeAltinnFormDeeplink(raw: string | undefined): string | undefine
     // Already relative — nothing to strip.
   }
   return raw;
+}
+
+function startSchemaTextKey(formOrService: string | undefined): TranslationKey {
+  if (env.USE_FORM_OR_SERVICE !== "true") return "schema.startSchema";
+  return formOrService?.trim().toLowerCase() === "tjeneste"
+    ? "schema.startSchema"
+    : "schema.startForm";
 }
 
 export class SchemaPageTransformer implements IJSONTransformer {
@@ -238,7 +246,7 @@ export class SchemaPageTransformer implements IJSONTransformer {
       mainBody,
       operationalMessages: props.operationalMessages || [],
       startSchemaLink: normalizeAltinnFormDeeplink(props.deeplink),
-      startSchemaLinkText: t("schema.startSchema", locale),
+      startSchemaLinkText: t(startSchemaTextKey(props.formOrService), locale),
       buttonInboxText: t("schema.buttonInbox", locale),
       accordianList: props.accordianList,
       providerPages,
