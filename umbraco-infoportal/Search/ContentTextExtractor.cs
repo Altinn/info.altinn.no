@@ -150,7 +150,7 @@ public class ContentTextExtractor
 
             textSegments.Add(text);
 
-            if (propertyType.Alias == "mainIntro" && string.IsNullOrEmpty(ingress))
+            if ((propertyType.Alias == "mainIntro" || propertyType.Alias == "leadText") && string.IsNullOrEmpty(ingress))
                 ingress = text;
         }
 
@@ -344,6 +344,7 @@ public class ContentTextExtractor
             var sectionMainBodyPath = JsonPath.Parse($"$.values[?(@.culture == '{culture}' && @.alias == 'mainBody')].value");
 
             var sectionAccordionListPath = JsonPath.Parse($"$.values[?@.alias == 'accordionList'].value");
+            var markupPath = JsonPath.Parse("$.markup");
 
             if (root.TryGetProperty("contentData", out var contentData)
                 && contentData.ValueKind == JsonValueKind.Array)
@@ -360,12 +361,17 @@ public class ContentTextExtractor
                         continue;
                     }
 
-                    string? sectionMainBody = sectionMainBodyPath.Evaluate(
+                    string? sectionMainBodyJson = sectionMainBodyPath.Evaluate(
                         JsonNode.Parse(sectionJson.ToJsonString())).Matches.FirstOrDefault()?.Value?.ToString();
-                    
-                    string url = GetContentUrl(content, culture) + "#" + Slugify(sectionName);
 
-                    Console.WriteLine("URL: " + url);
+                    string sectionMainBodyText = null;
+
+                    if (sectionMainBodyJson is not null)
+                    {
+                        var sectionMainBodyMarkup = markupPath.Evaluate(JsonNode.Parse(sectionMainBodyJson)).Matches.FirstOrDefault()?.Value.ToString();
+                        sectionMainBodyText = StripHtml(sectionMainBodyMarkup);
+                    }
+                    string url = GetContentUrl(content, culture) + "#" + Slugify(sectionName);
 
                     string? guidsJson = sectionAccordionListPath.Evaluate(JsonNode.Parse(sectionJson.ToJsonString())).Matches.FirstOrDefault()?.Value?.ToString();
 
@@ -376,20 +382,22 @@ public class ContentTextExtractor
                         accordionText += ExtractElementTextByGuid(Guid.Parse(jsonNode.ToString()), culture) + " ";
                     }
 
+                    var bet = BestBetData.FindByTitle(sectionName);
+
                     sectionDocuments.Add(new SearchDocument{
                         Id = $"{content.Id}_{culture}_{index}",
                         ContentId = content.Id,
                         ContentGuid = content.Key,
                         Title = sectionName,
                         TitleSuggest = string.IsNullOrWhiteSpace(sectionName) ? [] : [sectionName],
-                        Ingress = sectionMainBody,
+                        Ingress = sectionMainBodyText,
                         Body = accordionText,
                         Url = url,
                         ContentType = content.ContentType.Alias,
                         Culture = culture,
                         PublishDate = content.PublishDate,
                         UpdateDate = content.UpdateDate,
-                        //BestBetTriggers = bet?.TriggerPhrases.ToArray() ?? []
+                        BestBetTriggers = bet?.TriggerPhrases.ToArray() ?? []
                     });
 
                     index++;
