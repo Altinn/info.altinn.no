@@ -4,6 +4,7 @@ using Elastic.Clients.Elasticsearch.Core.Search;
 using Elastic.Clients.Elasticsearch.IndexManagement;
 using Elastic.Clients.Elasticsearch.Mapping;
 using Elastic.Clients.Elasticsearch.QueryDsl;
+using Elastic.Transport;
 using Infoportal.Adapters.Elasticsearch.Models;
 using Infoportal.Adapters.Elasticsearch.Resources;
 using Microsoft.Extensions.Logging;
@@ -61,6 +62,22 @@ public class ElasticsearchSearchService : ISearchService
     // bestBetTriggers field so editorial trigger phrases match as typed.
     private const string BestBetTriggersAnalyzer = "bestbet_triggers";
 
+    // Inference endpoint used by the bodySemantic semantic_text field. Created on
+    // demand with the built-in multilingual E5 small model (downloaded by ES itself,
+    // no eland upload needed). The endpoint name is kept for compatibility with
+    // existing index mappings even though the model is the small variant.
+    // min_number_of_allocations = 1 keeps the model warm so semantic search and
+    // indexing don't wait for a cold start.
+    private const string SemanticInferenceId = "e5-large-incluster";
+    private const string SemanticModelId = ".multilingual-e5-small_linux-x86_64";
+
+    // Creating the endpoint deploys the model, which can take minutes on first run.
+    private static readonly TimeSpan InferenceCreateTimeout = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan InferenceRetryInterval = TimeSpan.FromMinutes(5);
+    private static readonly SemaphoreSlim _inferenceLock = new(1, 1);
+    private static bool _inferenceEndpointReady;
+    private static DateTimeOffset _lastInferenceAttempt = DateTimeOffset.MinValue;
+
     private static bool IsNorwegian(string culture) => culture is "nb" or "nn";
 
     public ElasticsearchSearchService(
@@ -83,8 +100,88 @@ public class ElasticsearchSearchService : ISearchService
         _ => "standard"
     };
 
+    // Ensures the inference endpoint referenced by bodySemantic exists. Runs before the
+    // index-exists check since an existing index whose mapping references a missing
+    // endpoint rejects every document write. Failures are logged and retried at most
+    // every InferenceRetryInterval, so a cluster without ML doesn't block each write.
+    private async Task EnsureInferenceEndpointExistsAsync(CancellationToken ct)
+    {
+        if (_inferenceEndpointReady || DateTimeOffset.UtcNow - _lastInferenceAttempt < InferenceRetryInterval)
+            return;
+
+        await _inferenceLock.WaitAsync(ct);
+        try
+        {
+            if (_inferenceEndpointReady || DateTimeOffset.UtcNow - _lastInferenceAttempt < InferenceRetryInterval)
+                return;
+
+            _lastInferenceAttempt = DateTimeOffset.UtcNow;
+
+            // Check HttpStatusCode directly: the transport reports a 404 as
+            // HasSuccessfulStatusCode = true.
+            var getResponse = await _client.Transport.GetAsync<StringResponse>(
+                $"_inference/{SemanticInferenceId}", ct);
+            if (getResponse.ApiCallDetails.HttpStatusCode == 200)
+            {
+                _inferenceEndpointReady = true;
+                return;
+            }
+
+            if (getResponse.ApiCallDetails.HttpStatusCode != 404)
+            {
+                _logger.LogWarning(
+                    "Could not check inference endpoint {InferenceId}: {Error}",
+                    SemanticInferenceId, getResponse.ApiCallDetails.DebugInformation);
+                return;
+            }
+
+            var body = $$"""
+                {
+                  "service": "elasticsearch",
+                  "service_settings": {
+                    "model_id": "{{SemanticModelId}}",
+                    "num_threads": 1,
+                    "adaptive_allocations": {
+                      "enabled": true,
+                      "min_number_of_allocations": 1,
+                      "max_number_of_allocations": 4
+                    }
+                  }
+                }
+                """;
+
+            var putResponse = await _client.Transport.PutAsync<StringResponse>(
+                $"_inference/text_embedding/{SemanticInferenceId}?timeout={(int)InferenceCreateTimeout.TotalSeconds}s",
+                PostData.String(body), InferenceCreateTimeout, ct);
+
+            if (putResponse.ApiCallDetails.HttpStatusCode == 200)
+            {
+                _inferenceEndpointReady = true;
+                _logger.LogInformation(
+                    "Created inference endpoint {InferenceId} with model {ModelId}",
+                    SemanticInferenceId, SemanticModelId);
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "Failed to create inference endpoint {InferenceId}: {Error}",
+                    SemanticInferenceId, putResponse.ApiCallDetails.DebugInformation);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not ensure inference endpoint {InferenceId} exists", SemanticInferenceId);
+        }
+        finally
+        {
+            _inferenceLock.Release();
+        }
+    }
+
     public async Task EnsureIndexExistsAsync(string culture, CancellationToken ct = default)
     {
+        await EnsureInferenceEndpointExistsAsync(ct);
+
         var indexName = GetIndexName(culture);
         if (_createdIndices.Contains(indexName))
             return;
@@ -119,7 +216,7 @@ public class ElasticsearchSearchService : ISearchService
                         .Text("metaDescription", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName).CopyTo("bodySemantic"))
                         .Text("metaKeywords", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
                         .Text("body", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName).CopyTo("bodySemantic"))
-                        .SemanticText("bodySemantic", t => t.InferenceId("e5-large-incluster"))
+                        .SemanticText("bodySemantic", t => t.InferenceId(SemanticInferenceId))
                         .Text("bestBetTriggers", t => t.Analyzer(BestBetTriggersAnalyzer).SearchAnalyzer(BestBetTriggersAnalyzer))
                         .Keyword("url")
                         .Keyword("contentType")
