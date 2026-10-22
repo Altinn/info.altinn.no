@@ -9,6 +9,10 @@ public interface ISearchService
     Task IndexDocumentAsync(SearchDocument document, CancellationToken ct = default);
     Task DeleteDocumentAsync(int contentId, string culture, CancellationToken ct = default);
     Task DeleteDocumentAllCulturesAsync(int contentId, CancellationToken ct = default);
+    // Removes documents for the content item that are no longer produced, e.g. deleted help sections.
+    Task DeleteStaleDocumentsAsync(
+        int contentId, string culture, IReadOnlyCollection<string> currentDocumentIds,
+        CancellationToken ct = default);
     Task<SearchResultResponse> SearchAsync(
         string query, string culture, int pageNumber, int pageSize,
         string? context = null, CancellationToken ct = default);

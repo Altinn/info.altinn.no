@@ -80,7 +80,7 @@ const SearchInput = ({
       className={className}
       lang={uiLang}
     >
-      <DsSearch className="global-search" data-size={isDesktop ? "lg" : "md"}>
+      <DsSearch className="global-search" data-size={isDesktop ? "lg" : "md"} suppressHydrationWarning>
         <DsSearch.Input
           placeholder={placeholder}
           onChange={(e) => handleChange(e.target.value)}

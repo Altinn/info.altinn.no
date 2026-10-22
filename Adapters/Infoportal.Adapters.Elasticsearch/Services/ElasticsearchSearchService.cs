@@ -283,24 +283,43 @@ public class ElasticsearchSearchService : ISearchService
         }
     }
 
-    public async Task DeleteDocumentAsync(int contentId, string culture, CancellationToken ct = default)
+    public Task DeleteDocumentAsync(int contentId, string culture, CancellationToken ct = default) =>
+        DeleteByContentIdAsync(contentId, culture, [], ct);
+
+    public Task DeleteStaleDocumentsAsync(
+        int contentId, string culture, IReadOnlyCollection<string> currentDocumentIds,
+        CancellationToken ct = default) =>
+        DeleteByContentIdAsync(contentId, culture, currentDocumentIds, ct);
+
+    // A content item can own several documents (the page plus one per help section),
+    // so delete by contentId rather than by document id.
+    private async Task DeleteByContentIdAsync(
+        int contentId, string culture, IReadOnlyCollection<string> keepDocumentIds, CancellationToken ct)
     {
         try
         {
             var indexName = GetIndexName(culture);
-            var docId = $"{contentId}_{culture}";
-            var response = await _client.DeleteAsync(indexName, docId, ct);
+            var response = await _client.DeleteByQueryAsync<SearchDocument>(indexName, d => d
+                .Query(q => q.Bool(b =>
+                {
+                    b.Filter(f => f.Term(t => t.Field("contentId").Value(contentId)));
+                    if (keepDocumentIds.Count > 0)
+                        b.MustNot(m => m.Ids(i => i.Values(new Ids(keepDocumentIds))));
+                }))
+                .IgnoreUnavailable(true)
+                .Conflicts(Conflicts.Proceed)
+                .Refresh(true), ct);
 
-            if (!response.IsValidResponse && response.Result != Result.NotFound)
+            if (!response.IsValidResponse)
             {
                 _logger.LogWarning(
-                    "Failed to delete document {DocumentId}: {Error}",
-                    docId, response.DebugInformation);
+                    "Failed to delete documents for content {ContentId} ({Culture}): {Error}",
+                    contentId, culture, response.DebugInformation);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to delete document for content {ContentId}", contentId);
+            _logger.LogWarning(ex, "Failed to delete documents for content {ContentId}", contentId);
         }
     }
 

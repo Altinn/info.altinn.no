@@ -28,12 +28,19 @@ public class SearchIndexOnPublishHandler : INotificationHandler<ContentPublished
             {
                 try
                 {
-                    var document = _extractor.ExtractDocument(content, culture);
-                    if (document != null)
+                    var documents = _extractor.ExtractDocuments(content, culture);
+                    foreach (var document in documents)
                     {
                         _searchService.IndexDocumentAsync(document).GetAwaiter().GetResult();
                         _logger.LogInformation(
                             "Indexed content {ContentId} ({Culture})", content.Id, culture);
+                    }
+
+                    if (ContentTextExtractor.IsIndexable(content.ContentType.Alias))
+                    {
+                        _searchService.DeleteStaleDocumentsAsync(
+                                content.Id, culture, documents.Select(d => d.Id).ToList())
+                            .GetAwaiter().GetResult();
                     }
                 }
                 catch (Exception ex)
