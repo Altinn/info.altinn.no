@@ -35,6 +35,13 @@ public class SearchIndexOnPublishHandler : INotificationHandler<ContentPublished
                         _logger.LogInformation(
                             "Indexed content {ContentId} ({Culture})", content.Id, culture);
                     }
+
+                    if (ContentTextExtractor.IsIndexable(content.ContentType.Alias))
+                    {
+                        _searchService.DeleteStaleDocumentsAsync(
+                                content.Id, culture, documents.Select(d => d.Id).ToList())
+                            .GetAwaiter().GetResult();
+                    }
                 }
                 catch (Exception ex)
                 {
