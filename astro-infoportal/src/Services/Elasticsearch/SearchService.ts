@@ -17,6 +17,8 @@ import type {
 // IMPORTANT: keep in sync with
 //   Adapters/Infoportal.Adapters.Elasticsearch/Services/ElasticsearchSearchService.cs SearchFields.
 // This is the user-facing query path; the C# SearchAsync is only for backend/admin use.
+// Note: this path runs hybrid (lexical + semantic, RRF) search; the C# SearchAsync is
+// still lexical-only, so only the lexical multi_match part mirrors it.
 //
 // bestBetTriggers carries editorial trigger phrases (dialect, deprecated terms,
 // synonyms) that may not appear in the page itself. Highest boost so pages with
@@ -31,6 +33,18 @@ const SEARCH_FIELDS = [
   "bestBetTriggers^5",
 ];
 const DEFAULT_PAGE_SIZE = 10;
+
+// semantic_text field (inference endpoint e5-large-incluster) populated via copy_to
+// from title, ingress, metaDescription and body. Mapping is defined in
+// ElasticsearchSearchService.cs EnsureIndexExistsAsync.
+const SEMANTIC_FIELD = "bodySemantic";
+
+// Hybrid search fuses the lexical and semantic result lists with Reciprocal Rank
+// Fusion. Only the top RANK_WINDOW_SIZE fused hits can be paged through
+// (from + size beyond the window returns no hits), so it must stay constant across
+// pages for consistent paging. RANK_CONSTANT is the ES default.
+const RANK_WINDOW_SIZE = 100;
+const RANK_CONSTANT = 60;
 
 function getIndexName(config: ElasticsearchConfig, culture: string): string {
   return `${config.indexPrefix}-${culture.toLowerCase()}`;
@@ -55,28 +69,54 @@ function buildSearchBody(
   from: number,
   size: number,
   context: string | null | undefined,
+  hybrid: boolean,
 ): Record<string, unknown> {
+  const lexicalQuery = {
+    multi_match: {
+      query,
+      fields: SEARCH_FIELDS,
+      type: "best_fields",
+      // AND operator — matches legacy Optimizely Find behavior
+      // (FindExtensions.cs called .WithAndAsDefaultOperator()). With OR (the
+      // ES default), a query like "råne stasjon" would match any doc with
+      // either "råne" OR "stasjon", letting loan pages that mention e.g.
+      // "tankstasjon" or "togstasjon" surface incorrectly.
+      operator: "and",
+      // No fuzziness — also matches legacy. Fuzziness "AUTO" let the r→l
+      // substitution match "råne" against "låne" → stems to "lån" → matched
+      // pages like "Boliglån..." via the indexed "lån" token. Re-enable only
+      // with care (e.g. "AUTO:5,8" with prefix_length: 1) if typo tolerance
+      // is needed later. Backend C# search has the same fixes.
+    },
+  };
+
+  // match on a semantic_text field runs a vector search using the field's
+  // inference endpoint (recommended over the legacy `semantic` query in ES 9).
+  const semanticQuery = {
+    match: {
+      [SEMANTIC_FIELD]: { query },
+    },
+  };
+
+  const ranking = hybrid
+    ? {
+        retriever: {
+          rrf: {
+            retrievers: [
+              { standard: { query: lexicalQuery } },
+              { standard: { query: semanticQuery } },
+            ],
+            rank_window_size: RANK_WINDOW_SIZE,
+            rank_constant: RANK_CONSTANT,
+          },
+        },
+      }
+    : { query: lexicalQuery };
+
   const body: Record<string, unknown> = {
     from,
     size,
-    query: {
-      multi_match: {
-        query,
-        fields: SEARCH_FIELDS,
-        type: "best_fields",
-        // AND operator — matches legacy Optimizely Find behavior
-        // (FindExtensions.cs called .WithAndAsDefaultOperator()). With OR (the
-        // ES default), a query like "råne stasjon" would match any doc with
-        // either "råne" OR "stasjon", letting loan pages that mention e.g.
-        // "tankstasjon" or "togstasjon" surface incorrectly.
-        operator: "and",
-        // No fuzziness — also matches legacy. Fuzziness "AUTO" let the r→l
-        // substitution match "råne" against "låne" → stems to "lån" → matched
-        // pages like "Boliglån..." via the indexed "lån" token. Re-enable only
-        // with care (e.g. "AUTO:5,8" with prefix_length: 1) if typo tolerance
-        // is needed later. Backend C# search has the same fixes.
-      },
-    },
+    ...ranking,
     highlight: {
       fields: {
         title: { number_of_fragments: 0 },
@@ -194,6 +234,37 @@ function buildPageTypeFacets(
   return facets;
 }
 
+// Returns the parsed hybrid response, or null if it failed and lexical search
+// should be used instead. Shard failures count as failure: inference errors can
+// surface as a 200 with failed shards and partial (lexical-skewed) results.
+async function runHybridSearch(
+  runSearch: (hybrid: boolean) => Promise<Response>,
+): Promise<Record<string, unknown> | null> {
+  try {
+    const response = await runSearch(true);
+    if (!response.ok) {
+      console.warn(
+        `ES hybrid search failed, falling back to lexical: ${response.status} ${await response.text()}`,
+      );
+      return null;
+    }
+
+    const data = (await response.json()) as Record<string, unknown>;
+    const shards = data._shards as { failed?: number } | undefined;
+    if (shards?.failed) {
+      console.warn(
+        `ES hybrid search had ${shards.failed} failed shard(s), falling back to lexical`,
+      );
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.warn("ES hybrid search failed, falling back to lexical:", error);
+    return null;
+  }
+}
+
 export async function searchPages(
   config: ElasticsearchConfig,
   query: string,
@@ -211,24 +282,34 @@ export async function searchPages(
     providerFacets: [],
   };
 
-  const indexName = getIndexName(config, culture);
+  const searchUrl = `${config.url}/${getIndexName(config, culture)}/_search`;
   const from = (pageNumber - 1) * pageSize;
-  const body = buildSearchBody(query, from, pageSize, context);
 
-  const response = await fetch(`${config.url}/${indexName}/_search`, {
-    method: "POST",
-    headers: buildHeaders(config),
-    body: JSON.stringify(body),
-  });
+  const runSearch = (hybrid: boolean) =>
+    fetch(searchUrl, {
+      method: "POST",
+      headers: buildHeaders(config),
+      body: JSON.stringify(
+        buildSearchBody(query, from, pageSize, context, hybrid),
+      ),
+    });
 
-  if (!response.ok) {
-    console.error(
-      `ES search failed: ${response.status} ${response.statusText}`,
-    );
-    return emptyResult;
+  // Try hybrid first; fall back to lexical-only if the semantic part fails
+  // (e.g. inference endpoint unavailable or index missing the semantic field).
+  let data = await runHybridSearch(runSearch);
+  const hybrid = data != null;
+
+  if (!data) {
+    const response = await runSearch(false);
+    if (!response.ok) {
+      console.error(
+        `ES search failed: ${response.status} ${response.statusText}`,
+      );
+      return emptyResult;
+    }
+    data = (await response.json()) as Record<string, unknown>;
   }
 
-  const data = (await response.json()) as Record<string, unknown>;
   const hits = data.hits as Record<string, unknown> | undefined;
   if (!hits) return emptyResult;
 
@@ -243,7 +324,10 @@ export async function searchPages(
       .filter((hit) => hit._source != null)
       .map(mapHitToResultItem),
     totalResultCount: totalHits,
-    totalPages: Math.ceil(totalHits / pageSize),
+    // With hybrid, pages beyond the RRF rank window would come back empty.
+    totalPages: Math.ceil(
+      (hybrid ? Math.min(totalHits, RANK_WINDOW_SIZE) : totalHits) / pageSize,
+    ),
     currentPageNumber: pageNumber,
     pageTypeFacets: buildPageTypeFacets(aggregations),
     providerFacets: [],
