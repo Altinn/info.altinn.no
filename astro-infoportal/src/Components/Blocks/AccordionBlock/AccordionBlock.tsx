@@ -4,11 +4,19 @@ import { RichTextArea } from "/App.Components";
 const AccordionBlock = ({
   heading,
   description,
-}: any) => {    
+  headingLevel,
+  headingClassName,
+}: any) => {
+  // Optional heading element inside <summary>, e.g. h3 on HelpPage
+  const HeadingTag = headingLevel;
   return (
     <Details variant="default" data-color="neutral" data-size="md">
       <Details.Summary>
-        {heading}
+        {HeadingTag ? (
+          <HeadingTag className={headingClassName}>{heading}</HeadingTag>
+        ) : (
+          heading
+        )}
       </Details.Summary>
       <Details.Content>
         {description && <RichTextArea {...description} />}
