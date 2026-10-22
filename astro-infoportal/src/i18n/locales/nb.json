@@ -145,7 +145,7 @@
   "schema.whenToFillOut": "Når skal man fylle ut dette?",
   "schema.attachment": "Vedlegg",
   "schema.aboutSchema": "Om vedleggskjemaet",
-  "schema.startSchema": "Start tjeneste",
+  "schema.startService": "Start tjeneste",
   "schema.startForm": "Start skjema",
   "schema.whereToFindSchema": "Dette vedleggsskjemaet kan du legge ved følgende skjema",
   "schema.whatMunicipality": "Hvilken kommune skal du søke i?",

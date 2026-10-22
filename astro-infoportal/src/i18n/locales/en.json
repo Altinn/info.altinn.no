@@ -145,7 +145,7 @@
   "schema.whenToFillOut": "When should I complete this?",
   "schema.attachment": "Attachment",
   "schema.aboutSchema": "About the attachment form",
-  "schema.startSchema": "Start service",
+  "schema.startService": "Start service",
   "schema.startForm": "Start form",
   "schema.whereToFindSchema": "This attachment form can be attached to these forms",
   "schema.whatMunicipality": "In which municipality?",

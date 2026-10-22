@@ -46,9 +46,9 @@ function normalizeAltinnFormDeeplink(raw: string | undefined): string | undefine
 }
 
 function startSchemaTextKey(formOrService: string | undefined): TranslationKey {
-  if (env.USE_FORM_OR_SERVICE !== "true") return "schema.startSchema";
+  if (env.USE_FORM_OR_SERVICE !== "true") return "schema.startService";
   return formOrService?.trim().toLowerCase() === "tjeneste"
-    ? "schema.startSchema"
+    ? "schema.startService"
     : "schema.startForm";
 }
 
