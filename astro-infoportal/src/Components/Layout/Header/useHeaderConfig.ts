@@ -331,7 +331,7 @@ const useHeaderConfig = (
   const globalHeaderProps: GlobalHeaderProps = {
     globalMenu: {
       menuLabel: menuText,
-      menu: desktopMenu,
+      menu: { ...desktopMenu, id: "site-global-menu" },
       ...(localeSwitcher && { localeSwitcher }),
       ...(isLoggedIn && {
         backLabel: backButtonText,
@@ -352,7 +352,7 @@ const useHeaderConfig = (
       logo: { href: startPage.url },
     }),
     ...(localeSwitcher && { locale: localeSwitcher }),
-    desktopMenu,
+    desktopMenu: { ...desktopMenu, id: "site-desktop-menu" },
     accountSelector: {
       ...accountSelectorData,
       forceOpenFullScreen: false,

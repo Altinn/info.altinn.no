@@ -28,6 +28,18 @@ function viteClientFix() {
   };
 }
 
+function minifyServerBuild() {
+  return {
+    name: 'minify-server-build',
+    apply: 'build',
+    configEnvironment(name) {
+      if (name === 'ssr' || name === 'prerender') {
+        return {build: {minify: true}};
+      }
+    },
+  };
+}
+
 export default defineConfig({
   output: 'server',
   adapter: cloudflare({
@@ -56,12 +68,13 @@ export default defineConfig({
     },
   },
 
-  integrations: [react({experimentalReactChildren: true})],
+  integrations: [react()],
   vite: {
-    plugins: [viteClientFix()],
+    plugins: [viteClientFix(), minifyServerBuild()],
     build: {
-      minify: 'esbuild',
-      cssMinify: 'esbuild',
+      /* true = oxc */
+      minify: true,
+      cssMinify: true,
       rollupOptions: {
         output: {
           manualChunks(id) {
@@ -84,6 +97,6 @@ export default defineConfig({
           },
         },
       },
-    },    
+    },
   },
 });
