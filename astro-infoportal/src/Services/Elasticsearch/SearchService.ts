@@ -17,8 +17,8 @@ import type {
 // IMPORTANT: keep in sync with
 //   Adapters/Infoportal.Adapters.Elasticsearch/Services/ElasticsearchSearchService.cs SearchFields.
 // This is the user-facing query path; the C# SearchAsync is only for backend/admin use.
-// Note: this path runs hybrid (lexical + semantic, RRF) search; the C# SearchAsync is
-// still lexical-only, so only the lexical multi_match part mirrors it.
+// Note: this path also adds semantic hits (see fetchSemanticHits); the C# SearchAsync
+// is lexical-only, so only the lexical multi_match query mirrors it.
 //
 // bestBetTriggers carries editorial trigger phrases (dialect, deprecated terms,
 // synonyms) that may not appear in the page itself. Highest boost so pages with
@@ -39,24 +39,13 @@ const DEFAULT_PAGE_SIZE = 10;
 // ElasticsearchSearchService.cs EnsureIndexExistsAsync.
 const SEMANTIC_FIELD = "bodySemantic";
 
-// Hybrid search fuses the lexical and semantic result lists with Reciprocal Rank
-// Fusion. Only the top RANK_WINDOW_SIZE fused hits can be paged through
-// (from + size beyond the window returns no hits), so it must stay constant across
-// pages for consistent paging. RANK_CONSTANT is the ES default.
-const RANK_WINDOW_SIZE = 100;
-const RANK_CONSTANT = 60;
-
-// Minimum raw cosine similarity for a semantic hit (not the _score). Without it the
-// semantic retriever returns the RANK_WINDOW_SIZE nearest pages for any query, however
-// unrelated. E5 similarities sit in a high, narrow band (unrelated text often scores
-// ~0.7–0.75), so 0.80 is a conservative starting point. Tune against real queries.
-const SEMANTIC_MIN_SIMILARITY = 0.8;
-const SEMANTIC_NUM_CANDIDATES = 2 * RANK_WINDOW_SIZE;
-
-// RRF weights. Lexical is weighted higher so exact keyword matches stay on top and
-// semantic hits mainly fill in pages the keywords miss.
-const LEXICAL_WEIGHT = 2.0;
-const SEMANTIC_WEIGHT = 1.0;
+// Keyword search drives results, totals, facets and paging. On page 1, the top
+// SEMANTIC_HIT_COUNT semantic hits that keyword search missed are appended.
+// A fixed similarity threshold doesn't work with E5: unrelated pages score in the
+// same narrow band (~0.76–0.87 cosine) as relevant ones, but the nearest pages by
+// rank are usually right, so a small top-k is used instead.
+const SEMANTIC_HIT_COUNT = 5;
+const SEMANTIC_NUM_CANDIDATES = 50;
 
 function getIndexName(config: ElasticsearchConfig, culture: string): string {
   return `${config.indexPrefix}-${culture.toLowerCase()}`;
@@ -76,14 +65,8 @@ function stripEmTags(text: string): string {
   return text.replace(/<em>/g, "").replace(/<\/em>/g, "");
 }
 
-function buildSearchBody(
-  query: string,
-  from: number,
-  size: number,
-  context: string | null | undefined,
-  hybrid: boolean,
-): Record<string, unknown> {
-  const lexicalQuery = {
+function buildLexicalQuery(query: string): Record<string, unknown> {
+  return {
     multi_match: {
       query,
       fields: SEARCH_FIELDS,
@@ -101,46 +84,18 @@ function buildSearchBody(
       // is needed later. Backend C# search has the same fixes.
     },
   };
+}
 
-  // knn on a semantic_text field embeds the query with the field's inference
-  // endpoint. Used instead of match so a similarity threshold can be applied.
-  const semanticQuery = {
-    knn: {
-      field: SEMANTIC_FIELD,
-      k: RANK_WINDOW_SIZE,
-      num_candidates: SEMANTIC_NUM_CANDIDATES,
-      similarity: SEMANTIC_MIN_SIMILARITY,
-      query_vector_builder: {
-        text_embedding: { model_text: query },
-      },
-    },
-  };
-
-  const ranking = hybrid
-    ? {
-        retriever: {
-          rrf: {
-            retrievers: [
-              {
-                retriever: { standard: { query: lexicalQuery } },
-                weight: LEXICAL_WEIGHT,
-              },
-              {
-                retriever: { standard: { query: semanticQuery } },
-                weight: SEMANTIC_WEIGHT,
-              },
-            ],
-            rank_window_size: RANK_WINDOW_SIZE,
-            rank_constant: RANK_CONSTANT,
-          },
-        },
-      }
-    : { query: lexicalQuery };
-
+function buildSearchBody(
+  query: string,
+  from: number,
+  size: number,
+  context: string | null | undefined,
+): Record<string, unknown> {
   const body: Record<string, unknown> = {
     from,
     size,
-    ...ranking,
+    query: buildLexicalQuery(query),
     highlight: {
       fields: {
         title: { number_of_fragments: 0 },
@@ -167,6 +122,40 @@ function buildSearchBody(
   }
 
   return body;
+}
+
+// knn on a semantic_text field embeds the query with the field's inference
+// endpoint. The pre-filter excludes pages the lexical query matches, so the
+// semantic hits never duplicate keyword results on any page, and applies the
+// same context filter as the lexical search.
+function buildSemanticBody(
+  query: string,
+  context: string | null | undefined,
+): Record<string, unknown> {
+  const filter: Record<string, unknown> = {
+    must_not: [buildLexicalQuery(query)],
+  };
+
+  const contextContentTypes = getContentTypesForContext(context);
+  if (contextContentTypes) {
+    filter.filter = [{ terms: { contentType: contextContentTypes } }];
+  }
+
+  return {
+    size: SEMANTIC_HIT_COUNT,
+    _source: { excludes: ["body", SEMANTIC_FIELD] },
+    query: {
+      knn: {
+        field: SEMANTIC_FIELD,
+        k: SEMANTIC_HIT_COUNT,
+        num_candidates: SEMANTIC_NUM_CANDIDATES,
+        query_vector_builder: {
+          text_embedding: { model_text: query },
+        },
+        filter: { bool: filter },
+      },
+    },
+  };
 }
 
 function buildSuggestBody(query: string): Record<string, unknown> {
@@ -258,34 +247,49 @@ function buildPageTypeFacets(
   return facets;
 }
 
-// Returns the parsed hybrid response, or null if it failed and lexical search
-// should be used instead. Shard failures count as failure: inference errors can
-// surface as a 200 with failed shards and partial (lexical-skewed) results.
-async function runHybridSearch(
-  runSearch: (hybrid: boolean) => Promise<Response>,
-): Promise<Record<string, unknown> | null> {
+function postSearch(
+  config: ElasticsearchConfig,
+  culture: string,
+  body: Record<string, unknown>,
+): Promise<Response> {
+  return fetch(`${config.url}/${getIndexName(config, culture)}/_search`, {
+    method: "POST",
+    headers: buildHeaders(config),
+    body: JSON.stringify(body),
+  });
+}
+
+// Returns the top semantic hits that the lexical query missed, or [] if the
+// semantic search fails (e.g. inference endpoint unavailable), so keyword
+// search keeps working on its own.
+async function fetchSemanticHits(
+  config: ElasticsearchConfig,
+  query: string,
+  culture: string,
+  context: string | null | undefined,
+): Promise<SearchResultItem[]> {
   try {
-    const response = await runSearch(true);
+    const response = await postSearch(
+      config,
+      culture,
+      buildSemanticBody(query, context),
+    );
     if (!response.ok) {
       console.warn(
-        `ES hybrid search failed, falling back to lexical: ${response.status} ${await response.text()}`,
+        `ES semantic search failed: ${response.status} ${await response.text()}`,
       );
-      return null;
+      return [];
     }
 
     const data = (await response.json()) as Record<string, unknown>;
-    const shards = data._shards as { failed?: number } | undefined;
-    if (shards?.failed) {
-      console.warn(
-        `ES hybrid search had ${shards.failed} failed shard(s), falling back to lexical`,
-      );
-      return null;
-    }
-
-    return data;
+    const hits = data.hits as Record<string, unknown> | undefined;
+    const hitItems = (hits?.hits ?? []) as Array<Record<string, unknown>>;
+    return hitItems
+      .filter((hit) => hit._source != null)
+      .map(mapHitToResultItem);
   } catch (error) {
-    console.warn("ES hybrid search failed, falling back to lexical:", error);
-    return null;
+    console.warn("ES semantic search failed:", error);
+    return [];
   }
 }
 
@@ -306,34 +310,25 @@ export async function searchPages(
     providerFacets: [],
   };
 
-  const searchUrl = `${config.url}/${getIndexName(config, culture)}/_search`;
   const from = (pageNumber - 1) * pageSize;
 
-  const runSearch = (hybrid: boolean) =>
-    fetch(searchUrl, {
-      method: "POST",
-      headers: buildHeaders(config),
-      body: JSON.stringify(
-        buildSearchBody(query, from, pageSize, context, hybrid),
-      ),
-    });
+  // Semantic hits are only added to page 1, so later pages page through
+  // keyword results exactly as before.
+  const [response, semanticItems] = await Promise.all([
+    postSearch(config, culture, buildSearchBody(query, from, pageSize, context)),
+    pageNumber === 1
+      ? fetchSemanticHits(config, query, culture, context)
+      : Promise.resolve([]),
+  ]);
 
-  // Try hybrid first; fall back to lexical-only if the semantic part fails
-  // (e.g. inference endpoint unavailable or index missing the semantic field).
-  let data = await runHybridSearch(runSearch);
-  const hybrid = data != null;
-
-  if (!data) {
-    const response = await runSearch(false);
-    if (!response.ok) {
-      console.error(
-        `ES search failed: ${response.status} ${response.statusText}`,
-      );
-      return emptyResult;
-    }
-    data = (await response.json()) as Record<string, unknown>;
+  if (!response.ok) {
+    console.error(
+      `ES search failed: ${response.status} ${response.statusText}`,
+    );
+    return emptyResult;
   }
 
+  const data = (await response.json()) as Record<string, unknown>;
   const hits = data.hits as Record<string, unknown> | undefined;
   if (!hits) return emptyResult;
 
@@ -343,14 +338,17 @@ export async function searchPages(
   const hitItems = (hits.hits ?? []) as Array<Record<string, unknown>>;
   const aggregations = data.aggregations as Record<string, unknown> | undefined;
 
+  const lexicalItems = hitItems
+    .filter((hit) => hit._source != null)
+    .map(mapHitToResultItem);
+
   return {
-    items: hitItems
-      .filter((hit) => hit._source != null)
-      .map(mapHitToResultItem),
-    totalResultCount: totalHits,
-    // With hybrid, pages beyond the RRF rank window would come back empty.
-    totalPages: Math.ceil(
-      (hybrid ? Math.min(totalHits, RANK_WINDOW_SIZE) : totalHits) / pageSize,
+    // Semantic hits go after the keyword hits, so exact matches stay on top.
+    items: [...lexicalItems, ...semanticItems],
+    totalResultCount: totalHits + semanticItems.length,
+    totalPages: Math.max(
+      Math.ceil(totalHits / pageSize),
+      semanticItems.length > 0 ? 1 : 0,
     ),
     currentPageNumber: pageNumber,
     pageTypeFacets: buildPageTypeFacets(aggregations),

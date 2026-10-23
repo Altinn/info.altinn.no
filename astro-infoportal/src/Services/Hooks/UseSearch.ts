@@ -92,6 +92,9 @@ export function useSearchPage(
   const [totalResultCount, setTotalResultCount] = useState<number>(
     initialResults?.totalResultCount ?? 0,
   );
+  const [totalPages, setTotalPages] = useState<number>(
+    initialResults?.totalPages ?? 0,
+  );
   const [filters, setFilters] = useState<FilterState>(() => ({
     providers: [],
     pagetypes: [currentContext || SearchContext.All],
@@ -123,7 +126,12 @@ export function useSearchPage(
           .reduce((sum: any, x: any) => sum + x.count, 0)
       : totalResultCount;
 
-  const calculatedTotalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  // Use the server's page count: totalResultCount includes semantic hits that are
+  // only shown on page 1, so dividing it by pageSize would overcount pages.
+  const calculatedTotalPages = Math.max(
+    1,
+    selectedProviders.length > 0 ? Math.ceil(totalItems / pageSize) : totalPages,
+  );
 
   const inFlight = useRef<AbortController | null>(null);
 
@@ -177,10 +185,12 @@ export function useSearchPage(
         if (result?.items?.length) {
           setItems(result.items);
           setTotalResultCount(result.totalResultCount ?? 0);
+          setTotalPages(result.totalPages ?? 0);
           setHasNoResults(false);
         } else {
           setItems([]);
           setTotalResultCount(0);
+          setTotalPages(0);
           setHasNoResults(true);
         }
 
