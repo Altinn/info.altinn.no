@@ -60,3 +60,8 @@ body {
 div[data-theme] {
   --altinn-banner-height: var(--infoportal-banner-height, 0px);
 }
+
+// We can't pass a className to the component, so we target it directly here.
+header nav > footer > button {
+  width: 100%;
+}
