@@ -34,9 +34,9 @@ const SEARCH_FIELDS = [
 ];
 const DEFAULT_PAGE_SIZE = 10;
 
-// semantic_text field (inference endpoint e5-large-incluster) populated via copy_to
-// from title, ingress, metaDescription and body. Mapping is defined in
-// ElasticsearchSearchService.cs EnsureIndexExistsAsync.
+// semantic_text field (inference endpoint e5-large-incluster) holding the meaningful
+// title, ingress, metaDescription and body values. Mapping and values are set in
+// ElasticsearchSearchService.cs (EnsureIndexExistsAsync, IndexDocumentAsync).
 const SEMANTIC_FIELD = "bodySemantic";
 
 // Keyword search drives results, totals, facets and paging. On page 1, the top

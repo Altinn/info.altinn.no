@@ -78,7 +78,20 @@ public class ElasticsearchSearchService : ISearchService
     private static bool _inferenceEndpointReady;
     private static DateTimeOffset _lastInferenceAttempt = DateTimeOffset.MinValue;
 
+    // Fields shorter than this (in letters) are not embedded. Near-empty values like
+    // "." or "...." (placeholder ingresses) embed close to every query (~0.83 cosine
+    // with E5) and would outrank real matches, since a page scores by its best chunk.
+    private const int MinSemanticLetters = 3;
+
     private static bool IsNorwegian(string culture) => culture is "nb" or "nn";
+
+    // Values for the bodySemantic field: each meaningful text field as its own value,
+    // so ES embeds them separately (as copy_to did) but skips empty/placeholder text.
+    private static string[] BuildSemanticTexts(SearchDocument document) =>
+        new[] { document.Title, document.Ingress, document.MetaDescription, document.Body }
+            .Where(text => !string.IsNullOrEmpty(text) && text.Count(char.IsLetter) >= MinSemanticLetters)
+            .Distinct()
+            .ToArray();
 
     public ElasticsearchSearchService(
         ElasticsearchClientFactory clientFactory,
@@ -210,12 +223,12 @@ public class ElasticsearchSearchService : ISearchService
                         .Keyword("id")
                         .IntegerNumber("contentId")
                         .Keyword("contentGuid")
-                        .Text("title", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName).CopyTo("bodySemantic"))
+                        .Text("title", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
                         .Text("metaTitle", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
-                        .Text("ingress", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName).CopyTo("bodySemantic"))
-                        .Text("metaDescription", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName).CopyTo("bodySemantic"))
+                        .Text("ingress", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
+                        .Text("metaDescription", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
                         .Text("metaKeywords", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
-                        .Text("body", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName).CopyTo("bodySemantic"))
+                        .Text("body", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
                         .SemanticText("bodySemantic", t => t.InferenceId(SemanticInferenceId))
                         .Text("bestBetTriggers", t => t.Analyzer(BestBetTriggersAnalyzer).SearchAnalyzer(BestBetTriggersAnalyzer))
                         .Keyword("url")
@@ -362,6 +375,7 @@ public class ElasticsearchSearchService : ISearchService
         {
             await EnsureIndexExistsAsync(document.Culture, ct);
             var indexName = GetIndexName(document.Culture);
+            document.BodySemantic = BuildSemanticTexts(document);
 
             var response = await _client.IndexAsync(document, i => i
                 .Index(indexName)
