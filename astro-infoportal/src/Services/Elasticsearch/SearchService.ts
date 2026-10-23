@@ -46,6 +46,18 @@ const SEMANTIC_FIELD = "bodySemantic";
 const RANK_WINDOW_SIZE = 100;
 const RANK_CONSTANT = 60;
 
+// Minimum raw cosine similarity for a semantic hit (not the _score). Without it the
+// semantic retriever returns the RANK_WINDOW_SIZE nearest pages for any query, however
+// unrelated. E5 similarities sit in a high, narrow band (unrelated text often scores
+// ~0.7–0.75), so 0.80 is a conservative starting point. Tune against real queries.
+const SEMANTIC_MIN_SIMILARITY = 0.8;
+const SEMANTIC_NUM_CANDIDATES = 2 * RANK_WINDOW_SIZE;
+
+// RRF weights. Lexical is weighted higher so exact keyword matches stay on top and
+// semantic hits mainly fill in pages the keywords miss.
+const LEXICAL_WEIGHT = 2.0;
+const SEMANTIC_WEIGHT = 1.0;
+
 function getIndexName(config: ElasticsearchConfig, culture: string): string {
   return `${config.indexPrefix}-${culture.toLowerCase()}`;
 }
@@ -90,11 +102,17 @@ function buildSearchBody(
     },
   };
 
-  // match on a semantic_text field runs a vector search using the field's
-  // inference endpoint (recommended over the legacy `semantic` query in ES 9).
+  // knn on a semantic_text field embeds the query with the field's inference
+  // endpoint. Used instead of match so a similarity threshold can be applied.
   const semanticQuery = {
-    match: {
-      [SEMANTIC_FIELD]: { query },
+    knn: {
+      field: SEMANTIC_FIELD,
+      k: RANK_WINDOW_SIZE,
+      num_candidates: SEMANTIC_NUM_CANDIDATES,
+      similarity: SEMANTIC_MIN_SIMILARITY,
+      query_vector_builder: {
+        text_embedding: { model_text: query },
+      },
     },
   };
 
@@ -103,8 +121,14 @@ function buildSearchBody(
         retriever: {
           rrf: {
             retrievers: [
-              { standard: { query: lexicalQuery } },
-              { standard: { query: semanticQuery } },
+              {
+                retriever: { standard: { query: lexicalQuery } },
+                weight: LEXICAL_WEIGHT,
+              },
+              {
+                retriever: { standard: { query: semanticQuery } },
+                weight: SEMANTIC_WEIGHT,
+              },
             ],
             rank_window_size: RANK_WINDOW_SIZE,
             rank_constant: RANK_CONSTANT,
