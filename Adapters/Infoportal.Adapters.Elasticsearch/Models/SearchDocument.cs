@@ -56,4 +56,9 @@ public class SearchDocument
     // variants exactly.
     [JsonPropertyName("bestBetTriggers")]
     public string[] BestBetTriggers { get; set; } = [];
+
+    // semantic_text field: the meaningful title/ingress/metaDescription values,
+    // embedded by ES. Set by ElasticsearchSearchService.IndexDocumentAsync.
+    [JsonPropertyName("bodySemantic")]
+    public string[] BodySemantic { get; set; } = [];
 }
