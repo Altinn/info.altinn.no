@@ -35,7 +35,7 @@ const SEARCH_FIELDS = [
 const DEFAULT_PAGE_SIZE = 10;
 
 // semantic_text field (inference endpoint e5-large-incluster) holding the meaningful
-// title, ingress, metaDescription and body values. Mapping and values are set in
+// title, ingress and metaDescription values (not body). Mapping and values are set in
 // ElasticsearchSearchService.cs (EnsureIndexExistsAsync, IndexDocumentAsync).
 const SEMANTIC_FIELD = "bodySemantic";
 

@@ -86,9 +86,12 @@ public class ElasticsearchSearchService : ISearchService
     private static bool IsNorwegian(string culture) => culture is "nb" or "nn";
 
     // Values for the bodySemantic field: each meaningful text field as its own value,
-    // so ES embeds them separately (as copy_to did) but skips empty/placeholder text.
+    // so ES embeds them separately but skips empty/placeholder text.
+    // Body is left out on purpose: long, often boilerplate body chunks embed moderately
+    // close to every query and crowded the right pages out of the semantic top 20 on
+    // at22. Body text is still covered by keyword search.
     private static string[] BuildSemanticTexts(SearchDocument document) =>
-        new[] { document.Title, document.Ingress, document.MetaDescription, document.Body }
+        new[] { document.Title, document.Ingress, document.MetaDescription }
             .Where(text => !string.IsNullOrEmpty(text) && text.Count(char.IsLetter) >= MinSemanticLetters)
             .Distinct()
             .ToArray();
