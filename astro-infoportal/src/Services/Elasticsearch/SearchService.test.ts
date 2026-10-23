@@ -20,12 +20,12 @@ const ids = (hits: Array<Record<string, unknown>>) => hits.map((h) => h._id);
 
 describe("selectRelevantSemanticHits", () => {
   it("keeps hits that clearly beat the query's noise floor", () => {
-    const hits = candidates([0.88, 0.86, 0.845]);
+    const hits = candidates([0.88, 0.86, 0.835]);
     expect(ids(selectRelevantSemanticHits(hits))).toEqual(["lead0", "lead1"]);
   });
 
   it("keeps nothing when no hit stands out (unrelated query)", () => {
-    const hits = candidates([0.844, 0.84]);
+    const hits = candidates([0.836, 0.835]);
     expect(selectRelevantSemanticHits(hits)).toEqual([]);
   });
 

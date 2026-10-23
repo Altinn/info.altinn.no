@@ -45,12 +45,13 @@ const SEMANTIC_FIELD = "bodySemantic";
 // same narrow band (~0.76–0.87 cosine) as relevant ones, and the band shifts per
 // query. Instead the SEMANTIC_CANDIDATE_COUNT-th candidate's cosine is used as the
 // query's noise floor, and a hit is kept only if it beats the floor by
-// SEMANTIC_RELEVANCE_MARGIN. In local tests on at22 pages (paraphrase and unrelated
-// queries), 0.03 kept the right page in about half the cases and almost nothing
-// for unrelated queries; 0.02 let noise through, 0.04 dropped most right pages.
+// SEMANTIC_RELEVANCE_MARGIN. Calibrated on at22 (title/ingress/metaDescription
+// embedded): right pages beat the floor by 0.016–0.028 and the top hits of
+// unrelated queries by 0.015–0.020, so 0.022 favours precision: it keeps hits that
+// clearly stand out and nothing for unrelated queries, but misses weaker matches.
 const SEMANTIC_CANDIDATE_COUNT = 20;
 const SEMANTIC_NUM_CANDIDATES = 100;
-const SEMANTIC_RELEVANCE_MARGIN = 0.03;
+const SEMANTIC_RELEVANCE_MARGIN = 0.022;
 // Upper bound only; usually 0–2 hits pass the relevance rule.
 const SEMANTIC_MAX_HITS = 5;
 
