@@ -47,7 +47,6 @@ public class RedirectController : ControllerBase
                     WHERE pd.propertyTypeId = pt.id
                     AND pt.alias = 'umbracoUrlAlias'
                     AND cv.id = pd.versionId
-                    AND cv.""current"" = 1
                     AND pd.languageId = l.id
                     AND n.id = cv.nodeId
                     AND d.nodeId = n.id
