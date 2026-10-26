@@ -9,10 +9,11 @@ export type FormOrService = "form" | "service";
 // USE_FORM_OR_SERVICE flag until the pre-announced switch date; while off this
 // returns null and every schema keeps its legacy texts.
 export function resolveFormOrService(
-  raw: string | undefined | null,
+  raw: boolean | undefined,
 ): FormOrService | null {
   if (env.USE_FORM_OR_SERVICE !== "true") return null;
-  return raw?.trim().toLowerCase() === "tjeneste" ? "service" : "form";
+  if (raw === undefined || raw === null) return 'service';
+  return raw ? "service" : "form";
 }
 
 // Legacy label is "Start tjeneste", so only an explicit "Skjema" changes it.
