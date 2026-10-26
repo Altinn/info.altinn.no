@@ -17,6 +17,8 @@ import type {
 // IMPORTANT: keep in sync with
 //   Adapters/Infoportal.Adapters.Elasticsearch/Services/ElasticsearchSearchService.cs SearchFields.
 // This is the user-facing query path; the C# SearchAsync is only for backend/admin use.
+// Note: this path also adds semantic hits (see fetchSemanticHits); the C# SearchAsync
+// is lexical-only, so only the lexical multi_match query mirrors it.
 //
 // bestBetTriggers carries editorial trigger phrases (dialect, deprecated terms,
 // synonyms) that may not appear in the page itself. Highest boost so pages with
@@ -31,6 +33,27 @@ const SEARCH_FIELDS = [
   "bestBetTriggers^5",
 ];
 const DEFAULT_PAGE_SIZE = 10;
+
+// semantic_text field (inference endpoint e5-large-incluster) holding the meaningful
+// title, ingress and metaDescription values (not body). Mapping and values are set in
+// ElasticsearchSearchService.cs (EnsureIndexExistsAsync, IndexDocumentAsync).
+const SEMANTIC_FIELD = "bodySemantic";
+
+// Keyword search drives results, totals, facets and paging. On page 1, semantic
+// hits that keyword search missed are appended, but only relevant ones.
+// A fixed similarity threshold doesn't work with E5: unrelated pages score in the
+// same narrow band (~0.76–0.87 cosine) as relevant ones, and the band shifts per
+// query. Instead the SEMANTIC_CANDIDATE_COUNT-th candidate's cosine is used as the
+// query's noise floor, and a hit is kept only if it beats the floor by
+// SEMANTIC_RELEVANCE_MARGIN. Calibrated on at22 (title/ingress/metaDescription
+// embedded): right pages beat the floor by 0.016–0.028 and the top hits of
+// unrelated queries by 0.015–0.020, so 0.022 favours precision: it keeps hits that
+// clearly stand out and nothing for unrelated queries, but misses weaker matches.
+const SEMANTIC_CANDIDATE_COUNT = 20;
+const SEMANTIC_NUM_CANDIDATES = 100;
+const SEMANTIC_RELEVANCE_MARGIN = 0.022;
+// Upper bound only; usually 0–2 hits pass the relevance rule.
+const SEMANTIC_MAX_HITS = 5;
 
 function getIndexName(config: ElasticsearchConfig, culture: string): string {
   return `${config.indexPrefix}-${culture.toLowerCase()}`;
@@ -50,6 +73,27 @@ function stripEmTags(text: string): string {
   return text.replace(/<em>/g, "").replace(/<\/em>/g, "");
 }
 
+function buildLexicalQuery(query: string): Record<string, unknown> {
+  return {
+    multi_match: {
+      query,
+      fields: SEARCH_FIELDS,
+      type: "best_fields",
+      // AND operator — matches legacy Optimizely Find behavior
+      // (FindExtensions.cs called .WithAndAsDefaultOperator()). With OR (the
+      // ES default), a query like "råne stasjon" would match any doc with
+      // either "råne" OR "stasjon", letting loan pages that mention e.g.
+      // "tankstasjon" or "togstasjon" surface incorrectly.
+      operator: "and",
+      // No fuzziness — also matches legacy. Fuzziness "AUTO" let the r→l
+      // substitution match "råne" against "låne" → stems to "lån" → matched
+      // pages like "Boliglån..." via the indexed "lån" token. Re-enable only
+      // with care (e.g. "AUTO:5,8" with prefix_length: 1) if typo tolerance
+      // is needed later. Backend C# search has the same fixes.
+    },
+  };
+}
+
 function buildSearchBody(
   query: string,
   from: number,
@@ -59,24 +103,7 @@ function buildSearchBody(
   const body: Record<string, unknown> = {
     from,
     size,
-    query: {
-      multi_match: {
-        query,
-        fields: SEARCH_FIELDS,
-        type: "best_fields",
-        // AND operator — matches legacy Optimizely Find behavior
-        // (FindExtensions.cs called .WithAndAsDefaultOperator()). With OR (the
-        // ES default), a query like "råne stasjon" would match any doc with
-        // either "råne" OR "stasjon", letting loan pages that mention e.g.
-        // "tankstasjon" or "togstasjon" surface incorrectly.
-        operator: "and",
-        // No fuzziness — also matches legacy. Fuzziness "AUTO" let the r→l
-        // substitution match "råne" against "låne" → stems to "lån" → matched
-        // pages like "Boliglån..." via the indexed "lån" token. Re-enable only
-        // with care (e.g. "AUTO:5,8" with prefix_length: 1) if typo tolerance
-        // is needed later. Backend C# search has the same fixes.
-      },
-    },
+    query: buildLexicalQuery(query),
     highlight: {
       fields: {
         title: { number_of_fragments: 0 },
@@ -103,6 +130,40 @@ function buildSearchBody(
   }
 
   return body;
+}
+
+// knn on a semantic_text field embeds the query with the field's inference
+// endpoint. The pre-filter excludes pages the lexical query matches, so the
+// semantic hits never duplicate keyword results on any page, and applies the
+// same context filter as the lexical search.
+function buildSemanticBody(
+  query: string,
+  context: string | null | undefined,
+): Record<string, unknown> {
+  const filter: Record<string, unknown> = {
+    must_not: [buildLexicalQuery(query)],
+  };
+
+  const contextContentTypes = getContentTypesForContext(context);
+  if (contextContentTypes) {
+    filter.filter = [{ terms: { contentType: contextContentTypes } }];
+  }
+
+  return {
+    size: SEMANTIC_CANDIDATE_COUNT,
+    _source: { excludes: ["body", SEMANTIC_FIELD] },
+    query: {
+      knn: {
+        field: SEMANTIC_FIELD,
+        k: SEMANTIC_CANDIDATE_COUNT,
+        num_candidates: SEMANTIC_NUM_CANDIDATES,
+        query_vector_builder: {
+          text_embedding: { model_text: query },
+        },
+        filter: { bool: filter },
+      },
+    },
+  };
 }
 
 function buildSuggestBody(query: string): Record<string, unknown> {
@@ -194,6 +255,70 @@ function buildPageTypeFacets(
   return facets;
 }
 
+function postSearch(
+  config: ElasticsearchConfig,
+  culture: string,
+  body: Record<string, unknown>,
+): Promise<Response> {
+  return fetch(`${config.url}/${getIndexName(config, culture)}/_search`, {
+    method: "POST",
+    headers: buildHeaders(config),
+    body: JSON.stringify(body),
+  });
+}
+
+// Keeps the candidates that stand out from the query's noise floor (see
+// SEMANTIC_RELEVANCE_MARGIN). Hits must be sorted by score, as ES returns them.
+// knn _score for cosine is (1 + cosine) / 2, so it is converted back to cosine.
+export function selectRelevantSemanticHits(
+  hits: Array<Record<string, unknown>>,
+): Array<Record<string, unknown>> {
+  // Too few candidates (e.g. a small context) to estimate the noise floor.
+  if (hits.length < SEMANTIC_CANDIDATE_COUNT) return [];
+
+  const cosine = (hit: Record<string, unknown>) =>
+    2 * ((hit._score as number) ?? 0) - 1;
+  const floor = cosine(hits[SEMANTIC_CANDIDATE_COUNT - 1]);
+
+  return hits
+    .filter((hit) => cosine(hit) >= floor + SEMANTIC_RELEVANCE_MARGIN)
+    .slice(0, SEMANTIC_MAX_HITS);
+}
+
+// Returns the relevant semantic hits that the lexical query missed, or [] if the
+// semantic search fails (e.g. inference endpoint unavailable), so keyword
+// search keeps working on its own.
+async function fetchSemanticHits(
+  config: ElasticsearchConfig,
+  query: string,
+  culture: string,
+  context: string | null | undefined,
+): Promise<SearchResultItem[]> {
+  try {
+    const response = await postSearch(
+      config,
+      culture,
+      buildSemanticBody(query, context),
+    );
+    if (!response.ok) {
+      console.warn(
+        `ES semantic search failed: ${response.status} ${await response.text()}`,
+      );
+      return [];
+    }
+
+    const data = (await response.json()) as Record<string, unknown>;
+    const hits = data.hits as Record<string, unknown> | undefined;
+    const hitItems = (hits?.hits ?? []) as Array<Record<string, unknown>>;
+    return selectRelevantSemanticHits(hitItems)
+      .filter((hit) => hit._source != null)
+      .map(mapHitToResultItem);
+  } catch (error) {
+    console.warn("ES semantic search failed:", error);
+    return [];
+  }
+}
+
 export async function searchPages(
   config: ElasticsearchConfig,
   query: string,
@@ -211,15 +336,16 @@ export async function searchPages(
     providerFacets: [],
   };
 
-  const indexName = getIndexName(config, culture);
   const from = (pageNumber - 1) * pageSize;
-  const body = buildSearchBody(query, from, pageSize, context);
 
-  const response = await fetch(`${config.url}/${indexName}/_search`, {
-    method: "POST",
-    headers: buildHeaders(config),
-    body: JSON.stringify(body),
-  });
+  // Semantic hits are only added to page 1, so later pages page through
+  // keyword results exactly as before.
+  const [response, semanticItems] = await Promise.all([
+    postSearch(config, culture, buildSearchBody(query, from, pageSize, context)),
+    pageNumber === 1
+      ? fetchSemanticHits(config, query, culture, context)
+      : Promise.resolve([]),
+  ]);
 
   if (!response.ok) {
     console.error(
@@ -238,12 +364,18 @@ export async function searchPages(
   const hitItems = (hits.hits ?? []) as Array<Record<string, unknown>>;
   const aggregations = data.aggregations as Record<string, unknown> | undefined;
 
+  const lexicalItems = hitItems
+    .filter((hit) => hit._source != null)
+    .map(mapHitToResultItem);
+
   return {
-    items: hitItems
-      .filter((hit) => hit._source != null)
-      .map(mapHitToResultItem),
-    totalResultCount: totalHits,
-    totalPages: Math.ceil(totalHits / pageSize),
+    // Semantic hits go after the keyword hits, so exact matches stay on top.
+    items: [...lexicalItems, ...semanticItems],
+    totalResultCount: totalHits + semanticItems.length,
+    totalPages: Math.max(
+      Math.ceil(totalHits / pageSize),
+      semanticItems.length > 0 ? 1 : 0,
+    ),
     currentPageNumber: pageNumber,
     pageTypeFacets: buildPageTypeFacets(aggregations),
     providerFacets: [],
