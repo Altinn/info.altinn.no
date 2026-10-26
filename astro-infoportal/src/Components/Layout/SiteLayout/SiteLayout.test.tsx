@@ -1,14 +1,9 @@
 import type { HTMLElement } from "node-html-parser";
 import { parse } from "node-html-parser";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
-// The real registry pulls in every page and block component; SiteLayout only
-// needs to find the one it was handed, so stub the lookup at the module edge.
-vi.mock("../../../App.Components", () => ({
-  TestPage: ({ body }: { body: string }) => <p>{body}</p>,
-}));
-
+import PageSidebarNav from "../../Shared/PageSidebar/PageSidebarNav";
 import SiteLayout from "./SiteLayout";
 
 // Issue #713 (WCAG 3.1.2): an /en/ page with no English variant renders bokmål
@@ -22,9 +17,11 @@ const renderLayout = (props: Record<string, unknown>) =>
     renderToStaticMarkup(
       <SiteLayout
         skipLinkText="Skip to main content"
-        child={{ componentName: "TestPage", body: CONTENT }}
+        pageComponentName="TestPage"
         {...props}
-      />,
+      >
+        <p>{CONTENT}</p>
+      </SiteLayout>,
     ),
   );
 
@@ -77,9 +74,18 @@ describe("SiteLayout language tagging", () => {
     const root = renderLayout({
       locale: "en",
       contentLocale: "nb",
-      pageSidebarViewModel: {
-        mainItems: [{ label: "Skjema og tenester", url: "/skjemaoversikt/" }],
-      },
+      hasSidebar: true,
+      sidebar: (
+        <PageSidebarNav
+          viewModel={{
+            mainItems: [
+              { label: "Skjema og tenester", url: "/skjemaoversikt/" },
+            ],
+          }}
+          locale="en"
+          contentLocale="nb"
+        />
+      ),
     });
 
     expect(requireElement(root, "aside a")).toBeTruthy();

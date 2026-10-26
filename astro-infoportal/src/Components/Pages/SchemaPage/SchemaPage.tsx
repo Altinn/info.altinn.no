@@ -9,7 +9,12 @@ import {
   Section,
   Typography,
 } from "@altinn/altinn-components";
-import { ContentArea, OperationalMessage, RichTextArea } from "/App.Components";
+import {
+  ContentArea,
+  MunicipalityCountySearch,
+  OperationalMessage,
+  RichTextArea,
+} from "/App.Components";
 import "./SchemaPage.scss";
 import {
   BankNoteIcon,
@@ -18,7 +23,6 @@ import {
 } from "@navikt/aksel-icons";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
 import { UiText } from "../../Shared/UiLanguage/UiLanguage";
-import MunicipalityCountySearch from "../../Shared/MunicipalityCountySearch/MunicipalityCountySearch";
 import ProvidersInline, {
   type ProviderInlineItem,
 } from "../../Shared/ProvidersInline/ProvidersInline";

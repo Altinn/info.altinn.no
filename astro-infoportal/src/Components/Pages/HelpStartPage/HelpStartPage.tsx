@@ -8,9 +8,9 @@ import {
 } from "@altinn/altinn-components";
 import { Card, Details } from "@digdir/designsystemet-react";
 import * as AkselIcons from "@navikt/aksel-icons";
+import { SearchInput } from "/App.Components";
 import ContentArea from "../../Shared/ContentArea/ContentArea";
 import RichTextArea from "../../Shared/RichTextArea/RichTextArea";
-import SearchInput from "../../Shared/SearchInput/SearchInput";
 import { UiText } from "../../Shared/UiLanguage/UiLanguage";
 import "./HelpStartPage.scss";
 
