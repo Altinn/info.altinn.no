@@ -229,43 +229,8 @@ public class ElasticsearchSearchService : ISearchService
                 return;
             }
 
-            var analyzerName = GetAnalyzerName(culture);
-            var isNorwegian = IsNorwegian(culture);
-            var searchAnalyzerName = isNorwegian ? NorwegianSynonymAnalyzer : analyzerName;
-            // For Norwegian, index time uses the decompounder analyzer so compound
-            var indexAnalyzerName = isNorwegian ? NorwegianIndexAnalyzer : analyzerName;
-
-            var createResponse = await _client.Indices.CreateAsync(indexName, c =>
-            {
-                c.Settings(s => s.Analysis(BuildAnalysis(isNorwegian)));
-
-                c.Mappings(m => m
-                    .Properties(p => p
-                        .Keyword("id")
-                        .IntegerNumber("contentId")
-                        .Keyword("contentGuid")
-                        .Text("title", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
-                        .Text("metaTitle", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
-                        .Text("ingress", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
-                        .Text("metaDescription", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
-                        .Text("metaKeywords", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
-                        .Text("body", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
-                        .SemanticText("bodySemantic", t => t.InferenceId(SemanticInferenceId))
-                        .Text("bestBetTriggers", t => t.Analyzer(BestBetTriggersAnalyzer).SearchAnalyzer(BestBetTriggersAnalyzer))
-                        .Keyword("url")
-                        .Keyword("contentType")
-                        .Keyword("culture")
-                        .Date("publishDate")
-                        .Date("updateDate")
-                        .Completion("titleSuggest")
-                    )
-                );
-            }, ct);
-
-            if (createResponse.IsValidResponse)
-            {
+            if (await CreateIndexAsync(indexName, culture, ct))
                 _createdIndices.Add(indexName);
-            }
         }
         catch (Exception ex)
         {
@@ -296,6 +261,7 @@ public class ElasticsearchSearchService : ISearchService
                     .Text("metaDescription", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
                     .Text("metaKeywords", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
                     .Text("body", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
+                    .SemanticText("bodySemantic", t => t.InferenceId(SemanticInferenceId))
                     .Text("bestBetTriggers", t => t.Analyzer(BestBetTriggersAnalyzer).SearchAnalyzer(BestBetTriggersAnalyzer))
                     .Keyword("url")
                     .Keyword("contentType")
@@ -321,6 +287,9 @@ public class ElasticsearchSearchService : ISearchService
 
     public async Task<string> CreateReindexTargetAsync(string culture, CancellationToken ct = default)
     {
+        // The bodySemantic mapping references the inference endpoint.
+        await EnsureInferenceEndpointExistsAsync(ct);
+
         var indexName = GetVersionedIndexName(culture);
         if (!await CreateIndexAsync(indexName, culture, ct))
             throw new InvalidOperationException($"Failed to create index {indexName}");
@@ -524,7 +493,6 @@ public class ElasticsearchSearchService : ISearchService
 
         try
         {
-            await EnsureIndexExistsAsync(document.Culture, ct);
             document.BodySemantic = BuildSemanticTexts(document);
 
             var response = await _client.IndexAsync(document, i => i
