@@ -12,7 +12,7 @@ export function resolveFormOrService(
   raw: boolean | undefined,
 ): FormOrService | null {
   if (env.USE_FORM_OR_SERVICE !== "true") return null;
-  if (raw === undefined || raw === null) return 'service';
+  if (raw === undefined || raw === null) return 'form';
   return raw ? "service" : "form";
 }
 
