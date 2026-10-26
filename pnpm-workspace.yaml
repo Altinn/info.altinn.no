@@ -1,0 +1,31 @@
+packages:
+  - astro-infoportal
+  - cache-infoportal
+  - cms-infoportal
+
+# Each project is built separately on Cloudflare, so each needs its own lockfile
+sharedWorkspaceLockfile: false
+
+# Wait 1 day before installing newly published versions (supply-chain protection)
+minimumReleaseAge: 1440
+minimumReleaseAgeExclude:
+  - '@digdir/designsystemet-*'
+  - '@altinn/altinn-components'
+
+allowBuilds:
+  '@parcel/watcher': true
+  'esbuild': true
+  'fsevents': true
+  'sharp': true
+  'workerd': true
+
+overrides:
+  '@babel/plugin-transform-modules-systemjs': '^8.0.1'
+  'devalue': '^5.9.2'
+  'esbuild': '^0.28.2'
+  'picomatch': '^4.0.7'
+  'postcss': '^8.5.28'
+  'sharp': '^0.35.4'
+  'svgo': '^4.1.0'
+  'undici': '^8.10.2'
+  'uuid': '^14.0.2'
