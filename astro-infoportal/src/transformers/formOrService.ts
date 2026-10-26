@@ -8,6 +8,7 @@ export type FormOrService = "form" | "service";
 // accordion headings (issue #793). Default is "Skjema". Behind the
 // USE_FORM_OR_SERVICE flag until the pre-announced switch date; while off this
 // returns null and every schema keeps its legacy texts.
+// TODO: We can remove this function when the feature flag is not in use
 export function resolveFormOrService(
   raw: boolean | undefined,
 ): FormOrService | null {
