@@ -265,6 +265,7 @@ public class ElasticsearchSearchService : ISearchService
             if (createResponse.IsValidResponse)
             {
                 _createdIndices.Add(indexName);
+            }
         }
         catch (Exception ex)
         {
@@ -524,7 +525,6 @@ public class ElasticsearchSearchService : ISearchService
         try
         {
             await EnsureIndexExistsAsync(document.Culture, ct);
-            var indexName = GetIndexName(document.Culture);
             document.BodySemantic = BuildSemanticTexts(document);
 
             var response = await _client.IndexAsync(document, i => i
