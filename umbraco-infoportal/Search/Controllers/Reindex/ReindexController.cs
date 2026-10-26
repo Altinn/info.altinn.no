@@ -31,7 +31,7 @@ public class ReindexController : ManagementApiControllerBase
     [ProducesResponseType(StatusCodes.Status202Accepted)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     [EndpointSummary("Trigger a full Elasticsearch reindex.")]
-    [EndpointDescription("Drops nb/nn/en indices and reindexes all published Umbraco content. Runs as a background task; poll /status for progress.")]
+    [EndpointDescription("Reindexes all published Umbraco content into new nb/nn/en indices and swaps the aliases over when done, so search stays available. Runs as a background task; poll /status for progress.")]
     public IActionResult Start()
     {
         if (ReindexBackgroundJob.IsRunning)
