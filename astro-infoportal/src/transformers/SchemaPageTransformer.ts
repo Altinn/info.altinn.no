@@ -1,6 +1,5 @@
-import { env } from "cloudflare:workers";
 import type { SchemaPageProps } from "@components/Pages/SchemaPage/SchemaPage.types";
-import { type Locale, t, type TranslationKey } from "@i18n/index";
+import { type Locale, t } from "@i18n/index";
 import { ProviderResolver } from "@services/Providers/ProviderResolver";
 import {
   fetchUmbracoAncestors,
@@ -21,6 +20,11 @@ import {
   resolvePromoAreaWithNbFallback,
 } from "./promoAreaContact";
 import { getAccessPackagesHtml } from "./accessPackages";
+import {
+  accordionHeadingKey,
+  resolveFormOrService,
+  startSchemaTextKey,
+} from "./formOrService";
 
 
 // Altinn2 form deeplinks must stay environment-relative — an absolute URL like
@@ -45,13 +49,6 @@ function normalizeAltinnFormDeeplink(raw: string | undefined): string | undefine
   return raw;
 }
 
-function startSchemaTextKey(formOrService: string | undefined): TranslationKey {
-  if (env.USE_FORM_OR_SERVICE !== "true") return "schema.startService";
-  return formOrService?.trim().toLowerCase() === "tjeneste"
-    ? "schema.startService"
-    : "schema.startForm";
-}
-
 export class SchemaPageTransformer implements IJSONTransformer {
   public async Transform(
     cmsPageData: any,
@@ -61,6 +58,7 @@ export class SchemaPageTransformer implements IJSONTransformer {
     const locale: Locale = globalData?.locale || "nb";
     const contentLocale: Locale = globalData?.contentLocale || locale;
     const isPreview = globalData?.isPreview;
+    const formOrService = resolveFormOrService(props.formOrService);
     const resolver = await ProviderResolver.create();
 
     const ancestors = await fetchUmbracoAncestors(cmsPageData.id, contentLocale);
@@ -99,7 +97,10 @@ export class SchemaPageTransformer implements IJSONTransformer {
             }
         }
 
-        item.translatedHeading = t(item.translatedHeading, locale);
+        item.translatedHeading = t(
+          accordionHeadingKey(item.translatedHeading, formOrService),
+          locale,
+        );
       }
     }
 
@@ -246,7 +247,7 @@ export class SchemaPageTransformer implements IJSONTransformer {
       mainBody,
       operationalMessages: props.operationalMessages || [],
       startSchemaLink: normalizeAltinnFormDeeplink(props.deeplink),
-      startSchemaLinkText: t(startSchemaTextKey(props.formOrService), locale),
+      startSchemaLinkText: t(startSchemaTextKey(formOrService), locale),
       buttonInboxText: t("schema.buttonInbox", locale),
       accordianList: props.accordianList,
       providerPages,
