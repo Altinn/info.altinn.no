@@ -58,7 +58,7 @@ export class SchemaPageTransformer implements IJSONTransformer {
     const locale: Locale = globalData?.locale || "nb";
     const contentLocale: Locale = globalData?.contentLocale || locale;
     const isPreview = globalData?.isPreview;
-    const formOrService = resolveFormOrService(props.formOrService);
+    const formOrService = resolveFormOrService(props.showAsService);
     const resolver = await ProviderResolver.create();
 
     const ancestors = await fetchUmbracoAncestors(cmsPageData.id, contentLocale);
