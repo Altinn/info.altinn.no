@@ -297,6 +297,7 @@
   "contactPage.phone": "Telefonnummer",
   "contactPage.subject": "Emne",
   "contactPage.attachment": "Vedlegg",
+  "contactPage.attachmentDescription": "Filen kan ikkje være mer enn 15 MB.",
   "contactPage.nameRequired": "Navnet ditt må fylles ut",
   "contactPage.emailRequired": "E-postadressen må fylles ut",
   "contactPage.emailInvalid": "E-postadressen må ha med @ og et domene, for eksempel navn@eksempel.no",

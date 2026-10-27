@@ -339,10 +339,11 @@ const ContactPageForm = ({
       </Field>
     ),
     attachment: showAttachment && (
-      <Field key="attachment" className="contact-page-form__attachment">
+      <Field key="attachment">
         <Label htmlFor={fieldIds.attachment}>
           {labelWithTag(texts.attachment, false)}
         </Label>
+        <Field.Description>{texts.attachmentDescription}</Field.Description>
         <FileUpload className="contact-page-form__file-upload">
           <Button asChild variant="secondary">
             <span>

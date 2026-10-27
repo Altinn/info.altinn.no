@@ -296,6 +296,7 @@
   "contactPage.phone": "Phone number",
   "contactPage.subject": "Subject",
   "contactPage.attachment": "Attachment",
+  "contactPage.attachmentDescription": "The file can't be larger than 15 MB.",
   "contactPage.nameRequired": "Enter your name",
   "contactPage.emailRequired": "Enter your email address",
   "contactPage.emailInvalid": "Email address must include @ and a domain, for example name@example.com",

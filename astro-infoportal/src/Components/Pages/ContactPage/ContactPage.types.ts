@@ -18,6 +18,7 @@ export interface ContactPageTexts {
   message: string;
   messageDescription: string;
   attachment: string;
+  attachmentDescription: string;
   attachmentButton: string;
   attachmentDelete: string;
   attachmentSizeError: string;

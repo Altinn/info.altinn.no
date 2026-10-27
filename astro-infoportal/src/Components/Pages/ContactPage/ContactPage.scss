@@ -19,14 +19,8 @@
   vertical-align: text-bottom;
 }
 
-.contact-page-form__attachment {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--ds-size-2);
-}
-
 .contact-page-form__file-upload {
+  width: fit-content;
   --dsc-file-upload-border-width: 0;
   --dsc-file-upload-padding: 0;
   --dsc-file-upload-background: transparent;
