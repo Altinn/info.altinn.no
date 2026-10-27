@@ -18,6 +18,7 @@ export interface ContactListBlockProps {
   button2?: unknown;
   useContactFormButton?: boolean;
   contactFormLocation?: ContactFormLocationProps;
+  contactPageUrl?: string;
   button3?: unknown;
   contactFormPageData?: {
     pageName?: string;

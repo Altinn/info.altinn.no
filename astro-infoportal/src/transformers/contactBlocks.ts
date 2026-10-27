@@ -1,3 +1,4 @@
+import { getContactPageUrl } from "@constants/contactPages";
 import { type Locale, t } from "@i18n/index";
 import { resolveBlockReferences } from "../api/umbraco/client";
 import { BlockTransformer } from "./BlockTransformer";
@@ -28,6 +29,9 @@ function mapContactListBlock(props: any, locale: Locale) {
     contactNumberText: t("support.contactTelephone", locale),
     useContactFormButton: props.useContactFormButton ?? false,
     contactFormLocation,
+    contactPageUrl: contactFormLocation
+      ? getContactPageUrl(props.contactNumber, locale)
+      : undefined,
   };
 }
 

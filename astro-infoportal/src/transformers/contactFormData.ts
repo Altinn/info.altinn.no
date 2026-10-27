@@ -80,7 +80,7 @@ async function getStartPageData(locale: Locale, startPageData?: any) {
   return fetchUmbracoStartPage(locale);
 }
 
-async function getDefaultContactFormPageData(locale: Locale, startPageData?: any) {
+export async function getDefaultContactFormPageData(locale: Locale, startPageData?: any) {
   const cached = defaultContactFormPageCache.get(locale);
   if (cached) {
     return cached;
@@ -225,7 +225,9 @@ export async function hydrateNestedContactFormPageData(
 
   const expectsContactFormPageData =
     (hydratedValue.componentName === "DoYouNeedHelpBlock" && hydratedValue.showContactFormButton) ||
-    (hydratedValue.componentName === "ContactListBlock" && hydratedValue.useContactFormButton);
+    (hydratedValue.componentName === "ContactListBlock" &&
+      hydratedValue.useContactFormButton &&
+      !hydratedValue.contactPageUrl);
 
   if (expectsContactFormPageData && !hydratedValue.contactFormPageData) {
     hydratedValue.contactFormPageData = await getDefaultContactFormPageData(

@@ -13,6 +13,7 @@ const ContactListBlock = ({
   contactNumberText,
   contactNumber,
   contactFormLocation,
+  contactPageUrl,
   contactFormPageData,
   contactFormSchemaId,
   showAttachment,
@@ -34,9 +35,12 @@ const ContactListBlock = ({
     items.push({
       icon: EnvelopeOpenIcon,
       label: contactFormLocation.text,
-      onClick: () => {
-        setIsContactFormOpen(true);
-      },
+      href: contactPageUrl,
+      onClick: contactPageUrl
+        ? undefined
+        : () => {
+            setIsContactFormOpen(true);
+          },
     });
   }
 
@@ -47,26 +51,30 @@ const ContactListBlock = ({
         {text && <RichTextArea {...text} />}
       </ContactCard>
 
-      <ContactFormModal
-        isOpen={isContactFormOpen}
-        onClose={() => setIsContactFormOpen(false)}
-        formTypeArea={contactFormPageData?.formTypeArea}
-        teaserText={contactFormPageData?.teaserText}
-        teaserHeading={contactFormPageData?.teaserHeading}
-        useRecaptcha={contactFormPageData?.useRecaptcha ?? useRecaptcha ?? false}
-        recaptchaSiteKey={
-          contactFormPageData?.recaptchaSiteKey ?? recaptchaSiteKey
-        }
-        title={
-          contactFormPageData?.pageName ||
-          contactHeading ||
-          contactFormLocation?.text ||
-          ""
-        }
-        schemaId={!contactFormPageData ? contactFormSchemaId : undefined}
-        showAttachment={!contactFormPageData ? showAttachment : undefined}
-        labels={labels}
-      />
+      {!contactPageUrl && (
+        <ContactFormModal
+          isOpen={isContactFormOpen}
+          onClose={() => setIsContactFormOpen(false)}
+          formTypeArea={contactFormPageData?.formTypeArea}
+          teaserText={contactFormPageData?.teaserText}
+          teaserHeading={contactFormPageData?.teaserHeading}
+          useRecaptcha={
+            contactFormPageData?.useRecaptcha ?? useRecaptcha ?? false
+          }
+          recaptchaSiteKey={
+            contactFormPageData?.recaptchaSiteKey ?? recaptchaSiteKey
+          }
+          title={
+            contactFormPageData?.pageName ||
+            contactHeading ||
+            contactFormLocation?.text ||
+            ""
+          }
+          schemaId={!contactFormPageData ? contactFormSchemaId : undefined}
+          showAttachment={!contactFormPageData ? showAttachment : undefined}
+          labels={labels}
+        />
+      )}
     </>
   );
 };

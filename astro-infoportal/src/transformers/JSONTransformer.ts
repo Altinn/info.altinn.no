@@ -26,6 +26,7 @@ import { NewsArchivePageTransformer } from "./NewsArchivePageTransformer";
 import { OperationalMessageArticlePageTransformer } from "./OperationalMessageArticlePageTransformer";
 import { OperationalMessageArchivePageTransformer } from "./OperationalMessageArchivePageTransformer";
 import { SchemaAttachmentPageTransformer } from "./SchemaAttachmentPageTransformer";
+import { ContactPageTransformer } from "./ContactPageTransformer";
 import { ContactFormPageTransformer } from "./generatedTransformers/Pages/ContactFormPageTransformer";
 import { hydrateNestedContactFormPageData } from "./contactFormData";
 
@@ -162,6 +163,8 @@ export class JSONTransformer implements IJSONTransformer {
         return new ThemePageTransformer();
       case "contactFormPage":
         return new ContactFormPageTransformer();
+      case "contactPage":
+        return new ContactPageTransformer();
       default:
         return null;
     }
