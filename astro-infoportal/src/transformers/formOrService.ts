@@ -3,8 +3,8 @@ import { isTranslationKey, type TranslationKey } from "@i18n/index";
 
 export type FormOrService = "form" | "service";
 
-// Editors pick "Skjema" or "Tjeneste" in the schema page's `formOrService` radio
-// list, which decides the start button label and the wording of the fixed
+// Editors turns on "Vis som tjeneste i stedet for skjema" in the schema page's `showAsService` toggle,
+// which decides the start button label and the wording of the fixed
 // accordion headings (issue #793). Default is "Skjema". Behind the
 // USE_FORM_OR_SERVICE flag until the pre-announced switch date; while off this
 // returns null and every schema keeps its legacy texts.
