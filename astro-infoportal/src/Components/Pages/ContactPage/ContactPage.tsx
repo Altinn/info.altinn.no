@@ -37,7 +37,7 @@ const ContactPage = ({
   }, [isSent]);
 
   return (
-    <Article className="contact-page">
+    <Article>
       {breadcrumb && <BreadcrumbsView {...breadcrumb} />}
       {isSent ? (
         <Alert

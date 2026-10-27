@@ -2,9 +2,9 @@ import {
   Alert,
   Button,
   ErrorSummary,
-  EXPERIMENTAL_FileUpload as FileUpload,
   Field,
   Fieldset,
+  EXPERIMENTAL_FileUpload as FileUpload,
   Input,
   Label,
   Radio,
@@ -417,7 +417,6 @@ const ContactPageForm = ({
           </ErrorSummary.List>
         </ErrorSummary>
       )}
-
 
       <div>
         <div aria-live="polite" className="contact-page-form__alert">
