@@ -119,7 +119,8 @@ public class MarkupFilter
 
     private string ReplaceInternalLinks(string markup)
     {
-        string pattern = @"href=""/{localLink:(?<contentguid>[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})}""";
+        // No closing quote: links may carry a query string or fragment after the token.
+        string pattern = @"href=""/{localLink:(?<contentguid>[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})}";
 
         string result = markup;
 
