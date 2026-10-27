@@ -42,7 +42,7 @@
 				"ELASTICSEARCH_INDEX_PREFIX": "infoportal",
 				"USE_NEW_ACTOR_LIST": "false",
 				"ROUTE_CHANGE_REPORTEE_VIA_ALTINN2": "false",
-				"USE_FORM_OR_SERVICE": "false"
+				"USE_FORM_OR_SERVICE": "true"
 			}
 		},
 		"at23": {
@@ -53,7 +53,7 @@
 				"ELASTICSEARCH_INDEX_PREFIX": "infoportal",
 				"USE_NEW_ACTOR_LIST": "false",
 				"ROUTE_CHANGE_REPORTEE_VIA_ALTINN2": "false",
-				"USE_FORM_OR_SERVICE": "false"
+				"USE_FORM_OR_SERVICE": "true"
 			}
 		},
 		"tt02": {
