@@ -170,8 +170,9 @@ overrides:
   postcss: ^8.5.28
   sharp: ^0.35.4
   svgo: ^4.1.0
-  undici: ^8.10.2
+  undici: ^8.12.3
   uuid: ^14.0.2
+  zod: ^4.6.7
 
 importers:
 
