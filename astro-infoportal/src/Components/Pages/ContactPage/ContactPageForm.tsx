@@ -2,6 +2,7 @@ import {
   Alert,
   Button,
   ErrorSummary,
+  EXPERIMENTAL_FileUpload as FileUpload,
   Field,
   Fieldset,
   Input,
@@ -161,7 +162,10 @@ const ContactPageForm = ({
 
   const removeAttachment = () => {
     setAttachment(undefined);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+      fileInputRef.current.focus();
+    }
   };
 
   const focusField = (field: FieldName) => (e: React.MouseEvent) => {
@@ -169,9 +173,7 @@ const ContactPageForm = ({
     const target =
       field === "subject" && useSubjectOptions
         ? `${fieldIds.subject}-0`
-        : field === "attachment"
-          ? `${fieldIds.attachment}-button`
-          : fieldIds[field];
+        : fieldIds[field];
     document.getElementById(target)?.focus();
   };
 
@@ -329,6 +331,7 @@ const ContactPageForm = ({
           rows={8}
           value={values.message}
           onChange={(e) => updateValue("message", e.target.value)}
+          suppressHydrationWarning
         />
         {errors.message && (
           <ValidationMessage>{errors.message}</ValidationMessage>
@@ -336,56 +339,47 @@ const ContactPageForm = ({
       </Field>
     ),
     attachment: showAttachment && (
-      <div key="attachment" className="contact-page-form__attachment">
-        <Label id={`${fieldIds.attachment}-label`}>
+      <Field key="attachment" className="contact-page-form__attachment">
+        <Label htmlFor={fieldIds.attachment}>
           {labelWithTag(texts.attachment, false)}
         </Label>
-        <input
-          ref={fileInputRef}
-          id={fieldIds.attachment}
-          type="file"
-          accept={ALLOWED_EXTENSIONS.map((ext) => `.${ext}`).join(",")}
-          onChange={handleAttachmentChange}
-          hidden
-        />
-        {attachment ? (
-          <div className="contact-page-form__file">
+        <FileUpload className="contact-page-form__file-upload">
+          <Button asChild variant="secondary">
             <span>
-              {attachment.name} ({formatFileSize(attachment.size)})
+              <UploadIcon aria-hidden />
+              {texts.attachmentButton}
             </span>
-            <Button
-              variant="tertiary"
-              data-size="sm"
-              onClick={removeAttachment}
-              aria-label={`${texts.attachmentDelete} ${attachment.name}`}
-            >
-              <XMarkIcon aria-hidden />
-              {texts.attachmentDelete}
-            </Button>
-          </div>
-        ) : (
-          <Button
-            id={`${fieldIds.attachment}-button`}
-            variant="secondary"
-            onClick={() => fileInputRef.current?.click()}
-            aria-labelledby={`${fieldIds.attachment}-label ${fieldIds.attachment}-button`}
-            aria-describedby={
-              errors.attachment ? `${fieldIds.attachment}-error` : undefined
-            }
-            aria-invalid={errors.attachment ? true : undefined}
-          >
-            <UploadIcon aria-hidden />
-            {texts.attachmentButton}
           </Button>
-        )}
+          <input
+            ref={fileInputRef}
+            id={fieldIds.attachment}
+            type="file"
+            accept={ALLOWED_EXTENSIONS.map((ext) => `.${ext}`).join(",")}
+            onChange={handleAttachmentChange}
+          />
+        </FileUpload>
         <div aria-live="polite">
+          {attachment && (
+            <div className="contact-page-form__file">
+              <span>
+                {attachment.name} ({formatFileSize(attachment.size)})
+              </span>
+              <Button
+                variant="tertiary"
+                data-size="sm"
+                onClick={removeAttachment}
+                aria-label={`${texts.attachmentDelete} ${attachment.name}`}
+              >
+                <XMarkIcon aria-hidden />
+                {texts.attachmentDelete}
+              </Button>
+            </div>
+          )}
           {errors.attachment && (
-            <ValidationMessage id={`${fieldIds.attachment}-error`}>
-              {errors.attachment}
-            </ValidationMessage>
+            <ValidationMessage>{errors.attachment}</ValidationMessage>
           )}
         </div>
-      </div>
+      </Field>
     ),
   };
 
@@ -424,11 +418,11 @@ const ContactPageForm = ({
         </ErrorSummary>
       )}
 
-      <div aria-live="polite">
-        {sendError && <Alert data-color="danger">{texts.sendError}</Alert>}
-      </div>
 
       <div>
+        <div aria-live="polite" className="contact-page-form__alert">
+          {sendError && <Alert data-color="danger">{texts.sendError}</Alert>}
+        </div>
         <Button type="submit" aria-busy={isSubmitting || undefined}>
           {isSubmitting ? texts.submitting : texts.submit}
         </Button>

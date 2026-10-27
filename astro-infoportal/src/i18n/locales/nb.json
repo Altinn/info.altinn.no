@@ -264,7 +264,7 @@
   "contactform.attachmentText": "Last opp vedlegg",
   "contactform.button": "Send",
   "contactform.close": "Lukk",
-  "contactform.fileSizeInvalid": "Maksimum filstorrelse: 15MB",
+  "contactform.fileSizeInvalid": "Maksimum filstørrelse: 15MB",
   "contactform.fileExtensionInvalid": "Tillatte filtyper: bmp, jpg, jpeg, png, gif, txt, log, csv, doc, docx, xls, xlsx, ppt, pptx, pdf, odt, ods, odp, rtf, rar, zip, 7z, gdoc, gsheet, gslide, htm, html, eml, msg",
   "contactform.attachmentDelete": "Slett",
   "contactform.submitting": "Sender...",

@@ -32,6 +32,34 @@
   gap: var(--ds-size-2);
 }
 
+.contact-page-form__file-upload {
+  --dsc-file-upload-border-width: 0;
+  --dsc-file-upload-padding: 0;
+  --dsc-file-upload-background: transparent;
+  --dsc-file-upload-background--hover: transparent;
+  --dsc-file-upload-border-radius: var(--ds-border-radius-default);
+
+  &::before {
+    content: none;
+  }
+
+  > .ds-button {
+    margin: 0;
+  }
+
+  &:hover > .ds-button {
+    background: var(--dsc-button-background--hover);
+  }
+
+  &:active > .ds-button {
+    background: var(--dsc-button-background--active);
+  }
+
+  &:has([aria-invalid="true"]) > .ds-button {
+    --dsc-button-border-color: var(--ds-color-danger-border-default);
+  }
+}
+
 .contact-page-form__file {
   display: flex;
   align-items: center;
@@ -40,4 +68,8 @@
 
 .contact-page-form__honeypot {
   display: none;
+}
+
+.contact-page-form__alert:has(:last-child) {
+  margin-block-end: var(--ds-size-4);
 }
