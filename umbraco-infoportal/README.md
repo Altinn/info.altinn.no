@@ -44,4 +44,6 @@ POST http://localhost:43450/umbraco/management/api/v1/search/reindex
 GET  http://localhost:43450/umbraco/management/api/v1/search/reindex/status
 ```
 
+The reindex builds new versioned indices (`infoportal-<guid>-nb` etc.) while search keeps using the current ones, then atomically points the `infoportal-nb`/`-nn`/`-en` aliases at the new indices and deletes the old ones. Publishes made during the reindex are written to both.
+
 Visible under the "Search" group in `/umbraco/swagger`. To call from Postman, copy the `Authorization: Bearer ...` header from a logged-in backoffice session (DevTools → Network → any management API request).

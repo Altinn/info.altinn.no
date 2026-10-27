@@ -49,50 +49,58 @@ public class ReindexBackgroundJob : IHostedService
             var searchService = scope.ServiceProvider.GetRequiredService<ISearchService>();
             var extractor = scope.ServiceProvider.GetRequiredService<ContentTextExtractor>();
 
-            _status = "deleting indices";
-            foreach (var culture in Cultures)
-            {
-                await searchService.DeleteIndexAsync(culture, ct);
-            }
-
+            // Build into fresh indices while searches keep using the current ones.
             _status = "creating indices";
+            var targetIndices = new Dictionary<string, string>();
             foreach (var culture in Cultures)
             {
-                await searchService.EnsureIndexExistsAsync(culture, ct);
+                targetIndices[culture] = await searchService.CreateReindexTargetAsync(culture, ct);
             }
 
             _status = "collecting content";
-            var allContent = CollectAllPublishedContent(contentService);
-            _totalItems = allContent.Count;
+            var contentIds = CollectAllPublishedContentIds(contentService);
+            _totalItems = contentIds.Count;
 
             _status = "indexing";
 
             _logger.LogInformation("Reindexing {TotalItems} content items", _totalItems);
 
-            foreach (var content in allContent)
+            foreach (var contentId in contentIds)
             {
-                foreach (var culture in Cultures)
+                // Reload right before indexing so edits published since collection
+                // (which are also written to the new indices) aren't overwritten.
+                var content = contentService.GetById(contentId);
+                if (content is { Published: true })
                 {
-                    if (!content.PublishedCultures.Contains(culture))
-                        continue;
+                    foreach (var culture in Cultures)
+                    {
+                        if (!content.PublishedCultures.Contains(culture))
+                            continue;
 
-                    try
-                    {
-                        var document = extractor.ExtractDocument(content, culture);
-                        if (document != null)
+                        try
                         {
-                            await searchService.IndexDocumentAsync(document, ct);
+                            var documents = extractor.ExtractDocuments(content, culture);
+                            foreach (var document in documents)
+                            {
+                                await searchService.IndexDocumentIntoAsync(targetIndices[culture], document, ct);
+                            }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex,
-                            "Reindex failed for content {ContentId} culture {Culture}",
-                            content.Id, culture);
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex,
+                                "Reindex failed for content {ContentId} culture {Culture}",
+                                content.Id, culture);
+                        }
                     }
                 }
 
                 Interlocked.Increment(ref _processedItems);
+            }
+
+            _status = "switching indices";
+            foreach (var culture in Cultures)
+            {
+                await searchService.SwapToReindexTargetAsync(culture, ct);
             }
 
             _status = "completed";
@@ -104,6 +112,7 @@ public class ReindexBackgroundJob : IHostedService
         {
             _logger.LogError(ex, "Full reindex job failed");
             _status = $"failed: {ex.Message}";
+            await AbortAsync();
         }
         finally
         {
@@ -111,9 +120,20 @@ public class ReindexBackgroundJob : IHostedService
         }
     }
 
-    private static List<IContent> CollectAllPublishedContent(IContentService contentService)
+    // Drops any half-built indices so the current ones stay in use untouched.
+    private async Task AbortAsync()
     {
-        var result = new List<IContent>();
+        using var scope = _scopeFactory.CreateScope();
+        var searchService = scope.ServiceProvider.GetRequiredService<ISearchService>();
+        foreach (var culture in Cultures)
+        {
+            await searchService.AbortReindexTargetAsync(culture, CancellationToken.None);
+        }
+    }
+
+    private static List<int> CollectAllPublishedContentIds(IContentService contentService)
+    {
+        var result = new List<int>();
         var rootContent = contentService.GetRootContent();
 
         foreach (var root in rootContent)
@@ -125,11 +145,11 @@ public class ReindexBackgroundJob : IHostedService
     }
 
     private static void CollectRecursive(
-        IContentService contentService, IContent content, List<IContent> result)
+        IContentService contentService, IContent content, List<int> result)
     {
         if (content.Published)
         {
-            result.Add(content);
+            result.Add(content.Id);
         }
 
         var children = contentService.GetPagedChildren(

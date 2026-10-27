@@ -1,9 +1,12 @@
+using System.Collections.Concurrent;
+using System.Text.RegularExpressions;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Analysis;
 using Elastic.Clients.Elasticsearch.Core.Search;
 using Elastic.Clients.Elasticsearch.IndexManagement;
 using Elastic.Clients.Elasticsearch.Mapping;
 using Elastic.Clients.Elasticsearch.QueryDsl;
+using Elastic.Transport;
 using Infoportal.Adapters.Elasticsearch.Models;
 using Infoportal.Adapters.Elasticsearch.Resources;
 using Microsoft.Extensions.Logging;
@@ -18,6 +21,11 @@ public class ElasticsearchSearchService : ISearchService
     private readonly ILogger<ElasticsearchSearchService> _logger;
     private static readonly HashSet<string> _createdIndices = [];
     private static readonly string[] SupportedCultures = ["nb", "nn", "en"];
+
+    // Index being built by a running full reindex, keyed by culture. Incremental
+    // updates are written here as well so changes made during the reindex are
+    // not lost when the alias is swapped over to it.
+    private static readonly ConcurrentDictionary<string, string> _reindexTargets = new();
 
     // Field weights mirror the legacy Optimizely RelativeImportance.xml intent
     // (title/metaTitle highest, curated keywords next, ingress, then description, then body).
@@ -61,7 +69,39 @@ public class ElasticsearchSearchService : ISearchService
     // bestBetTriggers field so editorial trigger phrases match as typed.
     private const string BestBetTriggersAnalyzer = "bestbet_triggers";
 
+    // Inference endpoint used by the bodySemantic semantic_text field. Created on
+    // demand with the built-in multilingual E5 small model (downloaded by ES itself,
+    // no eland upload needed). The endpoint name is kept for compatibility with
+    // existing index mappings even though the model is the small variant.
+    // min_number_of_allocations = 1 keeps the model warm so semantic search and
+    // indexing don't wait for a cold start.
+    private const string SemanticInferenceId = "e5-large-incluster";
+    private const string SemanticModelId = ".multilingual-e5-small_linux-x86_64";
+
+    // Creating the endpoint deploys the model, which can take minutes on first run.
+    private static readonly TimeSpan InferenceCreateTimeout = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan InferenceRetryInterval = TimeSpan.FromMinutes(5);
+    private static readonly SemaphoreSlim _inferenceLock = new(1, 1);
+    private static bool _inferenceEndpointReady;
+    private static DateTimeOffset _lastInferenceAttempt = DateTimeOffset.MinValue;
+
+    // Fields shorter than this (in letters) are not embedded. Near-empty values like
+    // "." or "...." (placeholder ingresses) embed close to every query (~0.83 cosine
+    // with E5) and would outrank real matches, since a page scores by its best chunk.
+    private const int MinSemanticLetters = 3;
+
     private static bool IsNorwegian(string culture) => culture is "nb" or "nn";
+
+    // Values for the bodySemantic field: each meaningful text field as its own value,
+    // so ES embeds them separately but skips empty/placeholder text.
+    // Body is left out on purpose: long, often boilerplate body chunks embed moderately
+    // close to every query and crowded the right pages out of the semantic top 20 on
+    // at22. Body text is still covered by keyword search.
+    private static string[] BuildSemanticTexts(SearchDocument document) =>
+        new[] { document.Title, document.Ingress, document.MetaDescription }
+            .Where(text => !string.IsNullOrEmpty(text) && text.Count(char.IsLetter) >= MinSemanticLetters)
+            .Distinct()
+            .ToArray();
 
     public ElasticsearchSearchService(
         ElasticsearchClientFactory clientFactory,
@@ -73,8 +113,19 @@ public class ElasticsearchSearchService : ISearchService
         _logger = logger;
     }
 
+    // The public index name. After the first full reindex this is an alias that
+    // points at a versioned index (see GetVersionedIndexName).
     private string GetIndexName(string culture) =>
         $"{_options.IndexPrefix}-{culture.ToLowerInvariant()}";
+
+    private string GetVersionedIndexName(string culture) =>
+        $"{_options.IndexPrefix}-{Guid.NewGuid():N}-{culture.ToLowerInvariant()}";
+
+    // Matches both the legacy concrete index ("infoportal-nb") and versioned
+    // indices ("infoportal-<guid>-nb"), but not indices with other prefixes
+    // such as "infoportal-at22-nb".
+    private Regex GetManagedIndexPattern(string culture) => new(
+        $"^{Regex.Escape(_options.IndexPrefix)}-([0-9a-f]{{32}}-)?{Regex.Escape(culture.ToLowerInvariant())}$");
 
     private static string GetAnalyzerName(string culture) => culture switch
     {
@@ -83,8 +134,88 @@ public class ElasticsearchSearchService : ISearchService
         _ => "standard"
     };
 
+    // Ensures the inference endpoint referenced by bodySemantic exists. Runs before the
+    // index-exists check since an existing index whose mapping references a missing
+    // endpoint rejects every document write. Failures are logged and retried at most
+    // every InferenceRetryInterval, so a cluster without ML doesn't block each write.
+    private async Task EnsureInferenceEndpointExistsAsync(CancellationToken ct)
+    {
+        if (_inferenceEndpointReady || DateTimeOffset.UtcNow - _lastInferenceAttempt < InferenceRetryInterval)
+            return;
+
+        await _inferenceLock.WaitAsync(ct);
+        try
+        {
+            if (_inferenceEndpointReady || DateTimeOffset.UtcNow - _lastInferenceAttempt < InferenceRetryInterval)
+                return;
+
+            _lastInferenceAttempt = DateTimeOffset.UtcNow;
+
+            // Check HttpStatusCode directly: the transport reports a 404 as
+            // HasSuccessfulStatusCode = true.
+            var getResponse = await _client.Transport.GetAsync<StringResponse>(
+                $"_inference/{SemanticInferenceId}", ct);
+            if (getResponse.ApiCallDetails.HttpStatusCode == 200)
+            {
+                _inferenceEndpointReady = true;
+                return;
+            }
+
+            if (getResponse.ApiCallDetails.HttpStatusCode != 404)
+            {
+                _logger.LogWarning(
+                    "Could not check inference endpoint {InferenceId}: {Error}",
+                    SemanticInferenceId, getResponse.ApiCallDetails.DebugInformation);
+                return;
+            }
+
+            var body = $$"""
+                {
+                  "service": "elasticsearch",
+                  "service_settings": {
+                    "model_id": "{{SemanticModelId}}",
+                    "num_threads": 1,
+                    "adaptive_allocations": {
+                      "enabled": true,
+                      "min_number_of_allocations": 1,
+                      "max_number_of_allocations": 4
+                    }
+                  }
+                }
+                """;
+
+            var putResponse = await _client.Transport.PutAsync<StringResponse>(
+                $"_inference/text_embedding/{SemanticInferenceId}?timeout={(int)InferenceCreateTimeout.TotalSeconds}s",
+                PostData.String(body), InferenceCreateTimeout, ct);
+
+            if (putResponse.ApiCallDetails.HttpStatusCode == 200)
+            {
+                _inferenceEndpointReady = true;
+                _logger.LogInformation(
+                    "Created inference endpoint {InferenceId} with model {ModelId}",
+                    SemanticInferenceId, SemanticModelId);
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "Failed to create inference endpoint {InferenceId}: {Error}",
+                    SemanticInferenceId, putResponse.ApiCallDetails.DebugInformation);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not ensure inference endpoint {InferenceId} exists", SemanticInferenceId);
+        }
+        finally
+        {
+            _inferenceLock.Release();
+        }
+    }
+
     public async Task EnsureIndexExistsAsync(string culture, CancellationToken ct = default)
     {
+        await EnsureInferenceEndpointExistsAsync(ct);
+
         var indexName = GetIndexName(culture);
         if (_createdIndices.Contains(indexName))
             return;
@@ -98,49 +229,8 @@ public class ElasticsearchSearchService : ISearchService
                 return;
             }
 
-            var analyzerName = GetAnalyzerName(culture);
-            var isNorwegian = IsNorwegian(culture);
-            var searchAnalyzerName = isNorwegian ? NorwegianSynonymAnalyzer : analyzerName;
-            // For Norwegian, index time uses the decompounder analyzer so compound
-            var indexAnalyzerName = isNorwegian ? NorwegianIndexAnalyzer : analyzerName;
-
-            var createResponse = await _client.Indices.CreateAsync(indexName, c =>
-            {
-                c.Settings(s => s.Analysis(BuildAnalysis(isNorwegian)));
-
-                c.Mappings(m => m
-                    .Properties(p => p
-                        .Keyword("id")
-                        .IntegerNumber("contentId")
-                        .Keyword("contentGuid")
-                        .Text("title", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
-                        .Text("metaTitle", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
-                        .Text("ingress", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
-                        .Text("metaDescription", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
-                        .Text("metaKeywords", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
-                        .Text("body", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
-                        .Text("bestBetTriggers", t => t.Analyzer(BestBetTriggersAnalyzer).SearchAnalyzer(BestBetTriggersAnalyzer))
-                        .Keyword("url")
-                        .Keyword("contentType")
-                        .Keyword("culture")
-                        .Date("publishDate")
-                        .Date("updateDate")
-                        .Completion("titleSuggest")
-                    )
-                );
-            }, ct);
-
-            if (createResponse.IsValidResponse)
-            {
+            if (await CreateIndexAsync(indexName, culture, ct))
                 _createdIndices.Add(indexName);
-                _logger.LogInformation("Created Elasticsearch index {IndexName}", indexName);
-            }
-            else
-            {
-                _logger.LogWarning(
-                    "Failed to create index {IndexName}: {Error}",
-                    indexName, createResponse.DebugInformation);
-            }
         }
         catch (Exception ex)
         {
@@ -148,22 +238,154 @@ public class ElasticsearchSearchService : ISearchService
         }
     }
 
-    public async Task DeleteIndexAsync(string culture, CancellationToken ct = default)
+    private async Task<bool> CreateIndexAsync(string indexName, string culture, CancellationToken ct)
     {
-        var indexName = GetIndexName(culture);
+        var analyzerName = GetAnalyzerName(culture);
+        var isNorwegian = IsNorwegian(culture);
+        var searchAnalyzerName = isNorwegian ? NorwegianSynonymAnalyzer : analyzerName;
+        // For Norwegian, index time uses the decompounder analyzer so compound
+        var indexAnalyzerName = isNorwegian ? NorwegianIndexAnalyzer : analyzerName;
+
+        var createResponse = await _client.Indices.CreateAsync(indexName, c =>
+        {
+            c.Settings(s => s.Analysis(BuildAnalysis(isNorwegian)));
+
+            c.Mappings(m => m
+                .Properties(p => p
+                    .Keyword("id")
+                    .IntegerNumber("contentId")
+                    .Keyword("contentGuid")
+                    .Text("title", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
+                    .Text("metaTitle", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
+                    .Text("ingress", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
+                    .Text("metaDescription", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
+                    .Text("metaKeywords", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
+                    .Text("body", t => t.Analyzer(indexAnalyzerName).SearchAnalyzer(searchAnalyzerName))
+                    .SemanticText("bodySemantic", t => t.InferenceId(SemanticInferenceId))
+                    .Text("bestBetTriggers", t => t.Analyzer(BestBetTriggersAnalyzer).SearchAnalyzer(BestBetTriggersAnalyzer))
+                    .Keyword("url")
+                    .Keyword("contentType")
+                    .Keyword("culture")
+                    .Date("publishDate")
+                    .Date("updateDate")
+                    .Completion("titleSuggest")
+                )
+            );
+        }, ct);
+
+        if (!createResponse.IsValidResponse)
+        {
+            _logger.LogWarning(
+                "Failed to create index {IndexName}: {Error}",
+                indexName, createResponse.DebugInformation);
+            return false;
+        }
+
+        _logger.LogInformation("Created Elasticsearch index {IndexName}", indexName);
+        return true;
+    }
+
+    public async Task<string> CreateReindexTargetAsync(string culture, CancellationToken ct = default)
+    {
+        // The bodySemantic mapping references the inference endpoint.
+        await EnsureInferenceEndpointExistsAsync(ct);
+
+        var indexName = GetVersionedIndexName(culture);
+        if (!await CreateIndexAsync(indexName, culture, ct))
+            throw new InvalidOperationException($"Failed to create index {indexName}");
+
+        _reindexTargets[culture] = indexName;
+        return indexName;
+    }
+
+    // Atomically points the public alias at the reindex target and removes the
+    // previous index (and any leftovers from failed runs) in the same request,
+    // so searches never hit a missing or half-built index.
+    public async Task SwapToReindexTargetAsync(string culture, CancellationToken ct = default)
+    {
+        if (!_reindexTargets.TryGetValue(culture, out var targetIndex))
+            throw new InvalidOperationException($"No reindex target for culture {culture}");
+
+        var aliasName = GetIndexName(culture);
+        var refreshResponse = await _client.Indices.RefreshAsync(targetIndex, ct);
+        if (!refreshResponse.IsValidResponse)
+        {
+            _logger.LogWarning(
+                "Failed to refresh index {IndexName}: {Error}",
+                targetIndex, refreshResponse.DebugInformation);
+        }
+
+        var oldIndices = (await GetManagedIndicesAsync(culture, ct))
+            .Where(name => name != targetIndex)
+            .ToList();
+
+        var actions = new List<IndexUpdateAliasesAction>
+        {
+            new() { Add = new AddAction { Index = targetIndex, Alias = aliasName } },
+        };
+        actions.AddRange(oldIndices.Select(name =>
+            new IndexUpdateAliasesAction { RemoveIndex = new RemoveIndexAction { Index = name } }));
+
+        var response = await _client.Indices.UpdateAliasesAsync(u => u.Actions(actions), ct);
+        if (!response.IsValidResponse)
+        {
+            throw new InvalidOperationException(
+                $"Failed to swap alias {aliasName} to {targetIndex}: {response.DebugInformation}");
+        }
+
+        _reindexTargets.TryRemove(culture, out _);
+        _createdIndices.Add(aliasName);
+        _logger.LogInformation(
+            "Alias {AliasName} now points to {IndexName}; removed {OldIndices}",
+            aliasName, targetIndex, oldIndices);
+    }
+
+    public async Task AbortReindexTargetAsync(string culture, CancellationToken ct = default)
+    {
+        if (!_reindexTargets.TryRemove(culture, out var targetIndex))
+            return;
+
         try
         {
-            var response = await _client.Indices.DeleteAsync(indexName, ct);
+            var response = await _client.Indices.DeleteAsync(targetIndex, ct);
             if (response.IsValidResponse)
-            {
-                _createdIndices.Remove(indexName);
-                _logger.LogInformation("Deleted Elasticsearch index {IndexName}", indexName);
-            }
+                _logger.LogInformation("Deleted abandoned index {IndexName}", targetIndex);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to delete index {IndexName}", indexName);
+            _logger.LogWarning(ex, "Failed to delete abandoned index {IndexName}", targetIndex);
         }
+    }
+
+    private async Task<List<string>> GetManagedIndicesAsync(string culture, CancellationToken ct)
+    {
+        var response = await _client.Indices.GetAsync(
+            new GetIndexRequest($"{_options.IndexPrefix}-*")
+            {
+                IgnoreUnavailable = true,
+                AllowNoIndices = true,
+            }, ct);
+
+        if (!response.IsValidResponse)
+        {
+            throw new InvalidOperationException(
+                $"Failed to list indices: {response.DebugInformation}");
+        }
+
+        var pattern = GetManagedIndexPattern(culture);
+        return response.Indices.Keys
+            .Select(name => name.ToString())
+            .Where(name => pattern.IsMatch(name))
+            .ToList();
+    }
+
+    // Live indices for incremental updates: the public alias, plus the index
+    // being built by a running full reindex.
+    private IEnumerable<string> GetWriteIndexNames(string culture)
+    {
+        yield return GetIndexName(culture);
+        if (_reindexTargets.TryGetValue(culture, out var targetIndex))
+            yield return targetIndex;
     }
 
     // Builds the index-level analysis config. Always includes the bestbet_triggers
@@ -251,6 +473,15 @@ public class ElasticsearchSearchService : ISearchService
 
     public async Task IndexDocumentAsync(SearchDocument document, CancellationToken ct = default)
     {
+        await EnsureIndexExistsAsync(document.Culture, ct);
+        foreach (var indexName in GetWriteIndexNames(document.Culture))
+        {
+            await IndexDocumentIntoAsync(indexName, document, ct);
+        }
+    }
+
+    public async Task IndexDocumentIntoAsync(string indexName, SearchDocument document, CancellationToken ct = default)
+    {
         if (string.IsNullOrEmpty(document.Url) || "#".Equals(document.Url))
         {
             _logger.LogWarning(
@@ -259,11 +490,10 @@ public class ElasticsearchSearchService : ISearchService
 
             return;
         }
-        
+
         try
         {
-            await EnsureIndexExistsAsync(document.Culture, ct);
-            var indexName = GetIndexName(document.Culture);
+            document.BodySemantic = BuildSemanticTexts(document);
 
             var response = await _client.IndexAsync(document, i => i
                 .Index(indexName)
@@ -272,34 +502,62 @@ public class ElasticsearchSearchService : ISearchService
             if (!response.IsValidResponse)
             {
                 _logger.LogWarning(
-                    "Failed to index document {DocumentId}: {Error}",
-                    document.Id, response.DebugInformation);
+                    "Failed to index document {DocumentId} into {IndexName}: {Error}",
+                    document.Id, indexName, response.DebugInformation);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to index document {DocumentId}", document.Id);
+            _logger.LogWarning(ex, "Failed to index document {DocumentId} into {IndexName}", document.Id, indexName);
         }
     }
 
-    public async Task DeleteDocumentAsync(int contentId, string culture, CancellationToken ct = default)
+    public Task DeleteDocumentAsync(int contentId, string culture, CancellationToken ct = default) =>
+        DeleteByContentIdAsync(contentId, culture, [], ct);
+
+    public Task DeleteStaleDocumentsAsync(
+        int contentId, string culture, IReadOnlyCollection<string> currentDocumentIds,
+        CancellationToken ct = default) =>
+        DeleteByContentIdAsync(contentId, culture, currentDocumentIds, ct);
+
+    // A content item can own several documents (the page plus one per help section),
+    // so delete by contentId rather than by document id.
+    private async Task DeleteByContentIdAsync(
+        int contentId, string culture, IReadOnlyCollection<string> keepDocumentIds, CancellationToken ct)
+    {
+        foreach (var indexName in GetWriteIndexNames(culture))
+        {
+            await DeleteByContentIdAsync(indexName, contentId, culture, keepDocumentIds, ct);
+        }
+    }
+
+    private async Task DeleteByContentIdAsync(
+        string indexName, int contentId, string culture, IReadOnlyCollection<string> keepDocumentIds,
+        CancellationToken ct)
     {
         try
         {
-            var indexName = GetIndexName(culture);
-            var docId = $"{contentId}_{culture}";
-            var response = await _client.DeleteAsync(indexName, docId, ct);
+            var response = await _client.DeleteByQueryAsync<SearchDocument>(indexName, d => d
+                .Query(q => q.Bool(b =>
+                {
+                    b.Filter(f => f.Term(t => t.Field("contentId").Value(contentId)));
+                    if (keepDocumentIds.Count > 0)
+                        b.MustNot(m => m.Ids(i => i.Values(new Ids(keepDocumentIds))));
+                }))
+                .IgnoreUnavailable(true)
+                .Conflicts(Conflicts.Proceed)
+                .Refresh(true), ct);
 
-            if (!response.IsValidResponse && response.Result != Result.NotFound)
+            if (!response.IsValidResponse)
             {
                 _logger.LogWarning(
-                    "Failed to delete document {DocumentId}: {Error}",
-                    docId, response.DebugInformation);
+                    "Failed to delete documents for content {ContentId} ({Culture}): {Error}",
+                    contentId, culture, response.DebugInformation);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to delete document for content {ContentId}", contentId);
+            _logger.LogWarning(ex, "Failed to delete documents for content {ContentId}", contentId);
         }
     }
 
