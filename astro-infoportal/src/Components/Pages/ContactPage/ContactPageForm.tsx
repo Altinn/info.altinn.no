@@ -140,8 +140,8 @@ const ContactPageForm = ({
 
   const validate = (next: Values): Errors => {
     const result: Errors = {};
-    if (!next.subject.trim()) result.subject = texts.subjectRequired;
-    if (!next.name.trim()) result.name = texts.nameRequired;
+    if (next.subject.trim().length < 3) result.subject = texts.subjectRequired;
+    if (next.name.trim().length < 2) result.name = texts.nameRequired;
     if (!next.email.trim()) result.email = texts.emailRequired;
     else if (!EMAIL_REGEX.test(next.email.trim()))
       result.email = texts.emailInvalid;
