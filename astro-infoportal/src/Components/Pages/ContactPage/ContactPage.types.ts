@@ -13,6 +13,7 @@ export interface ContactPageTexts {
   name: string;
   email: string;
   phoneLabel: string;
+  orgNumber: string;
   subject: string;
   subjectOptions: string[];
   message: string;
@@ -27,6 +28,7 @@ export interface ContactPageTexts {
   emailRequired: string;
   emailInvalid: string;
   phoneInvalid: string;
+  orgNumberInvalid: string;
   subjectRequired: string;
   messageRequired: string;
   errorSummaryHeading: string;

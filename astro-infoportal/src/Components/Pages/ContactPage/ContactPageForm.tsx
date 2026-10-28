@@ -22,6 +22,7 @@ type FieldName =
   | "name"
   | "email"
   | "phone"
+  | "orgNumber"
   | "message"
   | "attachment";
 type TextFieldName = Exclude<FieldName, "attachment">;
@@ -73,11 +74,14 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const normalizePhone = (phone: string) =>
   phone.replace(/[\s-]/g, "").replace(/^(\+47|0047)/, "");
 
+const normalizeOrgNumber = (orgNumber: string) => orgNumber.replace(/\s/g, "");
+
 const fieldIds: Record<FieldName, string> = {
   subject: "contact-subject",
   name: "contact-name",
   email: "contact-email",
   phone: "contact-phone",
+  orgNumber: "contact-org-number",
   message: "contact-message",
   attachment: "contact-attachment",
 };
@@ -100,6 +104,7 @@ const ContactPageForm = ({
     name: "",
     email: "",
     phone: "",
+    orgNumber: "",
     message: "",
   });
   const [location, setLocation] = useState("");
@@ -114,8 +119,24 @@ const ContactPageForm = ({
   const useSubjectOptions = texts.subjectOptions.length > 0;
   const fieldOrder: FieldName[] =
     variant === "altinn"
-      ? ["subject", "name", "email", "phone", "message", "attachment"]
-      : ["name", "email", "phone", "subject", "message", "attachment"];
+      ? [
+          "subject",
+          "name",
+          "orgNumber",
+          "email",
+          "phone",
+          "message",
+          "attachment",
+        ]
+      : [
+          "name",
+          "orgNumber",
+          "email",
+          "phone",
+          "subject",
+          "message",
+          "attachment",
+        ];
 
   const validate = (next: Values): Errors => {
     const result: Errors = {};
@@ -127,6 +148,12 @@ const ContactPageForm = ({
     if (next.phone.trim() && !/^[0-9]{8}$/.test(normalizePhone(next.phone))) {
       result.phone = texts.phoneInvalid;
     }
+    if (
+      next.orgNumber.trim() &&
+      !/^[0-9]{9}$/.test(normalizeOrgNumber(next.orgNumber))
+    ) {
+      result.orgNumber = texts.orgNumberInvalid;
+    }
     if (!next.message.trim()) result.message = texts.messageRequired;
     return result;
   };
@@ -137,11 +164,6 @@ const ContactPageForm = ({
     if (errors[field] && !validate(next)[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
-  };
-
-  const validateFormat = (field: "email" | "phone") => {
-    if (!values[field].trim()) return;
-    setErrors((prev) => ({ ...prev, [field]: validate(values)[field] }));
   };
 
   const validateFile = (file: File) => {
@@ -197,6 +219,10 @@ const ContactPageForm = ({
       formData.append("name", values.name.trim());
       formData.append("email", values.email.trim());
       formData.append("phone", normalizePhone(values.phone));
+      formData.append(
+        "organizationNumber",
+        normalizeOrgNumber(values.orgNumber),
+      );
       formData.append("subject", values.subject.trim());
       formData.append("message", values.message);
       formData.append("location", location);
@@ -288,6 +314,22 @@ const ContactPageForm = ({
         {errors.name && <ValidationMessage>{errors.name}</ValidationMessage>}
       </Field>
     ),
+    orgNumber: (
+      <Field key="orgNumber">
+        <Label htmlFor={fieldIds.orgNumber}>
+          {labelWithTag(texts.orgNumber, false)}
+        </Label>
+        <Input
+          id={fieldIds.orgNumber}
+          inputMode="numeric"
+          value={values.orgNumber}
+          onChange={(e) => updateValue("orgNumber", e.target.value)}
+        />
+        {errors.orgNumber && (
+          <ValidationMessage>{errors.orgNumber}</ValidationMessage>
+        )}
+      </Field>
+    ),
     email: (
       <Field key="email">
         <Label htmlFor={fieldIds.email}>
@@ -299,7 +341,6 @@ const ContactPageForm = ({
           autoComplete="email"
           value={values.email}
           onChange={(e) => updateValue("email", e.target.value)}
-          onBlur={() => validateFormat("email")}
         />
         {errors.email && <ValidationMessage>{errors.email}</ValidationMessage>}
       </Field>
@@ -315,7 +356,6 @@ const ContactPageForm = ({
           autoComplete="tel"
           value={values.phone}
           onChange={(e) => updateValue("phone", e.target.value)}
-          onBlur={() => validateFormat("phone")}
         />
         {errors.phone && <ValidationMessage>{errors.phone}</ValidationMessage>}
       </Field>
@@ -339,17 +379,16 @@ const ContactPageForm = ({
       </Field>
     ),
     attachment: showAttachment && (
-      <Field key="attachment">
+      <Field key="attachment" className="contact-page-form__file-upload">
         <Label htmlFor={fieldIds.attachment}>
           {labelWithTag(texts.attachment, false)}
         </Label>
         <Field.Description>{texts.attachmentDescription}</Field.Description>
-        <FileUpload className="contact-page-form__file-upload">
+        <FileUpload>
+          <UploadIcon aria-hidden />
+          <Field.Description>{texts.attachmentDescription}</Field.Description>
           <Button asChild variant="secondary">
-            <span>
-              <UploadIcon aria-hidden />
-              {texts.attachmentButton}
-            </span>
+            <span>{texts.attachmentButton}</span>
           </Button>
           <input
             ref={fileInputRef}

@@ -20,32 +20,16 @@
 }
 
 .contact-page-form__file-upload {
-  width: fit-content;
-  --dsc-file-upload-border-width: 0;
-  --dsc-file-upload-padding: 0;
-  --dsc-file-upload-background: transparent;
-  --dsc-file-upload-background--hover: transparent;
-  --dsc-file-upload-border-radius: var(--ds-border-radius-default);
+  max-width: 350px;
 
-  &::before {
-    content: none;
+  & .ds-file-upload {
+    text-align: left;
+
+    & svg, & .ds-button {
+      margin-inline-start: 0;
+    }
   }
 
-  > .ds-button {
-    margin: 0;
-  }
-
-  &:hover > .ds-button {
-    background: var(--dsc-button-background--hover);
-  }
-
-  &:active > .ds-button {
-    background: var(--dsc-button-background--active);
-  }
-
-  &:has([aria-invalid="true"]) > .ds-button {
-    --dsc-button-border-color: var(--ds-color-danger-border-default);
-  }
 }
 
 .contact-page-form__file {

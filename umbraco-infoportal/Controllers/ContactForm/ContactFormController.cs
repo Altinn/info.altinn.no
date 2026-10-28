@@ -231,6 +231,14 @@ public sealed class ContactFormController(
             return false;
         }
 
+        string organizationNumber = (model.OrganizationNumber ?? string.Empty).Trim();
+        if (organizationNumber.Length > 0 && !IsDigits(organizationNumber, 9))
+        {
+            fields = default;
+            error = "Organization number must be 9 digits.";
+            return false;
+        }
+
         string subject = (model.Subject ?? string.Empty).Trim();
         if (subject.Length < 3 || ContainsCrlf(subject))
         {
@@ -247,7 +255,7 @@ public sealed class ContactFormController(
             return false;
         }
 
-        fields = new CleanedFields(name, email, phone, subject, body);
+        fields = new CleanedFields(name, email, phone, organizationNumber, subject, body);
         error = null;
         return true;
     }
@@ -265,6 +273,9 @@ public sealed class ContactFormController(
             $"Spørsmål: {encoder.Encode(fields.Message)}<br/>" +
             $"Navn: {encoder.Encode(fields.Name)}<br/>" +
             $"Telefon: {encoder.Encode(fields.Phone)}<br/>" +
+            (fields.OrganizationNumber.Length > 0
+                ? $"Organisasjonsnummer: {encoder.Encode(fields.OrganizationNumber)}<br/>"
+                : string.Empty) +
             $"E-post: <a href=\"mailto:{encoder.Encode(fields.Email)}\">{encoder.Encode(fields.Email)}</a></p>";
 
         EmailContent emailContent = new EmailContent(fields.Subject)
@@ -303,9 +314,11 @@ public sealed class ContactFormController(
     private static bool ContainsCrlf(string value) =>
         value.IndexOfAny(['\r', '\n']) >= 0;
 
-    private static bool IsEightDigitPhone(string value)
+    private static bool IsEightDigitPhone(string value) => IsDigits(value, 8);
+
+    private static bool IsDigits(string value, int length)
     {
-        if (value.Length != 8)
+        if (value.Length != length)
         {
             return false;
         }
@@ -338,6 +351,7 @@ public sealed class ContactFormController(
         string Name,
         string Email,
         string Phone,
+        string OrganizationNumber,
         string Subject,
         string Message);
 }
