@@ -257,7 +257,7 @@
   "contactPage.altinn.heading": "Skriv til Altinn brukarservice",
   "contactPage.altinn.alertHeading": "Det er mange som kontaktar oss no",
   "contactPage.altinn.alertText": "Når du skriv til oss, kan det ta opptil 7 arbeidsdagar før vi får svart deg.",
-  "contactPage.altinn.alertPhone": "Du får ofte raskast svar ved å ringje oss: 75 00 60 00",
+  "contactPage.altinn.alertPhone": "Du får ofte raskast svar ved å ringje oss: {0}",
   "contactPage.altinn.message": "Fortel oss meir om kva du lurer på",
   "contactPage.altinn.successText": "Det kan ta opptil 7 arbeidsdagar før du får svar. Viss det hastar, kan du ringje {0} (kvardagar kl. 08.00–15.00).",
   "contactPage.altinn.phone": "75 00 60 00",

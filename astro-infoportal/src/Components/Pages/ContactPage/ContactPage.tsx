@@ -11,14 +11,14 @@ import type { ContactPageProps } from "./ContactPage.types";
 import ContactPageForm from "./ContactPageForm";
 import "./ContactPage.scss";
 
-const SuccessText = ({ text, phone }: { text: string; phone: string }) => {
+const TextWithPhone = ({ text, phone }: { text: string; phone: string }) => {
   const [before, after] = text.split("{0}");
   return (
-    <Paragraph>
+    <>
       {before}
       <Link href={`tel:${phone.replace(/\s/g, "")}`}>{phone}</Link>
       {after}
-    </Paragraph>
+    </>
   );
 };
 
@@ -49,7 +49,9 @@ const ContactPage = ({
           <DsHeading level={1} data-size="xs">
             {texts.successHeading}
           </DsHeading>
-          <SuccessText text={texts.successText} phone={texts.phone} />
+          <Paragraph>
+            <TextWithPhone text={texts.successText} phone={texts.phone} />
+          </Paragraph>
         </Alert>
       ) : (
         <>
@@ -63,7 +65,9 @@ const ContactPage = ({
               </DsHeading>
               <Paragraph>{texts.alertText}</Paragraph>
               <Paragraph>
-                <strong>{texts.alertPhone}</strong>
+                <strong>
+                  <TextWithPhone text={texts.alertPhone} phone={texts.phone} />
+                </strong>
               </Paragraph>
             </Alert>
           )}

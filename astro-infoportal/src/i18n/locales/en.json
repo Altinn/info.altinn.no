@@ -256,7 +256,7 @@
   "contactPage.altinn.heading": "Write to Altinn user support",
   "contactPage.altinn.alertHeading": "Many people are contacting us right now",
   "contactPage.altinn.alertText": "If you write to us, it may take up to 7 working days before we can reply.",
-  "contactPage.altinn.alertPhone": "You will often get the fastest answer by calling us: +47 75 00 62 34",
+  "contactPage.altinn.alertPhone": "You will often get the fastest answer by calling us: {0}",
   "contactPage.altinn.message": "Tell us more about your question",
   "contactPage.altinn.successText": "It may take up to 7 working days before you get a reply. If it is urgent, you can call {0} (weekdays 08.00–15.00).",
   "contactPage.altinn.phone": "+47 75 00 62 34",
