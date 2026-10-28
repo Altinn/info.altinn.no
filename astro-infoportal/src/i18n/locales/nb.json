@@ -274,6 +274,7 @@
   "contactPage.subject": "Emne",
   "contactPage.attachment": "Vedlegg",
   "contactPage.attachmentDescription": "Filen kan ikke være mer enn 15 MB.",
+  "contactPage.attachmentDropzone": "Trykk eller slipp filer her",
   "contactPage.attachmentButton": "Velg fil",
   "contactPage.nameRequired": "Navnet ditt må fylles ut",
   "contactPage.emailRequired": "E-postadressen må fylles ut",

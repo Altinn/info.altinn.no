@@ -386,7 +386,7 @@ const ContactPageForm = ({
         <Field.Description>{texts.attachmentDescription}</Field.Description>
         <FileUpload>
           <UploadIcon aria-hidden />
-          <Field.Description>{texts.attachmentDescription}</Field.Description>
+          <Field.Description>{texts.attachmentDropzone}</Field.Description>
           <Button asChild variant="secondary">
             <span>{texts.attachmentButton}</span>
           </Button>

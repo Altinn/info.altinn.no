@@ -273,6 +273,7 @@
   "contactPage.subject": "Subject",
   "contactPage.attachment": "Attachment",
   "contactPage.attachmentDescription": "The file can't be larger than 15 MB.",
+  "contactPage.attachmentDropzone": "Click or drop files here",
   "contactPage.attachmentButton": "Choose file",
   "contactPage.nameRequired": "Enter your name",
   "contactPage.emailRequired": "Enter your email address",

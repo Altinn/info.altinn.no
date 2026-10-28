@@ -20,6 +20,7 @@ export interface ContactPageTexts {
   messageDescription: string;
   attachment: string;
   attachmentDescription: string;
+  attachmentDropzone: string;
   attachmentButton: string;
   attachmentDelete: string;
   attachmentSizeError: string;
