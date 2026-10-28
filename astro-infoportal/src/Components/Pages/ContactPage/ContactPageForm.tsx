@@ -177,13 +177,13 @@ const ContactPageForm = ({
   const handleAttachmentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     const error = file ? validateFile(file) : undefined;
-    setAttachment(file && !error ? file : undefined);
+    setAttachment(file);
     setErrors((prev) => ({ ...prev, attachment: error }));
-    if (error) e.target.value = "";
   };
 
   const removeAttachment = () => {
     setAttachment(undefined);
+    setErrors((prev) => ({ ...prev, attachment: undefined }));
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
       fileInputRef.current.focus();
