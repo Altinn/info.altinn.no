@@ -273,9 +273,7 @@ public sealed class ContactFormController(
             $"Spørsmål: {encoder.Encode(fields.Message)}<br/>" +
             $"Navn: {encoder.Encode(fields.Name)}<br/>" +
             $"Telefon: {encoder.Encode(fields.Phone)}<br/>" +
-            (fields.OrganizationNumber.Length > 0
-                ? $"Organisasjonsnummer: {encoder.Encode(fields.OrganizationNumber)}<br/>"
-                : string.Empty) +
+            $"Organisasjonsnummer: {encoder.Encode(fields.OrganizationNumber)}<br/>" +
             $"E-post: <a href=\"mailto:{encoder.Encode(fields.Email)}\">{encoder.Encode(fields.Email)}</a></p>";
 
         EmailContent emailContent = new EmailContent(fields.Subject)
