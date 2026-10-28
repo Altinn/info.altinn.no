@@ -41,7 +41,8 @@ async function loadContactFormBlocks(locale: Locale) {
 
   return Promise.all(
     rawItems.map(async (rawBlock) => {
-      const blockData = await fetchReferencedContent(rawBlock, locale);
+      const blockData =
+        rawBlock?.content ?? (await fetchReferencedContent(rawBlock, locale));
       const props = blockData?.properties ?? rawBlock?.properties ?? {};
       return {
         // Umbraco GUID of the contactFormBlock — backend looks up supportEmail from this.
