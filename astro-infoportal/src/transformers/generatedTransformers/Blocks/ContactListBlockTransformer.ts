@@ -37,10 +37,6 @@ export class ContactListBlockTransformer implements IJSONTransformer {
       useContactFormButton: props.useContactFormButton ?? null,
       contactFormLocation,
       button3: props.button3 ?? null,
-      contactFormPageData: props.contactFormPageData ?? null,
-      contactFormSchemaId: props.contactFormSchemaId ?? null,
-      showAttachment: props.showAttachment ?? null,
-      labels: props.labels ?? null,
     };
   }
 }

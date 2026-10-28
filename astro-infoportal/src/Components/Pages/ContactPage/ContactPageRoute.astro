@@ -1,7 +1,7 @@
 ---
 import AstroSiteLayout from "@layouts/AstroSiteLayout.astro";
 import { JSONTransformer } from "@transformers/JSONTransformer";
-import { getDefaultContactFormPageData } from "@transformers/contactFormData";
+import { getContactFormBlocks } from "@transformers/contactFormData";
 import { getGlobalData } from "@constants/globalData";
 import { contactPagePaths } from "@constants/contactPages";
 import { resolvePickerUrl } from "@constants/startPageLinks";
@@ -18,10 +18,9 @@ interface Props {
 const { language: locale, variant } = Astro.props;
 
 const startPageData = await fetchUmbracoStartPage(locale);
-const contactFormPage = await getDefaultContactFormPageData(locale, startPageData);
 const isBusiness = variant === "business";
-const contactFormBlock = contactFormPage?.formTypeArea?.items?.find(
-  (item: any) => !!item.startCompanyFormat === isBusiness,
+const contactFormBlock = (await getContactFormBlocks(locale)).find(
+  (block) => block.startCompanyFormat === isBusiness,
 );
 
 const helpPage = startPageData?.properties?.helpPage;

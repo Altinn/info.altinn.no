@@ -1,105 +1,19 @@
 import {
   fetchUmbracoContent,
   fetchUmbracoContentList,
-  fetchUmbracoStartPage,
 } from "@api/umbraco/client";
-import { t, type Locale } from "@i18n/index";
+import { getContactPageUrl } from "@constants/contactPages";
+import type { Locale } from "@i18n/index";
 
-const defaultContactFormPageCache = new Map<Locale, Promise<any>>();
-
-function normalizeRichTextArea(value: any) {
-  if (!value) {
-    return null;
-  }
-
-  if (value.componentName === "RichTextArea") {
-    return value;
-  }
-
-  if (Array.isArray(value.items)) {
-    return {
-      componentName: "RichTextArea",
-      items: value.items,
-    };
-  }
-
-  return value;
+export interface ContactFormBlockData {
+  schemaId: string;
+  startCompanyFormat: boolean;
 }
 
-function buildContactFormLabels(locale: Locale) {
-  return {
-    nameLabel: t("contactform.name", locale),
-    namePlaceholder: t("contactform.namePlaceholder", locale),
-    nameValidation: t("contactform.nameRequired", locale),
-    emailLabel: t("contactform.email", locale),
-    emailPlaceholder: t("contactform.emailPlaceholder", locale),
-    emailValidation: t("contactform.emailRequired", locale),
-    confirmEmailLabel: t("contactform.confirmEmail", locale),
-    confirmEmailPlaceholder: t("contactform.confirmEmailPlaceholder", locale),
-    confirmEmailValidation: t("contactform.confirmEmailError", locale),
-    phoneLabel: t("contactform.phone", locale),
-    phonePlaceholder: t("contactform.phonePlaceholder", locale),
-    phoneValidation: t("contactform.phoneRegex", locale),
-    topicLabel: t("contactform.topic", locale),
-    topicPlaceholder: t("contactform.topicPlaceholder", locale),
-    messageLabel: t("contactform.message", locale),
-    messagePlaceholder: t("contactform.messagePlaceholder", locale),
-    messageDescription: t("contactform.messageDescription", locale),
-    attachmentLabel: t("contactform.attachment", locale),
-    attachmentButton: t("contactform.attachmentText", locale),
-    attachmentDelete: t("contactform.attachmentDelete", locale),
-    attachmentSizeError: t("contactform.fileSizeInvalid", locale),
-    attachmentExtensionError: t("contactform.fileExtensionInvalid", locale),
-    submitButton: t("contactform.button", locale),
-    submitting: t("contactform.submitting", locale),
-    closeButton: t("contactform.close", locale),
-    successMessage: t("contactform.successMessage", locale),
-    errorMessage: t("contactform.errorMessage", locale),
-    retryButton: t("contactform.retryButton", locale),
-    subjectValidation: t("contactform.topicRequired", locale),
-    subjectOptions: [
-      t("contactform.subjectInbox", locale),
-      t("contactform.subjectAccess", locale),
-      t("contactform.subjectForms", locale),
-      t("contactform.subjectNotifications", locale),
-      t("contactform.subjectOther", locale),
-    ],
-  };
-}
-
-function buildFormId(sourceId?: string) {
-  const normalized = (sourceId || "contact-form").replace(/[^a-zA-Z0-9]/g, "");
-  return `form-${normalized.toLowerCase()}`;
-}
-
-async function getStartPageData(locale: Locale, startPageData?: any) {
-  if (startPageData) {
-    return startPageData;
-  }
-
-  return fetchUmbracoStartPage(locale);
-}
-
-export async function getDefaultContactFormPageData(locale: Locale, startPageData?: any) {
-  const cached = defaultContactFormPageCache.get(locale);
-  if (cached) {
-    return cached;
-  }
-
-  const loadPromise = (async () => {
-    const pages = await fetchUmbracoContentList(["contentType:contactFormPage"], 1, locale);
-    const page = pages?.[0];
-
-    if (!page) {
-      return undefined;
-    }
-
-    return hydrateContactFormPageData(page, locale, startPageData);
-  })();
-
-  defaultContactFormPageCache.set(locale, loadPromise);
-  return loadPromise;
-}
+const contactFormBlocksCache = new Map<
+  Locale,
+  Promise<ContactFormBlockData[]>
+>();
 
 async function fetchReferencedContent(reference: any, locale: Locale) {
   const target = reference?.route?.path || reference?.id;
@@ -111,130 +25,73 @@ async function fetchReferencedContent(reference: any, locale: Locale) {
   return fetchUmbracoContent(target, locale);
 }
 
-async function hydrateContactFormBlock(
-  rawBlock: any,
-  locale: Locale,
-  startPageData?: any,
-) {
-  const blockData = await fetchReferencedContent(rawBlock, locale);
-  const props = blockData?.properties ?? rawBlock?.properties ?? {};
-  const startProps = startPageData?.properties ?? {};
-
-  return {
-    componentName: "ContactFormBlock",
-    heading: props.heading ?? blockData?.name ?? rawBlock?.name ?? null,
-    contactHeading: props.contactHeading ?? null,
-    text: props.contactHeading ?? props.text ?? null,
-    showAttachment: props.showAttachment ?? false,
-    startCompanyFormat: props.startCompanyFormat ?? false,
-    supportEmail: props.supportEmail ?? null,
-    locationSuccessUrl: props.locationSuccess?.[0]?.route?.path ?? "",
-    locationErrorUrl: props.locationError?.[0]?.route?.path ?? "",
-    formId: buildFormId(blockData?.id ?? rawBlock?.id),
-    useRecaptcha: startProps.useRecaptcha ?? props.useRecaptcha ?? false,
-    recaptchaSiteKey:
-      startProps.reCaptchaSiteKey ?? props.recaptchaSiteKey ?? undefined,
-    // Umbraco GUID of the contactFormBlock — backend looks up supportEmail from this.
-    schemaId: blockData?.id ?? rawBlock?.id ?? "",
-    labels: buildContactFormLabels(locale),
-    displayOptionId: rawBlock?.displayOptionId ?? "full",
-    displayOptionName: rawBlock?.displayOptionName ?? "/displayoptions/full",
-    displayOptionTag: rawBlock?.displayOptionTag ?? "col-sm-12",
-  };
-}
-
-export async function hydrateContactFormPageData(
-  rawPageData: any,
-  locale: Locale,
-  startPageData?: any,
-) {
-  if (!rawPageData) {
-    return undefined;
-  }
-
-  const formTypeArea = rawPageData?.formTypeArea;
-  if (
-    rawPageData.componentName === "ContactFormPage" &&
-    formTypeArea?.componentName === "ContentArea" &&
-    Array.isArray(formTypeArea.items) &&
-    formTypeArea.items.every((item: any) => item?.componentName)
-  ) {
-    return rawPageData;
-  }
-
-  const pageData = await fetchReferencedContent(rawPageData, locale);
-  const pageProps = pageData?.properties ?? rawPageData?.properties ?? rawPageData;
-  const startPage = await getStartPageData(locale, startPageData);
-  const startProps = startPage?.properties ?? {};
-
-  const rawItems = Array.isArray(pageProps?.formTypeArea)
-    ? pageProps.formTypeArea
-    : Array.isArray(pageProps?.formTypeArea?.items)
-      ? pageProps.formTypeArea.items
+async function loadContactFormBlocks(locale: Locale) {
+  const pages = await fetchUmbracoContentList(
+    ["contentType:contactFormPage"],
+    1,
+    locale,
+  );
+  const page = await fetchReferencedContent(pages?.[0], locale);
+  const formTypeArea = page?.properties?.formTypeArea;
+  const rawItems: any[] = Array.isArray(formTypeArea)
+    ? formTypeArea
+    : Array.isArray(formTypeArea?.items)
+      ? formTypeArea.items
       : [];
 
-  const items = await Promise.all(
-    rawItems.map((item: any) => hydrateContactFormBlock(item, locale, startPage)),
+  return Promise.all(
+    rawItems.map(async (rawBlock) => {
+      const blockData = await fetchReferencedContent(rawBlock, locale);
+      const props = blockData?.properties ?? rawBlock?.properties ?? {};
+      return {
+        // Umbraco GUID of the contactFormBlock — backend looks up supportEmail from this.
+        schemaId: blockData?.id ?? rawBlock?.id ?? "",
+        startCompanyFormat: !!props.startCompanyFormat,
+      };
+    }),
   );
-
-  return {
-    componentName: "ContactFormPage",
-    pageName: pageData?.name ?? rawPageData?.pageName ?? null,
-    teaserText: normalizeRichTextArea(pageProps?.teaserText ?? rawPageData?.teaserText),
-    teaserHeading: pageProps?.teaserHeading ?? rawPageData?.teaserHeading ?? null,
-    formTypeArea: {
-      componentName: "ContentArea",
-      items,
-    },
-    useRecaptcha: startProps.useRecaptcha ?? pageProps?.useRecaptcha ?? false,
-    recaptchaSiteKey:
-      startProps.reCaptchaSiteKey ?? pageProps?.recaptchaSiteKey ?? undefined,
-  };
 }
 
-export async function hydrateNestedContactFormPageData(
-  value: any,
-  locale: Locale,
-  startPageData?: any,
-): Promise<any> {
+export function getContactFormBlocks(locale: Locale) {
+  const cached = contactFormBlocksCache.get(locale);
+  if (cached) {
+    return cached;
+  }
+
+  const loadPromise = loadContactFormBlocks(locale);
+  contactFormBlocksCache.set(locale, loadPromise);
+  return loadPromise;
+}
+
+export function addContactPageUrls(value: any, locale: Locale): any {
   if (Array.isArray(value)) {
-    return Promise.all(
-      value.map((item) => hydrateNestedContactFormPageData(item, locale, startPageData)),
-    );
+    return value.map((item) => addContactPageUrls(item, locale));
   }
 
   if (!value || typeof value !== "object") {
     return value;
   }
 
-  if (value.componentName === "ContactFormPage" || value.contentType === "contactFormPage") {
-    return hydrateContactFormPageData(value, locale, startPageData);
-  }
-
-  const entries = await Promise.all(
-    Object.entries(value).map(async ([key, nestedValue]) => {
-      if (key === "contactFormPageData") {
-        return [key, await hydrateContactFormPageData(nestedValue, locale, startPageData)] as const;
-      }
-
-      return [key, await hydrateNestedContactFormPageData(nestedValue, locale, startPageData)] as const;
-    }),
+  const result = Object.fromEntries(
+    Object.entries(value).map(([key, nestedValue]) => [
+      key,
+      addContactPageUrls(nestedValue, locale),
+    ]),
   );
 
-  const hydratedValue = Object.fromEntries(entries);
-
-  const expectsContactFormPageData =
-    (hydratedValue.componentName === "DoYouNeedHelpBlock" && hydratedValue.showContactFormButton) ||
-    (hydratedValue.componentName === "ContactListBlock" &&
-      hydratedValue.useContactFormButton &&
-      !hydratedValue.contactPageUrl);
-
-  if (expectsContactFormPageData && !hydratedValue.contactFormPageData) {
-    hydratedValue.contactFormPageData = await getDefaultContactFormPageData(
-      locale,
-      startPageData,
-    );
+  if (
+    result.componentName === "ContactListBlock" &&
+    result.contactFormLocation
+  ) {
+    result.contactPageUrl ??= getContactPageUrl(result.contactNumber, locale);
   }
 
-  return hydratedValue;
+  if (
+    result.componentName === "DoYouNeedHelpBlock" &&
+    result.showContactFormButton
+  ) {
+    result.contactPageUrl ??= getContactPageUrl(result.phoneNumber, locale);
+  }
+
+  return result;
 }

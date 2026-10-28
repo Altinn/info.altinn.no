@@ -5,7 +5,6 @@ import AlternativeLoginBlock from "./Components/Blocks/AlternativeLoginBlock/Alt
 import BudgetBlock from "./Components/Blocks/BudgetBlock/BudgetBlock";
 import CampaignBlock from "./Components/Blocks/CampaignBlock/CampaignBlock";
 import CompareBlock from "./Components/Blocks/CompareBlock/CompareBlock";
-import ContactFormBlock from "./Components/Blocks/ContactFormBlock/ContactFormBlock";
 import ContactFormTextBlock from "./Components/Blocks/ContactFormTextBlock/ContactFormTextBlock";
 import ContactFormSiteBlockData from "./Components/Blocks/ContactFormSiteBlockData/ContactFormSiteBlockData";
 import ContactListBlock from "./Components/Blocks/ContactListBlock/ContactListBlock";
@@ -44,8 +43,6 @@ import VideoFile from "./Components/Media/VideoFile/VideoFile";
 import GenericMedia from "./Components/Media/GenericMedia/GenericMedia";
 import LatestNewsBlock from "./Components/Blocks/LatestNewsBlock/LatestNewsBlock";
 import LatestNewsBlockV2 from "./Components/Blocks/LatestNewsBlockV2/LatestNewsBlockV2";
-import ContactFormModal from "./Components/ContactFormModal/ContactFormModal";
-import ContactFormPageTrigger from "./Components/ContactFormPageTrigger/ContactFormPageTrigger";
 import SiteLayout from "./Components/Layout/SiteLayout/SiteLayout";
 import AboutPage from "./Components/Pages/AboutPage/AboutPage";
 import CategoryPage from "./Components/Pages/CategoryPage/CategoryPage";
@@ -98,7 +95,6 @@ export {
   ContactListBlock,
   OperationalMessage,
   ProviderContactInformationBlock,
-  ContactFormBlock,
   ContactFormTextBlock,
   ContactFormSiteBlockData,
   Image,
@@ -164,8 +160,6 @@ export {
   LatestNewsBlockV2,
   SearchForm,
   TableBlock,
-  ContactFormModal,
-  ContactFormPageTrigger,
   VectorImageBlock,
   VideoBlock,
   VectorImageFile,

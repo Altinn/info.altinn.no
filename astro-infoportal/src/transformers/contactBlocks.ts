@@ -1,12 +1,11 @@
-import { getContactPageUrl } from "@constants/contactPages";
 import { type Locale, t } from "@i18n/index";
 import { resolveBlockReferences } from "../api/umbraco/client";
 import { BlockTransformer } from "./BlockTransformer";
 
 // Mirrors the legacy Optimizely ContactListBlockViewModelBuilder shape: i18n labels
 // for contactNumberText, and contactFormLocation reshaped from a picker array into
-// a LinkItem-ish object. contactFormPageData is attached by
-// hydrateNestedContactFormPageData in JSONTransformer.
+// a LinkItem-ish object. contactPageUrl is attached by addContactPageUrls in
+// JSONTransformer.
 function mapContactListBlock(props: any, locale: Locale) {
   const locationRefs = Array.isArray(props.contactFormLocation)
     ? props.contactFormLocation
@@ -29,9 +28,6 @@ function mapContactListBlock(props: any, locale: Locale) {
     contactNumberText: t("support.contactTelephone", locale),
     useContactFormButton: props.useContactFormButton ?? false,
     contactFormLocation,
-    contactPageUrl: contactFormLocation
-      ? getContactPageUrl(props.contactNumber, locale)
-      : undefined,
   };
 }
 

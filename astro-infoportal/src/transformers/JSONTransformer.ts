@@ -28,7 +28,7 @@ import { OperationalMessageArchivePageTransformer } from "./OperationalMessageAr
 import { SchemaAttachmentPageTransformer } from "./SchemaAttachmentPageTransformer";
 import { ContactPageTransformer } from "./ContactPageTransformer";
 import { ContactFormPageTransformer } from "./generatedTransformers/Pages/ContactFormPageTransformer";
-import { hydrateNestedContactFormPageData } from "./contactFormData";
+import { addContactPageUrls } from "./contactFormData";
 
 export class JSONTransformer implements IJSONTransformer {
   public async Transform(umbracoPageData: any, globalData?: any): Promise<any> {
@@ -86,11 +86,7 @@ export class JSONTransformer implements IJSONTransformer {
     }
 
     if (data.child) {
-      data.child = await hydrateNestedContactFormPageData(
-        data.child,
-        globalData?.locale,
-        globalData?.startPageData,
-      );
+      data.child = addContactPageUrls(data.child, globalData?.locale);
     }
 
     if (data.child?.pageSidebarViewModel) {
