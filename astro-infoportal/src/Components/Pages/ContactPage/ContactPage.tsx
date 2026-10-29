@@ -55,7 +55,7 @@ const ContactPage = ({
         </Alert>
       ) : (
         <>
-          <Heading as="h1" size="lg">
+          <Heading as="h1" size="xl">
             {texts.heading}
           </Heading>
           {texts.alertHeading && (
