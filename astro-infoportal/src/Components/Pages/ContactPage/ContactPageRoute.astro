@@ -1,0 +1,117 @@
+---
+import AstroSiteLayout from "@layouts/AstroSiteLayout.astro";
+import { JSONTransformer } from "@transformers/JSONTransformer";
+import { getContactFormBlocks } from "@transformers/contactFormData";
+import { getGlobalData } from "@constants/globalData";
+import { contactPagePaths } from "@constants/contactPages";
+import { resolvePickerUrl } from "@constants/startPageLinks";
+import { t, type Locale } from "@i18n/index";
+import { resolveEnvironment } from "@api/altinn/environments";
+import { fetchUmbracoStartPage } from "@api/umbraco/client";
+import type { ContactPageVariant } from "./ContactPage.types";
+
+interface Props {
+  language: Locale;
+  variant: ContactPageVariant;
+}
+
+const { language: locale, variant } = Astro.props;
+
+const startPageData = await fetchUmbracoStartPage(locale);
+const isBusiness = variant === "business";
+const contactFormBlock = (await getContactFormBlocks(locale)).find(
+  (block) => block.startCompanyFormat === isBusiness,
+);
+
+const helpPage = startPageData?.properties?.helpPage;
+const helpPageItem = Array.isArray(helpPage) ? helpPage[0] : helpPage;
+const currentPath = contactPagePaths[locale][variant];
+const phone = t(`contactPage.${variant}.phone`, locale);
+
+const contactPageData = {
+  contentType: "contactPage",
+  properties: {
+    variant,
+    schemaId: contactFormBlock?.schemaId ?? "",
+    showAttachment: !isBusiness,
+    breadcrumb: {
+      breadcrumbs: [
+        { linkItem: { text: "Start", url: locale === "nb" ? "/" : `/${locale}/` } },
+        { linkItem: { text: helpPageItem?.name ?? t("header.help", locale), url: resolvePickerUrl(helpPage) ?? "/hjelp/" } },
+        { linkItem: { text: t("contactPage.breadcrumb", locale), url: currentPath } },
+      ],
+    },
+    texts: {
+      heading: t(`contactPage.${variant}.heading`, locale),
+      alertHeading: isBusiness ? undefined : t("contactPage.altinn.alertHeading", locale),
+      alertText: isBusiness ? undefined : t("contactPage.altinn.alertText", locale),
+      alertPhone: isBusiness ? undefined : t("contactPage.altinn.alertPhone", locale),
+      successHeading: t("contactPage.successHeading", locale),
+      successText: t(`contactPage.${variant}.successText`, locale),
+      phone,
+      required: t("contactPage.required", locale),
+      optional: t("contactPage.optional", locale),
+      name: t("contactPage.name", locale),
+      email: t("contactPage.email", locale),
+      phoneLabel: t("contactPage.phone", locale),
+      orgNumber: t("contactPage.orgNumber", locale),
+      subject: t("contactPage.subject", locale),
+      subjectOptions: isBusiness
+        ? []
+        : [
+            t("contactform.subjectInbox", locale),
+            t("contactform.subjectAccess", locale),
+            t("contactform.subjectForms", locale),
+            t("contactform.subjectNotifications", locale),
+            t("contactform.subjectOther", locale),
+          ],
+      message: t(`contactPage.${variant}.message`, locale),
+      messageDescription: t("contactform.messageDescription", locale),
+      attachment: t("contactPage.attachment", locale),
+      attachmentDescription: t("contactPage.attachmentDescription", locale),
+      attachmentDropzone: t("contactPage.attachmentDropzone", locale),
+      attachmentButton: t("contactPage.attachmentButton", locale),
+      attachmentDelete: t("contactform.attachmentDelete", locale),
+      attachmentSizeError: t("contactform.fileSizeInvalid", locale),
+      attachmentExtensionError: t("contactform.fileExtensionInvalid", locale),
+      nameRequired: t("contactPage.nameRequired", locale),
+      emailRequired: t("contactPage.emailRequired", locale),
+      emailInvalid: t("contactPage.emailInvalid", locale),
+      phoneInvalid: t("contactPage.phoneInvalid", locale),
+      orgNumberInvalid: t("contactPage.orgNumberInvalid", locale),
+      subjectRequired: t(
+        isBusiness ? "contactPage.subjectRequired" : "contactPage.subjectChoiceRequired",
+        locale,
+      ),
+      messageRequired: t("contactPage.messageRequired", locale),
+      errorSummaryHeading: t("contactPage.errorSummaryHeading", locale),
+      sendError: t("contactPage.sendError", locale),
+      submit: t("contactform.button", locale),
+      submitting: t("contactform.submitting", locale),
+    },
+  },
+};
+
+const altinnEndpoints = resolveEnvironment(Astro.url.hostname);
+const cultures = {
+  nb: { path: contactPagePaths.nb[variant] },
+  nn: { path: contactPagePaths.nn[variant] },
+  en: { path: contactPagePaths.en[variant] },
+};
+const globalData = getGlobalData(
+  locale,
+  t("search.pageUrl", locale),
+  altinnEndpoints,
+  cultures,
+  startPageData,
+  "helpStartPage",
+  currentPath,
+);
+const pageData = await new JSONTransformer().Transform(contactPageData, globalData);
+---
+
+<AstroSiteLayout
+  pageData={pageData}
+  htmlLanguage={t("search.htmlLanguage", locale)}
+  title={t("contactPage.title", locale)}
+/>

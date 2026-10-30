@@ -1,6 +1,4 @@
 import { MobileIcon, PaperplaneIcon } from "@navikt/aksel-icons";
-import { useState } from "react";
-import ContactFormModal from "../../ContactFormModal/ContactFormModal";
 import "./DoYouNeedHelpBlock.scss";
 import "../../../styles/legacy-pages.scss";
 
@@ -16,17 +14,11 @@ const DoYouNeedHelpBlock = ({
   email,
   showContactFormButton,
   contactFormText,
-  contactFormPageData,
-  contactFormSchemaId,
-  showAttachment,
-  useRecaptcha,
-  recaptchaSiteKey,
-  labels,
+  contactPageUrl,
 }: any) => {
   const phoneHref = phoneNumber
     ? `tel:+47${digitsOnly(phoneNumber)}`
     : undefined;
-  const [isContactFormOpen, setIsContactFormOpen] = useState(false);
 
   return (
     <div className="legacy-page do-you-need-help-block">
@@ -55,47 +47,11 @@ const DoYouNeedHelpBlock = ({
               </a>
             )}
 
-            {showContactFormButton && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setIsContactFormOpen(true)}
-                  className="a-linkIcon do-you-need-help-block__linkbutton"
-                  aria-label={contactFormText || "Open contact form modal"}
-                >
-                  <PaperplaneIcon aria-hidden="true" />
-                  <span className="a-linkIcon-text">
-                    {contactFormText || ""}
-                  </span>
-                </button>
-
-                <ContactFormModal
-                  isOpen={isContactFormOpen}
-                  onClose={() => setIsContactFormOpen(false)}
-                  formTypeArea={contactFormPageData?.formTypeArea}
-                  teaserText={contactFormPageData?.teaserText}
-                  teaserHeading={contactFormPageData?.teaserHeading}
-                  useRecaptcha={
-                    contactFormPageData?.useRecaptcha ?? useRecaptcha
-                  }
-                  recaptchaSiteKey={
-                    contactFormPageData?.recaptchaSiteKey ?? recaptchaSiteKey
-                  }
-                  title={
-                    contactFormPageData?.pageName ||
-                    contactFormText ||
-                    heading ||
-                    ""
-                  }
-                  schemaId={
-                    !contactFormPageData ? contactFormSchemaId : undefined
-                  }
-                  showAttachment={
-                    !contactFormPageData ? showAttachment : undefined
-                  }
-                  labels={labels}
-                />
-              </>
+            {showContactFormButton && contactPageUrl && (
+              <a href={contactPageUrl} className="a-linkIcon">
+                <PaperplaneIcon aria-hidden="true" />
+                <span className="a-linkIcon-text">{contactFormText}</span>
+              </a>
             )}
           </div>
         </div>
