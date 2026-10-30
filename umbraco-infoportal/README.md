@@ -42,7 +42,6 @@ The code is organised by **functional area**: one folder per feature, holding ev
 | `ArticleExport/`       | Backoffice export of articles to Word                                        |
 | `FormChanges/`         | Backoffice dashboard of changes in the form catalogue                        |
 | `MetaImport/`          | Import of form metadata                                                      |
-| `Migrations/`          | Umbraco database migrations                                                  |
 
 Inside an area, classes are sorted by **what kind of class** they are:
 
@@ -70,6 +69,14 @@ Rules:
 - **Tests mirror the folders:** `umbraco-infoportal.Tests/<Area>/...`.
 
 To add a new area, create the folder, add an `<Area>Composer.cs` if it registers anything, and put classes in the subfolders above.
+
+### Database migrations
+
+There are currently no custom database migrations. Each environment's `umbracoKeyValue` table still has the row
+`Umbraco.Core.Upgrader.State+Infoportal = normalize-legacy-block-udis-20260813`, left by a one-off repair for the
+Umbraco 18 upgrade that has since been removed (see [PR 688](https://github.com/Altinn/info.altinn.no/pull/688)). If you add a migration plan, either give it a different
+name than `Infoportal`, or start it with `From("normalize-legacy-block-udis-20260813")`. A plan named `Infoportal`
+that starts from an empty state can't resolve that stored state, and startup migrations fail in every environment.
 
 ## Database
 The project utilizes a local SQLite database by default, housed within the `umbraco/Data/` directory.
