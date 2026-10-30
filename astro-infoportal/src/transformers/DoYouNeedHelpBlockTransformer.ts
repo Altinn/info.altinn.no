@@ -14,10 +14,6 @@ export class DoYouNeedHelpBlockTransformer implements IJSONTransformer {
       email: p.email ?? undefined,
       showContactFormButton: p.showContactFormButton ?? false,
       contactFormText: p.contactFormText ?? undefined,
-      labels: p.labels ?? undefined,
-      contactFormSchemaId: p.contactFormSchemaId ?? 0,
-      showAttachment: p.showAttachment ?? false,
-      contactFormPageData: p.contactFormPageData ?? undefined,
     };
   }
 }
