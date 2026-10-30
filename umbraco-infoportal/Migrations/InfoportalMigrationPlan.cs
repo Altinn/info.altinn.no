@@ -1,6 +1,6 @@
 using Umbraco.Cms.Infrastructure.Migrations;
 
-namespace umbraco_infoportal.Migrations;
+namespace Infoportal.Cms.Migrations;
 
 /// <summary>
 /// The migration plan for infoportal's own migrations, kept separate from Umbraco's core plan.

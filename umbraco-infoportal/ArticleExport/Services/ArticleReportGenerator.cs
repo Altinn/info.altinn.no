@@ -5,7 +5,6 @@ using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using HtmlAgilityPack;
-using umbraco_infoportal.ArticleExport.Models;
 using Umbraco.Cms.Core.Models.Blocks;
 using Umbraco.Cms.Core.Models.PublishedContent;
 using Umbraco.Cms.Core.PublishedCache;
@@ -14,8 +13,9 @@ using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Web;
 using Umbraco.Cms.Web.Common;
 using uSync.Core.Extensions;
+using Infoportal.Cms.ArticleExport.Models;
 
-namespace umbraco_infoportal.ArticleExport.Services;
+namespace Infoportal.Cms.ArticleExport.Services;
 
 // Faithful port of the Optimizely ArticleGenerateReportController logic onto the
 // Umbraco 17 content model. Selects published article/schema/subsidy pages by

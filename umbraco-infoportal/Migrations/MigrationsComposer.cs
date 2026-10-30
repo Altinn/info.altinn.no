@@ -1,7 +1,8 @@
 using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.Notifications;
+using Infoportal.Cms.Migrations.NotificationHandlers;
 
-namespace umbraco_infoportal.Migrations;
+namespace Infoportal.Cms.Migrations;
 
 public class MigrationsComposer : IComposer
 {

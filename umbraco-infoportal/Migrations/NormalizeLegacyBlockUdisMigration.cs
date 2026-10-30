@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Infrastructure.Migrations;
 
-namespace umbraco_infoportal.Migrations;
+namespace Infoportal.Cms.Migrations;
 
 /// <summary>
 /// Repairs block editor values that Umbraco 18 can no longer read because they are still stored in
