@@ -1,4 +1,3 @@
-import type { ContentAreaProps } from "@components/Shared/ContentArea/ContentArea.types";
 import type { RichTextAreaProps } from "@components/Shared/RichTextArea/RichTextArea.types";
 
 export interface ContactFormLocationProps {
@@ -18,18 +17,6 @@ export interface ContactListBlockProps {
   button2?: unknown;
   useContactFormButton?: boolean;
   contactFormLocation?: ContactFormLocationProps;
+  contactPageUrl?: string;
   button3?: unknown;
-  contactFormPageData?: {
-    pageName?: string;
-    formTypeArea?: ContentAreaProps;
-    teaserText?: string;
-    teaserHeading?: string;
-    useRecaptcha?: boolean;
-    recaptchaSiteKey?: string;
-  };
-  contactFormSchemaId?: number;
-  showAttachment?: boolean;
-  useRecaptcha?: boolean;
-  recaptchaSiteKey?: string;
-  labels?: unknown;
 }
