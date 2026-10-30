@@ -1,0 +1,101 @@
+using Microsoft.Extensions.Options;
+using Umbraco.Cms.Api.Management.Security;
+using Umbraco.Cms.Core;
+using System.Security.Claims;
+using System.Text.RegularExpressions;
+
+namespace Infoportal.Cms.Authentication;
+
+/// <summary>
+/// Configuration options for Microsoft Entra ID (Azure AD) backoffice external login provider.
+/// </summary>
+public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigureNamedOptions<BackOfficeExternalLoginProviderOptions>
+{
+    public const string SchemeName = "MicrosoftEntraId";
+
+    public void Configure(string? name, BackOfficeExternalLoginProviderOptions options)
+    {
+        if (name != Constants.Security.BackOfficeExternalAuthenticationTypePrefix + SchemeName)
+        {
+            return;
+        }
+
+        Configure(options);
+    }
+
+    public void Configure(BackOfficeExternalLoginProviderOptions options)
+    {
+        options.AutoLinkOptions = new ExternalSignInAutoLinkOptions(
+            autoLinkExternalAccount: true,
+            defaultUserGroups: Array.Empty<string>(),
+            defaultCulture: null,
+            allowManualLinking: true
+        )
+        {
+            OnAutoLinking = (autoLinkUser, loginInfo) =>
+            {
+                var nameClaim = loginInfo.Principal.FindFirst("name");
+                if (nameClaim != null)
+                {
+                    autoLinkUser.Name = nameClaim.Value;
+                }
+            },
+
+            OnExternalLogin = (user, loginInfo) =>
+            {
+                // Sync navn
+                var nameClaim = loginInfo.Principal.FindFirst("name");
+                if (nameClaim != null)
+                {
+                    user.Name = nameClaim.Value;
+                }
+
+                // Hent App Roles fra Entra
+                var roles = loginInfo.Principal
+                    .FindAll(ClaimTypes.Role)
+                    .Select(r => r.Value)
+                    .ToList();
+
+                var mappedGroups = new List<string>();
+
+                var regex = new Regex(@"^umbraco-(.+)$");
+
+                foreach (var role in roles)
+                {
+                    var match = regex.Match(role);
+
+                    if (match.Success)
+                    {
+                        var shortname = match.Groups[1].Value;
+
+                        var umbracoUserGroup = shortname switch
+                        {
+                            "redaktor" => "editor",
+                            "admin" or "beredskapsvakt" or "servicedesk" => shortname,
+                            _ => "tjenester" + char.ToUpper(shortname[0]) + shortname[1..]
+                        };
+
+                        mappedGroups.Add(umbracoUserGroup);
+                    }
+                }             
+
+                // Deny om ingen andre er roller er spesifisert
+                if (!mappedGroups.Any())
+                {
+                    return false;
+                }
+
+                // Sett roller i Umbraco
+                user.Roles.Clear();
+                foreach (var group in mappedGroups)
+                {
+                    user.AddRole(group);
+                }
+
+                return true;
+            }
+        };
+
+        options.DenyLocalLogin = true;
+    }
+}

@@ -2,9 +2,9 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Umbraco.Cms.Core.Models.Blocks;
 using Umbraco.Cms.Infrastructure.Serialization;
-using umbraco_infoportal.Migrations;
+using Infoportal.Cms.Migrations;
 
-namespace umbraco_infoportal.Tests.Migrations;
+namespace Infoportal.Cms.Tests.Migrations;
 
 public class LegacyBlockUdiNormalizerTests
 {

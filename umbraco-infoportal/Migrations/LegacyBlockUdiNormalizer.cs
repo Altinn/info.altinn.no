@@ -4,7 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Unicode;
 
-namespace umbraco_infoportal.Migrations;
+namespace Infoportal.Cms.Migrations;
 
 /// <summary>
 /// Rewrites block editor values that are stored in the pre-Umbraco-15 "Udi" shape into the

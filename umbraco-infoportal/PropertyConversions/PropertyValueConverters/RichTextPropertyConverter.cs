@@ -1,0 +1,390 @@
+using System.Text.Json.Nodes;
+using Umbraco.Cms.Core;
+using Umbraco.Cms.Core.Models.PublishedContent;
+using Umbraco.Cms.Core.PropertyEditors;
+using Umbraco.Cms.Core.PublishedCache;
+using System.Text.RegularExpressions;
+using System.Text.Json;
+using uSync.Core.Extensions;
+using Umbraco.Cms.Core.Models.DeliveryApi;
+using Umbraco.Cms.Core.Services;
+using Infoportal.Cms.PropertyConversions.Services;
+
+namespace Infoportal.Cms.PropertyConversions.PropertyValueConverters;
+
+public class RichTextPropertyConverter : IPropertyValueConverter
+{
+    private readonly IPublishedContentCache _publishedContentCache;
+
+    private readonly MarkupFilter _markupFilter;   
+
+    private readonly IVariationContextAccessor _variationContextAccessor;
+
+    public RichTextPropertyConverter(IPublishedContentCache publishedContentCache, IVariationContextAccessor variationContextAccessor, MarkupFilter markupFilter)
+    {
+        _publishedContentCache = publishedContentCache;
+        _variationContextAccessor = variationContextAccessor;
+        _markupFilter = markupFilter;
+    }
+
+    // Make sure the Property Value Converter only applies to the RichText property editor
+    public bool IsConverter(IPublishedPropertyType propertyType)
+        => propertyType.EditorAlias.Equals(Constants.PropertyEditors.Aliases.RichText);
+
+
+    // We consider the value to be a value only when we have the actual IPublishedContent object,
+    // meaning that there is a valid picked content item.
+    public bool? IsValue(object? value, PropertyValueLevel level)
+    {
+        return level switch
+        {
+            PropertyValueLevel.Source => null,
+            PropertyValueLevel.Inter => null,
+            PropertyValueLevel.Object => value is JsonObject,
+            _ => throw new ArgumentOutOfRangeException(nameof(level), level, $"Invalid level: {level}.")
+        };
+    }
+
+    // The type returned by this converter is IPublishedContent
+    // And the Models Builder will take care of returning the actual generated type
+    public Type GetPropertyValueType(IPublishedPropertyType propertyType)
+        => typeof(JsonObject);
+
+    // Because we have a reference to another content item, we need to use the Elements cache level,
+    // to make sure that changes to the referenced item are detected and the cache invalidated accordingly.
+    public PropertyCacheLevel GetPropertyCacheLevel(IPublishedPropertyType propertyType)
+        => PropertyCacheLevel.Elements;
+
+    // Converts the source value (string) to an intermediate value (GuidUdi)
+    public object? ConvertSourceToIntermediate(IPublishedElement owner, IPublishedPropertyType propertyType, 
+        object? source, bool preview)
+    {
+        return source;
+    }
+
+    // Converts the intermediate value (GuidUdi) to the actual object value (IPublishedContent)
+    public object? ConvertIntermediateToObject(IPublishedElement owner, IPublishedPropertyType propertyType,
+        PropertyCacheLevel referenceCacheLevel, object? inter, bool preview)
+    {
+        if (inter != null)
+        {
+            string raw = inter.ToString() ?? string.Empty;
+
+            if (string.IsNullOrEmpty(raw))
+            {
+                return null;
+            }
+
+            if (!raw.StartsWith('{'))
+            {
+                JsonArray items = [];
+                items.Add(new JsonObject
+                {
+                    { "html", _markupFilter.FilterMarkup(raw) },
+                    { "componentName", "RichText" }
+                });
+
+                return new JsonObject { { "items", items } };
+            }
+
+            return new JsonObject { { "items", ParseRichText(raw) } };
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    private JsonArray ParseRichText(string rawValue)
+    {
+        string pattern = @"<umb-rte-block data-content-key=""(?<contentguid>[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})""></umb-rte-block>";
+
+        JsonObject rteValue = JsonSerializer.Deserialize<JsonNode>(rawValue).AsObject();
+
+        string markup = ParseInlineUrlBlocks(rawValue);
+        markup = _markupFilter.FilterMarkup(markup);
+
+        JsonArray items = [];
+
+        Match match = Regex.Match(markup, pattern);
+
+        while (match.Success)
+        {
+            string before = markup[0..match.Index];
+            if (!IsEmptyHtml(before))
+            {
+                items.Add(new JsonObject
+                {
+                    { "html", before },
+                    { "componentName", "RichText" }
+                });
+            }
+
+            Guid blockGuid = Guid.Parse(match.Groups["contentguid"].Value);
+
+            JsonObject blockItemData = GetContentDataItem(blockGuid, rteValue);
+
+            if (blockItemData is null)
+            {
+                return items;
+            }
+
+            string uriString = GetBlockPickerUri(blockItemData);
+
+            JsonObject jsonObject = ConvertPickerBlock(uriString);
+
+            items.Add(jsonObject);
+
+            if (markup.Length > match.Length)
+            {
+                markup = markup[(match.Index + match.Length)..];
+            } else
+            {
+                markup = "";
+            }
+
+            match = Regex.Match(markup, pattern);
+        }
+
+        if (!IsEmptyHtml(markup))
+        {
+            items.Add(new JsonObject
+            {
+                { "html", markup },
+                { "componentName", "RichText" }
+            });
+        }
+
+        return items;
+    }
+
+    private string ParseInlineUrlBlocks(string rawValue)
+    {
+        string pattern = @"<umb-rte-block-inline data-content-key=""(?<contentguid>[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12})""></umb-rte-block-inline>";
+
+        JsonObject rteValue = JsonSerializer.Deserialize<JsonNode>(rawValue).AsObject();
+
+        string markup = rteValue.GetPropertyAsString("markup");
+
+        foreach (Match match in Regex.Matches(markup, pattern))
+        {
+            Guid blockGuid = Guid.Parse(match.Groups["contentguid"].Value);
+
+            JsonObject blockItemData = GetContentDataItem(blockGuid, rteValue);
+
+            if (blockItemData is null)
+            {
+                markup = markup.Replace(match.Value, "");
+                continue;
+            }
+
+            string uriString = GetBlockPickerUri(blockItemData);
+
+            JsonObject jsonObject = ConvertPickerBlock(uriString);
+
+            string? linkText = jsonObject.GetValueAsString("linkText");
+            string? url = jsonObject.GetValueAsString("url");
+            string linkHtml = $"<a href=\"{url}\" class=\"ds-link\">{linkText}</a>";
+
+            markup = markup.Replace(match.Value, linkHtml);
+        }
+
+        return markup;
+    }
+
+    private string GetBlockPickerUri(JsonObject contentDataItem)
+    {
+        // Imported JSON format
+        string uriString = contentDataItem.GetPropertyAsString("blockPicker");
+
+        if (!string.IsNullOrEmpty(uriString))
+        {
+            return uriString;
+        }
+
+        // JSON format after republishing
+        JsonArray values = contentDataItem.GetPropertyAsArray("values");
+
+        foreach (JsonObject valueObject in values.Cast<JsonObject>())
+        {
+            return valueObject.GetPropertyAsString("value");
+        }
+
+        return null;
+    }    
+
+    private static bool IsEmptyHtml(string? html)
+    {
+        if (string.IsNullOrWhiteSpace(html)) return true;
+        if (Regex.IsMatch(html, "<(img|iframe|video|audio|svg|picture)\\b", RegexOptions.IgnoreCase))
+        {
+            return false;
+        }
+        string stripped = Regex.Replace(html, "<[^>]+>", string.Empty);
+        stripped = stripped.Replace("&nbsp;", " ").Replace("&#160;", " ");
+        return string.IsNullOrWhiteSpace(stripped);
+    }
+
+    private JsonObject GetContentDataItem(Guid guid, JsonObject rteValue)
+    {
+        JsonObject blocks = rteValue.GetPropertyAsObject("blocks");
+
+        if (blocks is null)
+        {
+            return null;
+        }
+
+        
+        JsonArray contentData = blocks.GetPropertyAsArray("contentData");
+        if (contentData is null)
+        {
+            return null;
+        }
+
+        foreach (JsonNode contentDataItem in contentData)
+        {
+            Guid? currentGuid = GetGuidFromContentDataItem(contentDataItem.AsObject());
+
+            if (currentGuid.Equals(guid))
+            {
+                return contentDataItem.AsObject();
+            }
+        }
+
+        return null;
+    }
+
+    private Guid? GetGuidFromContentDataItem(JsonObject contentDataItem)
+    {
+        string udiString = contentDataItem.GetPropertyAsString("udi");
+
+        if (!string.IsNullOrEmpty(udiString))
+        {
+            return new GuidUdi(new Uri(udiString)).Guid;
+        } 
+        else 
+        {
+            string key = contentDataItem.GetPropertyAsString("key");
+            return key != null ? Guid.Parse(key) : null;
+        }
+    }
+
+    private JsonObject ConvertPickerBlock(string uriString)
+    {
+        JsonObject item = new JsonObject();
+        
+        if (string.IsNullOrEmpty(uriString))
+        {
+            return item;
+        }
+
+        IPublishedContent? content = _publishedContentCache.GetById(new GuidUdi(new Uri(uriString)).Guid);
+
+        if (content is null) 
+        {
+            return item;
+        }
+       
+        if ("tableBlock".Equals(content.ContentType.Alias))
+        {
+            item.Add("componentName", "RichText");
+            IPublishedProperty property = content.GetProperty("table");
+
+            if (property is null)
+            {
+                return item;
+            }
+
+            object value = property.GetDeliveryApiValue(true);
+
+            if (value is null)
+            {
+                return item;
+            }
+
+            if (value is JsonObject jsonObject) {
+                item.Add("html", _markupFilter.FilterMarkup(GetMarkup(jsonObject)));
+            } else if (value is RichTextEditorValue rteValue) {
+                item.Add("html", _markupFilter.FilterMarkup(rteValue.Markup));
+            }
+        } else if ("linkBlock".Equals(content.ContentType.Alias))
+        {
+            item.Add("componentName", "LinkBlock");
+            item = AddContentProperties(item, content);
+            string url = item.GetPropertyAsString("urlBlock");
+            string linkText = item.GetPropertyAsString("extraTitle");
+            JsonObject linkObject = [];
+            linkObject["url"] = url;
+            linkObject["openInNewWindow"] = true;
+            linkObject["componentName"] = "UrlBlock";
+            linkObject["linkText"] = linkText;
+            item["link"] = linkObject;
+        } else {
+            item.Add("componentName", Capitalize(content.ContentType.Alias));
+           
+            item = AddContentProperties(item, content);    
+        }
+        return item;
+    }
+
+    private string? GetMarkup(JsonObject jsonObject)
+    {
+        JsonArray items = jsonObject.GetPropertyAsArray("items");
+        
+        foreach (JsonObject item in items)
+        {
+            return item.GetPropertyAsString("html");
+        }
+
+        return null;
+    }       
+
+    private JsonObject AddContentProperties(JsonObject jsonObject, IPublishedContent content)
+    {
+        string culture = _variationContextAccessor.VariationContext?.Culture;
+
+        if (content != null)
+        {
+            foreach (IPublishedProperty property in content.Properties)
+            {
+                object? value = property.GetDeliveryApiValue(true, culture);
+                if (value is null)
+                {
+                    continue;
+                }
+
+                if (value is bool v) {
+                    jsonObject.Add(property.Alias, v);
+                } else if (value is IApiContent[] a)
+                {
+                    JsonArray jsonArray = [];
+                    foreach (IApiContent apiContent in a)
+                    {
+                        jsonArray.Add(ConvertBlock(apiContent));
+                    }
+                    
+                    jsonObject.Add(property.Alias, jsonArray);
+                } else {
+                    jsonObject.Add(property.Alias, value.ConvertToJsonNode());
+                }
+            }
+        }
+
+        return jsonObject;
+    }
+
+    private JsonObject ConvertBlock(IApiContent apiContent)
+    {
+        JsonObject jsonObject = [];
+        jsonObject.Add("componentName", Capitalize(apiContent.ContentType));
+        IPublishedContent? content = _publishedContentCache.GetById(apiContent.Id);
+        jsonObject = AddContentProperties(jsonObject, content);
+        return jsonObject;
+    }
+
+    private string Capitalize(string value)
+    {
+        return char.ToUpper(value[0]) + value[1..];
+    }
+}
+

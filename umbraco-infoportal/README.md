@@ -21,6 +21,56 @@ Alternatively, if you are using an IDE like Visual Studio or VS Code, you can us
 
 Once running, navigate to the default port indicated in your console output to view the site, or append `/umbraco` to access the Umbraco CMS backoffice.
 
+## Project structure
+
+The code is organised by **functional area**: one folder per feature, holding everything that feature needs. To find the code for a feature, open its folder.
+
+| Area                   | What it does                                                                 |
+|------------------------|------------------------------------------------------------------------------|
+| `Hosting/`             | Key Vault, Kestrel, reverse proxy headers and BackOfficeHost override         |
+| `Telemetry/`           | OpenTelemetry tracing                                                        |
+| `MediaStorage/`        | Media files and image cache in Azure Blob Storage                            |
+| `Authentication/`      | Microsoft Entra ID login to the backoffice                                   |
+| `Search/`              | Elasticsearch indexing on publish, full reindex, search queries              |
+| `CachePurge/`          | Purges Cloudflare cache for affected URLs when content changes               |
+| `PropertyConversions/` | Turns stored property values (rich text, block lists) into the JSON Astro gets |
+| `ContentFilters/`      | Delivery API filters, e.g. `?filter=industry:...`                            |
+| `Preview/`             | Preview URLs pointing at the Astro frontend                                  |
+| `Redirects/`           | `/api/redirect`, used by Astro to resolve redirects and moved pages          |
+| `ContactForm/`         | `/api/contactform`, sends contact forms by email, rate limited               |
+| `MaintenanceBanner/`   | Maintenance message shown in the backoffice header                           |
+| `ArticleExport/`       | Backoffice export of articles to Word                                        |
+| `FormChanges/`         | Backoffice dashboard of changes in the form catalogue                        |
+| `MetaImport/`          | Import of form metadata                                                      |
+| `Migrations/`          | Umbraco database migrations                                                  |
+
+Inside an area, classes are sorted by **what kind of class** they are:
+
+| Location                   | Holds                                                    | Recognised by                          |
+|----------------------------|----------------------------------------------------------|----------------------------------------|
+| `<Area>Composer.cs`        | All DI and notification registrations for the area       | `: IComposer`                          |
+| `<Name>Options.cs`         | Strongly-typed config sections                           | Bound with `Configure<T>()`            |
+| `Controllers/`             | HTTP endpoints (public API and Management API)           | `: ControllerBase` / `ManagementApiControllerBase` |
+| `Services/`                | Business logic and clients for external systems          | Plain classes, injected through DI     |
+| `Models/`                  | DTOs, request/response records                           | Data only, no logic                    |
+| `NotificationHandlers/`    | Reactions to Umbraco events (publish, move, startup ...) | `: INotificationHandler<T>`            |
+| `Jobs/`                    | Long-running background work                             | `: IHostedService` / `BackgroundService` |
+| `PropertyValueConverters/` | Delivery API property converters                         | `: IPropertyValueConverter`            |
+| `Filters/`                 | Delivery API query filters and index fields              | `: IFilterHandler, IContentIndexHandler` |
+| `Resources/`               | Embedded files (word lists, ...)                         | `<EmbeddedResource>` in the csproj     |
+
+Rules:
+
+- **Registrations go in the area's composer.** Umbraco finds and runs every `IComposer` automatically.
+  `Program.cs` only holds what must run before Umbraco starts.
+- **The namespace matches the folder**, e.g. `Infoportal.Cms.Search.Services`.
+- **One public type per file**, and the file is named after the type.
+- **External integrations are ordinary services in the area that uses them.** There are no separate adapter projects.
+- **Backoffice UI for an area lives in `App_Plugins/<Area>/`**, e.g. `App_Plugins/Search/`.
+- **Tests mirror the folders:** `umbraco-infoportal.Tests/<Area>/...`.
+
+To add a new area, create the folder, add an `<Area>Composer.cs` if it registers anything, and put classes in the subfolders above.
+
 ## Database
 The project utilizes a local SQLite database by default, housed within the `umbraco/Data/` directory.
 

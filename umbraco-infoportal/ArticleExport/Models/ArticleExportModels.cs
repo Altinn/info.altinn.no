@@ -1,4 +1,4 @@
-namespace umbraco_infoportal.ArticleExport.Models;
+namespace Infoportal.Cms.ArticleExport.Models;
 
 public sealed record FilterOptionsResponse(
     IReadOnlyList<string> Providers,
