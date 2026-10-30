@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.Options;
 using Umbraco.Cms.Api.Management.Security;
 using Umbraco.Cms.Core.Composing;
+using Umbraco.Cms.Infrastructure.Manifest;
 
 namespace Infoportal.Cms.Authentication;
 
@@ -40,6 +41,7 @@ public class MicrosoftEntraIdBackOfficeExternalLoginComposer : IComposer
 
         builder.Services.ConfigureOptions<MicrosoftEntraIdBackOfficeExternalLoginProviderOptions>();
         builder.Services.ConfigureOptions<ConfigureMicrosoftEntraIdAuthenticationOptions>();
+        builder.Services.AddSingleton<IPackageManifestReader, MicrosoftEntraIdPackageManifestReader>();
 
         builder.AddBackOfficeExternalLogins(logins =>
         {
