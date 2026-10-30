@@ -31,6 +31,7 @@ public class RedirectController : ControllerBase
             return Ok();
         }
 
+        string culture = GetCulture(path);
         string pathWithoutTrailingSlash = path[0..(path.Length - 1)];
         string pathWithoutLanguageAndTrailingSlash = pathWithoutTrailingSlash.Replace("/en/", "/").Replace("/nn/", "/");
 
@@ -43,15 +44,16 @@ public class RedirectController : ControllerBase
         // If not, checking if path is a "Enkel adresse" / umbracoUrlAlias
         row ??= scope.Database.FirstOrDefault<RedirectQueryRow>(
                 @"SELECT n.uniqueId as ContentGuid, l.languageISOCode as Culture 
-                    FROM umbracoPropertyData pd, cmsPropertyType pt, umbracoNode n, umbracoContentVersion cv, umbracoLanguage l, umbracoDocument d
+                    FROM umbracoPropertyData pd, cmsPropertyType pt, umbracoNode n, umbracoContentVersion cv, umbracoLanguage l, umbracoDocumentVersion dv
                     WHERE pd.propertyTypeId = pt.id
                     AND pt.alias = 'umbracoUrlAlias'
                     AND cv.id = pd.versionId
                     AND pd.languageId = l.id
                     AND n.id = cv.nodeId
-                    AND d.nodeId = n.id
-                    AND d.published = 1
-                    AND pd.varcharValue = @0", pathWithoutLanguageAndTrailingSlash[1..]);  
+                    AND dv.id = cv.id
+                    AND dv.published = 1
+                    AND l.languageISOCode = @0
+                    AND pd.varcharValue = @1", culture, pathWithoutLanguageAndTrailingSlash[1..]);  
 
         // If not, checking if path belongs to a page that has been moved and got a new url
         // Putting this one last to allow overrides through Skybrud Redirects and "Enkel adresse"
@@ -122,6 +124,21 @@ public class RedirectController : ControllerBase
         }
 
         return path;
+    }
+
+    private static string GetCulture(string path)
+    {
+        if (path.StartsWith("/en"))
+        {
+            return "en";
+        } 
+        else if (path.StartsWith("/nn"))
+        {
+            return "nn";
+        } else 
+        {
+            return "nb";
+        }
     }
     
     // NPoco creates this via the primary constructor with default values and then assigns the
