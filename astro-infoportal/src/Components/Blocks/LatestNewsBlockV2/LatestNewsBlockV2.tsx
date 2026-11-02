@@ -1,4 +1,4 @@
-import { ArrowRightIcon } from "@navikt/aksel-icons";
+import { ArrowRightIcon } from "@components/Shared/Icons/icons";
 import "../../../styles/legacy-pages.scss";
 import "./LatestNewsBlockV2.scss";
 

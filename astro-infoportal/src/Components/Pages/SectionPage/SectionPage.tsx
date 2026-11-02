@@ -2,7 +2,7 @@ import { ContentArea } from "/App.Components";
 // import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
 import "../../../styles/legacy-pages.scss";
 import "./SectionPage.scss";
-import { ArrowRightIcon } from "@navikt/aksel-icons";
+import { ArrowRightIcon } from "@components/Shared/Icons/icons";
 import type { SectionPageProps } from "./SectionPage.types";
 
 const SectionPage = ({

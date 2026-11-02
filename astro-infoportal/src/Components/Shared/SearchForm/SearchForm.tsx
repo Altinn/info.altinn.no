@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useState } from "react";
 import "./SearchForm.scss";
-import { MagnifyingGlassIcon } from "@navikt/aksel-icons";
+import { MagnifyingGlassIcon } from "@components/Shared/Icons/icons";
 
 const SearchForm = ({
   searchLabel,

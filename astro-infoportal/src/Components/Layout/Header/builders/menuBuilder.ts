@@ -14,7 +14,7 @@ import {
   MenuGridIcon,
   PadlockLockedFillIcon,
   PersonCircleIcon,
-} from "@navikt/aksel-icons";
+} from "@components/Shared/Icons/icons";
 import type { MenuPages } from "../types/headerTypes";
 
 const isCurrentPage = (currentPath: string, itemUrl?: string): boolean => {

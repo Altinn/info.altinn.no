@@ -1,6 +1,6 @@
 import { Modal } from "@altinn/altinn-components";
 import { Card, Paragraph } from "@digdir/designsystemet-react";
-import * as AkselIcons from "@navikt/aksel-icons";
+import { ArrowRightIcon } from "@components/Shared/Icons/icons";
 import { useState } from "react";
 import { RichTextArea } from "/App.Components";
 import { BoxTypes, BoxColors } from "../../../Constants/ComponentVariants";
@@ -41,7 +41,7 @@ const BoxBlock = ({
           >
             <h3 className="box-block__title">
               <span className="box-block__title-text">{title}</span>
-              <AkselIcons.ArrowRightIcon aria-hidden className="box-block__icon" />
+              <ArrowRightIcon aria-hidden className="box-block__icon" />
             </h3>
             {description && (
               <Paragraph className="box-block__description">{description}</Paragraph>
@@ -77,7 +77,7 @@ const BoxBlock = ({
       >
         <h3 className="box-block__title">
           <span className="box-block__title-text">{title}</span>
-          <AkselIcons.ArrowRightIcon aria-hidden className="box-block__icon" />
+          <ArrowRightIcon aria-hidden className="box-block__icon" />
         </h3>
         {description && (
           <Paragraph className="box-block__description">{description}</Paragraph>

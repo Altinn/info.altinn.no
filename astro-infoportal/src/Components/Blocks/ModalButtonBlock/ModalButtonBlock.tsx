@@ -1,5 +1,5 @@
 import { DsButton, Modal} from "@altinn/altinn-components";
-import { ArrowRightIcon } from "@navikt/aksel-icons";
+import { ArrowRightIcon } from "@components/Shared/Icons/icons";
 import { useState } from "react";
 import { RichTextArea, SchemaPage } from "/App.Components";
 import ProvidersInline from "../../Shared/ProvidersInline/ProvidersInline";

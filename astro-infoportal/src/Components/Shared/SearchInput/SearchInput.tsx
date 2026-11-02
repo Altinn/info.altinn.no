@@ -1,5 +1,5 @@
 import { DsSearch } from "@altinn/altinn-components";
-import { MagnifyingGlassIcon } from "@navikt/aksel-icons";
+import { MagnifyingGlassIcon } from "@components/Shared/Icons/icons";
 import { useState } from "react";
 import { useIsDesktop } from "/Services/Hooks/UseMediaQuery";
 import { useUiLanguage } from "../UiLanguage/UiLanguage";

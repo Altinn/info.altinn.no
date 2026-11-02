@@ -20,7 +20,7 @@ import {
   BankNoteIcon,
   ClockDashedIcon,
   HourglassIcon,
-} from "@navikt/aksel-icons";
+} from "@components/Shared/Icons/icons";
 import BreadcrumbsView from "../../Layout/Breadcrumbs/BreadcrumbsView";
 import { UiText } from "../../Shared/UiLanguage/UiLanguage";
 import ProvidersInline, {

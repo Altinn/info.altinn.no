@@ -1,4 +1,4 @@
-import { MobileIcon, PaperplaneIcon } from "@navikt/aksel-icons";
+import { MobileIcon, PaperplaneIcon } from "@components/Shared/Icons/icons";
 import "./DoYouNeedHelpBlock.scss";
 import "../../../styles/legacy-pages.scss";
 

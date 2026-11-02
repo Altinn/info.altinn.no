@@ -3,6 +3,8 @@ import cloudflare from '@astrojs/cloudflare';
 import react from '@astrojs/react';
 import {createRequire} from 'node:module';
 import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {iconSprite} from './plugins/iconSprite.mjs';
 
 // Workaround: Vite 7 does not serve /@vite/client in Astro 6 dev mode,
 // which blocks React hydration. This plugin fixes it.
@@ -70,7 +72,15 @@ export default defineConfig({
 
   integrations: [react()],
   vite: {
-    plugins: [viteClientFix(), minifyServerBuild()],
+    plugins: [
+      viteClientFix(),
+      minifyServerBuild(),
+      iconSprite({
+        iconsModule: fileURLToPath(
+          new URL('./src/Components/Shared/Icons/icons.ts', import.meta.url),
+        ),
+      }),
+    ],
     build: {
       /* true = oxc */
       minify: true,

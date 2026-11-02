@@ -1,5 +1,5 @@
 import {Badge, Banner} from '@altinn/altinn-components';
-import {XMarkIcon} from '@navikt/aksel-icons';
+import {XMarkIcon} from '@components/Shared/Icons/icons';
 import {useEffect, useState} from 'react';
 import {IconButton} from '../../Shared/IconButton/IconButton';
 import RichTextArea from '../../Shared/RichTextArea/RichTextArea';

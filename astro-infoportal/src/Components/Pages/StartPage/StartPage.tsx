@@ -6,7 +6,7 @@ import {
   Section,
 } from "@altinn/altinn-components";
 import { Card } from "@digdir/designsystemet-react";
-import { ArrowRightIcon } from "@navikt/aksel-icons";
+import { ArrowRightIcon } from "@components/Shared/Icons/icons";
 import { SearchInput } from "/App.Components";
 // import LoginBlock from "../../Blocks/LoginBlock/LoginBlock";
 // import AlternativeLoginBlock from "../../Blocks/AlternativeLoginBlock/AlternativeLoginBlock";

@@ -7,7 +7,7 @@ import {
   Typography,
 } from "@altinn/altinn-components";
 import { Card, Details } from "@digdir/designsystemet-react";
-import * as AkselIcons from "@navikt/aksel-icons";
+import { resolveIcon } from "@components/Shared/Icons/resolveIcon";
 import { SearchInput } from "/App.Components";
 import ContentArea from "../../Shared/ContentArea/ContentArea";
 import RichTextArea from "../../Shared/RichTextArea/RichTextArea";
@@ -40,19 +40,13 @@ const SectionHeading = ({
 const drilldownAriaLabel = (page: any) =>
   page.description ? `${page.pageName}. ${page.description}` : page.pageName;
 
-const getIcon = (iconName?: string) => {
-  if (!iconName) return undefined;
-  const IconComponent = (AkselIcons as any)[iconName];
-  return IconComponent || undefined;
-};
-
 // The design puts the description on its own full-width row below the icon+title
 // row, rather than indented beside the icon. ListItem's own `title`/`description`
 // slots share one flex column next to the icon, so the card content is composed
 // through the public `label` slot (which replaces that column) and the icon is
 // rendered inline instead of via the `icon` prop.
 const DrilldownCard = ({ page, id }: { page: any; id: string }) => {
-  const IconComponent = getIcon(page.akselIcon);
+  const IconComponent = resolveIcon(page.akselIcon);
 
   return (
     <ListItem
