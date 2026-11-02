@@ -1,4 +1,5 @@
-import * as AkselIcons from "@navikt/aksel-icons";
+import { EnterIcon } from "@components/Shared/Icons/icons";
+import { resolveIcon } from "@components/Shared/Icons/resolveIcon";
 
 import "./LinkButtonBlock.scss";
 
@@ -23,8 +24,7 @@ const LinkButtonBlock = ({
     }
   };
 
-  const hasCustomIcon = icon && (AkselIcons as any)[icon];
-  const CustomIcon = hasCustomIcon ? (AkselIcons as any)[icon] : null;
+  const CustomIcon = resolveIcon(icon);
   const btnVariant = getButtonVariant();
 
   return (
@@ -36,7 +36,7 @@ const LinkButtonBlock = ({
     >
       {CustomIcon && <CustomIcon aria-hidden />}
       <span>{link.text}</span>
-      <AkselIcons.EnterIcon aria-hidden className="btn-card__icon" />
+      <EnterIcon aria-hidden className="btn-card__icon" />
     </a>
   );
 };

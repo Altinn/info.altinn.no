@@ -11,7 +11,7 @@ import {
 } from "@altinn/altinn-components";
 import type { FilterState } from "@altinn/altinn-components";
 import { Button, Pagination } from "@digdir/designsystemet-react";
-import * as AkselIcons from "@navikt/aksel-icons";
+import { resolveIcon } from "@components/Shared/Icons/resolveIcon";
 import { useResponsivePagination } from "/Services/Hooks/UseResponsivePagination";
 import { useSearchPage } from "/Services/Hooks/UseSearch";
 import IconItemsInline from "../../Shared/IconItemsInline/IconItemsInline";
@@ -28,12 +28,6 @@ const PAGE_SIZE = 10;
 
 const isBrowser =
   typeof location !== "undefined" && typeof history !== "undefined";
-
-const getIcon = (iconName?: string) => {
-  if (!iconName) return undefined;
-  const IconComponent = (AkselIcons as any)[iconName];
-  return IconComponent || undefined;
-};
 
 const highlightText = (text: string, query: string) => {
   if (!query || !text) return text;
@@ -315,7 +309,7 @@ const SearchPage = ({
             } else if (item.parentContext?.value) {
               const contextValue = item.parentContext.value;
               const iconName = SearchContextIcons[contextValue];
-              const Icon = getIcon(iconName);
+              const Icon = resolveIcon(iconName);
               const contextLabel = SearchContextLabels[currentLanguage || "nb"]?.[contextValue] ?? contextValue;
               if (Icon) {
                 const contextItem: IconItemsInlineItem = {

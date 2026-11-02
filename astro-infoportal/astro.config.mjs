@@ -3,6 +3,8 @@ import cloudflare from '@astrojs/cloudflare';
 import react from '@astrojs/react';
 import {createRequire} from 'node:module';
 import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {iconSprite} from './plugins/iconSprite.mjs';
 
 // Workaround: Vite 7 does not serve /@vite/client in Astro 6 dev mode,
 // which blocks React hydration. This plugin fixes it.
@@ -24,6 +26,18 @@ function viteClientFix() {
         }
         next();
       });
+    },
+  };
+}
+
+function minifyServerBuild() {
+  return {
+    name: 'minify-server-build',
+    apply: 'build',
+    configEnvironment(name) {
+      if (name === 'ssr' || name === 'prerender') {
+        return {build: {minify: true}};
+      }
     },
   };
 }
@@ -56,12 +70,21 @@ export default defineConfig({
     },
   },
 
-  integrations: [react({experimentalReactChildren: true})],
+  integrations: [react()],
   vite: {
-    plugins: [viteClientFix()],
+    plugins: [
+      viteClientFix(),
+      minifyServerBuild(),
+      iconSprite({
+        iconsModule: fileURLToPath(
+          new URL('./src/Components/Shared/Icons/icons.ts', import.meta.url),
+        ),
+      }),
+    ],
     build: {
-      minify: 'esbuild',
-      cssMinify: 'esbuild',
+      /* true = oxc */
+      minify: true,
+      cssMinify: true,
       rollupOptions: {
         output: {
           manualChunks(id) {
@@ -84,6 +107,6 @@ export default defineConfig({
           },
         },
       },
-    },    
+    },
   },
 });

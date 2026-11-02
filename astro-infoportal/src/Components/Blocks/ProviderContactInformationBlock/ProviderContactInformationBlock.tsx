@@ -4,7 +4,7 @@ import {
   Heading,
   ListItemIcon,
 } from "@altinn/altinn-components";
-import { EnvelopeOpenIcon, GlobeIcon, PhoneIcon } from "@navikt/aksel-icons";
+import { EnvelopeOpenIcon, GlobeIcon, PhoneIcon } from "@components/Shared/Icons/icons";
 import { RichTextArea } from "/App.Components";
 import type { ContactCardItem } from "../../Shared/ContactCard/ContactCard";
 import ContactCard from "../../Shared/ContactCard/ContactCard";

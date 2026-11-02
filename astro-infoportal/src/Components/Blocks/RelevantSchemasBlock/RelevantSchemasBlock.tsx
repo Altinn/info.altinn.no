@@ -4,7 +4,7 @@ import {
   ProvidersInline,
 } from "../../Shared/ProvidersInline/ProvidersInline";
 import "./RelevantSchemasBlock.scss";
-import { MenuGridIcon, TrendUpIcon } from "@navikt/aksel-icons";
+import { MenuGridIcon, TrendUpIcon } from "@components/Shared/Icons/icons";
 import { SearchItem } from "/Components/Shared/SearchItem/SearchItem";
 
 const RelevantSchemasBlock = ({

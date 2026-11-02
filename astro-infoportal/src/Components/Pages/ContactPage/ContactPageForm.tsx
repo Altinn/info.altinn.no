@@ -12,7 +12,7 @@ import {
   Textarea,
   ValidationMessage,
 } from "@digdir/designsystemet-react";
-import { UploadIcon, XMarkIcon } from "@navikt/aksel-icons";
+import { UploadIcon, XMarkIcon } from "@components/Shared/Icons/icons";
 import type React from "react";
 import { useRef, useState } from "react";
 import type { ContactPageTexts, ContactPageVariant } from "./ContactPage.types";

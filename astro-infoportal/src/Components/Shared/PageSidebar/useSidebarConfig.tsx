@@ -1,13 +1,7 @@
 import type {LayoutProps, MenuItemProps} from '@altinn/altinn-components';
 import type {Locale} from '@i18n/index';
-import * as AkselIcons from '@navikt/aksel-icons';
+import {resolveIcon} from '@components/Shared/Icons/resolveIcon';
 import './PageSidebar.scss';
-
-const resolveAkselIcon = (iconName?: string) => {
-  if (!iconName) return undefined;
-  const IconComponent = (AkselIcons as any)[iconName];
-  return IconComponent || undefined;
-};
 
 export default function useSidebarConfig(
   vm?: any,
@@ -17,7 +11,7 @@ export default function useSidebarConfig(
   const hasMainItems = !!vm?.mainItems?.length;
 
   if (vm?.titleItem) {
-    const titleIcon = resolveAkselIcon(vm.titleItem.icon);
+    const titleIcon = resolveIcon(vm.titleItem.icon);
     items.push({
       id: 'title',
       groupId: 'title-group',
@@ -40,7 +34,7 @@ export default function useSidebarConfig(
       items.push({
         id: `main-item-${i}`,
         groupId: 'main-group',
-        icon: resolveAkselIcon(mainItem.icon),
+        icon: resolveIcon(mainItem.icon),
         size: 'md',
         label: (
           <span
@@ -72,7 +66,7 @@ export default function useSidebarConfig(
             ),
             href: subItem.url || undefined,
             as: subItem.url ? 'a' : undefined,
-            icon: resolveAkselIcon(subItem.icon),
+            icon: resolveIcon(subItem.icon),
             selected: subItem.current,
             ...(subItem.current ? {'aria-current': 'page' as const} : {}),
           } as MenuItemProps);
@@ -85,6 +79,7 @@ export default function useSidebarConfig(
 
   return {
     menu: {
+      id: "site-sidebar-menu",
       items,
     },
   } as LayoutProps['sidebar'];

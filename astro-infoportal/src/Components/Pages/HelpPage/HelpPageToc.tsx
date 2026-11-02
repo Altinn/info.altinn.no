@@ -1,5 +1,5 @@
 import { Card, Link } from "@digdir/designsystemet-react";
-import { ArrowDownRightIcon } from "@navikt/aksel-icons";
+import { ArrowDownRightIcon } from "@components/Shared/Icons/icons";
 
 // Table of contents for HelpPage: one link per section, pointing at the
 // section's anchorId (set by HelpPageTransformer).

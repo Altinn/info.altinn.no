@@ -8,7 +8,8 @@ import {
   PageBase,
   Section,
 } from '@altinn/altinn-components';
-import * as AkselIcons from '@navikt/aksel-icons';
+import {MenuGridIcon, PassportIcon, PersonIcon} from '@components/Shared/Icons/icons';
+import {resolveIcon} from '@components/Shared/Icons/resolveIcon';
 import {Tabs} from '@digdir/designsystemet-react';
 import {Fragment, useEffect, useState} from 'react';
 import ProvidersInline, {
@@ -50,12 +51,7 @@ const SchemaOverviewPage = ({
 
   const [tabValue, setTabValue] = useState<TabType>(getDefaultTab());
 
-  const getIcon = (iconName?: string) => {
-    if (!iconName) return AkselIcons.PersonIcon;
-
-    const IconComponent = (AkselIcons as any)[iconName];
-    return IconComponent || AkselIcons.PersonIcon;
-  };
+  const getIcon = (iconName?: string) => resolveIcon(iconName) ?? PersonIcon;
 
   useEffect(() => {
     if (!isBrowser) return;
@@ -106,7 +102,7 @@ const SchemaOverviewPage = ({
             onClick={() => setTabAndUrl(TabsEnum.Category)}
           >
             <ListItemIcon
-              icon={{theme: 'subtle', svgElement: AkselIcons.MenuGridIcon}}
+              icon={{theme: 'subtle', svgElement: MenuGridIcon}}
               size="lg"
             />
             {servicesText}
@@ -117,7 +113,7 @@ const SchemaOverviewPage = ({
             onClick={() => setTabAndUrl(TabsEnum.Provider)}
           >
             <ListItemIcon
-              icon={{theme: 'subtle', svgElement: AkselIcons.PassportIcon}}
+              icon={{theme: 'subtle', svgElement: PassportIcon}}
               size="lg"
             />
             {providersText}

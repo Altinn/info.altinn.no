@@ -1,7 +1,7 @@
 import { RichTextArea } from "/App.Components";
 import "./AdvisorStartBlock.scss";
 import "../../../styles/legacy-pages.scss";
-import { PencilWritingIcon } from '@navikt/aksel-icons';
+import { PencilWritingIcon } from '@components/Shared/Icons/icons';
 
 
 type Props = {

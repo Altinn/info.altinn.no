@@ -7,7 +7,6 @@ import {
   useConsent,
 } from "@altinn/altinn-components";
 import { useEffect, useRef, useState } from "react";
-import * as Components from "../../../App.Components";
 import "@altinn/altinn-components/dist/global.css";
 import "@digdir/designsystemet-theme";
 import "@digdir/designsystemet-css";
@@ -16,7 +15,7 @@ import {
   deleteLegacyConsentCookie,
   loadSiteimprove,
 } from "@utils/consent";
-import useSidebarConfig from "../../Shared/PageSidebar/useSidebarConfig";
+import "../../Shared/PageSidebar/PageSidebar.scss";
 import useFooterConfig from "../Footer/useFooterConfig";
 import { useLanguagePreference } from "../Header/hooks/useLanguagePreference";
 import useHeaderConfig from "../Header/useHeaderConfig";
@@ -26,20 +25,21 @@ import { useHashScroll } from "./useHashScroll";
 import "./SiteLayout.scss";
 import { SkipLink } from "@digdir/designsystemet-react";
 import BannerBlock from "../../../Components/Blocks/BannerBlock/BannerBlock";
+import { hydrateIslands } from "../../Shared/Island/hydrateIslands";
 import { UiLanguageProvider } from "../../Shared/UiLanguage/UiLanguage";
 
 const SiteLayout = ({
-  child,
+  children,
+  pageComponentName,
   headerViewModel,
   footerViewModel,
-  pageSidebarViewModel,
+  sidebar,
+  hasSidebar,
   skipLinkText,
   missingTranslationText,
   locale,
   contentLocale,
 }: SiteLayoutProps) => {
-  const Comp = child ? (Components as any)[child.componentName] : null;
-
   // Issue #713 (WCAG 3.1.2). A page with no variant in the requested language
   // renders bokmål content, and <html lang> follows that content (issue #555),
   // so the English chrome around it would be read with Norwegian phonetics.
@@ -89,13 +89,6 @@ const SiteLayout = ({
     footerViewModel || ({} as any),
     openCookieBanner,
   );
-  // The sidebar is built from the same Umbraco tree as the page content, but
-  // the library renders it outside <main>, so its labels carry the content
-  // language themselves (issue #713).
-  const sidebarConfig = useSidebarConfig(pageSidebarViewModel, {
-    lang: contentLang,
-  });
-
   // Pages that have their own width constraints and should not be constrained by layout
   const exludedPages = [
     "StartPage",
@@ -106,8 +99,7 @@ const SiteLayout = ({
     "ProviderPage",
   ];
   const shouldConstrainWidth =
-    child && !exludedPages.includes(child.componentName);
-  const hasSidebar = !!sidebarConfig;
+    !!pageComponentName && !exludedPages.includes(pageComponentName);
 
   const contentColor: "company" = "company";
   const shouldShowCookieBanner = hydrated && !isAnswered;
@@ -117,6 +109,10 @@ const SiteLayout = ({
   useEffect(() => {
     deleteLegacyConsentCookie();
     setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    hydrateIslands();
   }, []);
 
   useEffect(() => {
@@ -178,7 +174,7 @@ const SiteLayout = ({
             header={headerViewModel ? headerProps : undefined}
             footer={footerProps}
             content={{ color: contentColor }}
-            {...(sidebarConfig ? { sidebar: sidebarConfig } : {})}
+            {...(hasSidebar ? { sidebar: { children: sidebar } } : {})}
             theme="default"
           >
             {missingTranslationText && (
@@ -202,14 +198,10 @@ const SiteLayout = ({
                   hasSidebar ? " layout-content-constrained--sidebar" : ""
                 }`}
               >
-                <Comp {...child} />
+                {children}
               </div>
             ) : (
-              child && (
-                <div lang={contentLang}>
-                  <Comp {...child} />
-                </div>
-              )
+              children && <div lang={contentLang}>{children}</div>
             )}
           </Layout>
         </div>

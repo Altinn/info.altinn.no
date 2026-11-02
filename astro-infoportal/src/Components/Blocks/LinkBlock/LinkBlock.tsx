@@ -1,4 +1,4 @@
-import { DownloadIcon } from "@navikt/aksel-icons";
+import { DownloadIcon } from "@components/Shared/Icons/icons";
 import "../../../styles/legacy-pages.scss";
 
 const LinkBlock = ({

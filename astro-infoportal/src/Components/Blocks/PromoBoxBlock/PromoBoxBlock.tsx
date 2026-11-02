@@ -2,7 +2,7 @@ import { Icon } from "@altinn/altinn-components";
 import Image from "../../Shared/Image/Image";
 import RichTextArea from "../../Shared/RichTextArea/RichTextArea";
 import "./PromoBoxBlock.scss";
-import { ChevronRightIcon } from "@navikt/aksel-icons";
+import { ChevronRightIcon } from "@components/Shared/Icons/icons";
 
 const PromoBoxBlock = ({ image, text, link }: any) => {
   const decodeHtmlEntities = (str: string): string => {

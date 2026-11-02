@@ -1,9 +1,13 @@
 import { defineConfig } from "vitest/config";
 import { resolve } from "path";
+import { iconSprite } from "./plugins/iconSprite.mjs";
 
 const src = resolve(__dirname, "src");
 
 export default defineConfig({
+  plugins: [
+    iconSprite({ iconsModule: resolve(src, "Components/Shared/Icons/icons.ts") }),
+  ],
   resolve: {
     alias: [
       { find: "@components", replacement: resolve(src, "Components") },
