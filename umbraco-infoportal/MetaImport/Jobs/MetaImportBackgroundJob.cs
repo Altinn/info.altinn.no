@@ -2,7 +2,7 @@ using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
 using System.Text.Json;
 
-namespace umbraco_infoportal.MetaImport.Jobs;
+namespace Infoportal.Cms.MetaImport.Jobs;
 
 public class MetaImportBackgroundJob : IHostedService
 {

@@ -16,6 +16,7 @@ const contentTypeToContext: Record<string, string> = {
   schemaAttachmentPage: SearchContext.Schema,
   helpQuestionPage: SearchContext.Help,
   helpProcessArticlePage: SearchContext.Help,
+  helpPage: SearchContext.Help
 };
 
 const contextToContentTypes: Record<string, string[]> = {};

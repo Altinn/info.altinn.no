@@ -61,6 +61,8 @@ const HelpPage = ({
                 <AccordionBlock
                   key={index}
                   heading={accordion.heading}
+                  headingLevel="h3"
+                  headingClassName="help-page__accordion-heading"
                   description={accordion.content}
                 />
               ))}

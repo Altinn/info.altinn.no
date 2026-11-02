@@ -31,7 +31,7 @@ const OperationalMessageArchivePage = ({
       </ArticleHeader>
 
       {hasArticles && (
-        <Typography as="div">
+        <Typography as="div" className="operational-message-archive">
           <List>
             {articles.map((article: any, index: number) => (
               <>

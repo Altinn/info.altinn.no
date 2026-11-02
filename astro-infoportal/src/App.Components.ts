@@ -63,6 +63,7 @@ import NewsArchivePageRaw from "./Components/Pages/NewsArchivePage/NewsArchivePa
 import OperationalMessageArticlePage from "./Components/Pages/OperationalMessageArticlePage/OperationalMessageArticlePage";
 import OperationalMessageArchivePage from "./Components/Pages/OperationalMessageArchivePage/OperationalMessageArchivePage";
 import Error404Page from "./Components/Pages/Error404Page/Error404Page";
+import ContactPage from "./Components/Pages/ContactPage/ContactPage";
 import ProviderPage from "./Components/Pages/ProviderPage/ProviderPage";
 import SchemaOverviewPageRaw from "./Components/Pages/SchemaOverviewPage/SchemaOverviewPage";
 import SchemaAttachmentPage from "./Components/Pages/SchemaAttachmentPage/SchemaAttachmentPage";
@@ -129,7 +130,6 @@ export {
   ContactListBlock,
   OperationalMessage,
   ProviderContactInformationBlock,
-  ContactFormBlock,
   ContactFormTextBlock,
   ContactFormSiteBlockData,
   Image,
@@ -179,6 +179,7 @@ export {
   OperationalMessageArticlePage,
   OperationalMessageArchivePage,
   Error404Page,
+  ContactPage,
   StartPage,
   PromoBoxBlock,
   BannerBlock,
@@ -196,8 +197,6 @@ export {
   SearchInput,
   MunicipalityCountySearch,
   TableBlock,
-  ContactFormModal,
-  ContactFormPageTrigger,
   VectorImageBlock,
   VideoBlock,
   VectorImageFile,

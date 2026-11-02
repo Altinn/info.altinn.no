@@ -1,4 +1,4 @@
-namespace umbraco_infoportal.ArticleExport.Services;
+namespace Infoportal.Cms.ArticleExport.Services;
 
 // Mirror of the frontend schema i18n keys (astro-infoportal/src/i18n/locales/*.json).
 // A schemaAccordianBlock's `translatedHeading` holds one of these keys; the backend

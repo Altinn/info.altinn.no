@@ -10,3 +10,7 @@ const locales: Record<Locale, Record<string, string>> = { nb, nn, en };
 export function t(key: TranslationKey, locale: Locale = "nb"): string {
   return locales[locale]?.[key] ?? locales.nb[key] ?? key;
 }
+
+export function isTranslationKey(key: string): key is TranslationKey {
+  return key in locales.nb;
+}

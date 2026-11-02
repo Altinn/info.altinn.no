@@ -1,0 +1,22 @@
+{
+  "$schema": "../../umbraco-package-schema.json",
+  "name": "Altinn.FormChanges",
+  "version": "0.1.0",
+  "extensions": [
+    {
+      "type": "dashboard",
+      "alias": "Altinn.Dashboard.FormChanges",
+      "name": "Form Changes",
+      "element": "/App_Plugins/FormChanges/dashboard.js",
+      "elementName": "altinn-form-changes",
+      "weight": 19,
+      "meta": {
+        "label": "Skjemaendringer",
+        "pathname": "form-changes"
+      },
+      "conditions": [
+        { "alias": "Umb.Condition.SectionAlias", "match": "Umb.Section.Content" }
+      ]
+    }
+  ]
+}

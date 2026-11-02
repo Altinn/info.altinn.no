@@ -1,7 +1,7 @@
-using umbraco_infoportal.ArticleExport.Services;
 using Umbraco.Cms.Core.Composing;
+using Infoportal.Cms.ArticleExport.Services;
 
-namespace umbraco_infoportal.ArticleExport;
+namespace Infoportal.Cms.ArticleExport;
 
 public class ArticleExportComposer : IComposer
 {

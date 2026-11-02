@@ -6,7 +6,7 @@ import {CSP_POLICY} from '@utils/csp';
  *
  * Closes pen-test finding 4.1 (Accenture, May 2026). The headers live here in
  * the Astro app — rather than the cache worker in front — so:
- *   - Local dev (`npm run dev`) and `npm run preview` see the same headers as
+ *   - Local dev (`pnpm dev`) and `pnpm preview` see the same headers as
  *     production, which means CSP violations get caught at development time
  *     instead of after deploy — now that CSP is enforcing (see below), that
  *     means resources can actually get blocked locally too, not just logged.

@@ -132,10 +132,6 @@ async function transformSectionContentItem(
         email: props.email ?? undefined,
         showContactFormButton: props.showContactFormButton ?? false,
         contactFormText: props.contactFormText ?? t("support.contactForm", locale),
-        labels: props.labels ?? undefined,
-        contactFormSchemaId: props.contactFormSchemaId ?? 0,
-        showAttachment: props.showAttachment ?? false,
-        contactFormPageData: props.contactFormPageData ?? undefined,
       };
     case "latestNewsBlock":
     case "latestNewsBlockV2": {
