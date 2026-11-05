@@ -262,8 +262,7 @@
   "contactPage.altinn.phone": "+47 75 00 62 34",
   "contactPage.business.heading": "Write to Business Information Service",
   "contactPage.business.message": "What is your question?",
-  "contactPage.business.successText": "Our response time is usually one working day. 
-If your enquiry is urgent, you can call {0} (weekdays 9:00 AM–3:00 PM).",
+  "contactPage.business.successText": "Our response time is usually one working day. If your enquiry is urgent, you can call {0} (weekdays 9:00 AM–3:00 PM).",
   "contactPage.business.phone": "+47 800 33 840",
   "contactPage.required": "Required",
   "contactPage.optional": "Optional",
