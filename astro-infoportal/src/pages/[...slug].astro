@@ -151,6 +151,8 @@ function resolveAspxRedirect(aspxPath) {
       return "/en/help/access-managment/";  
     } else if (containsGuid(aspxPath, '5B1E2E22-38DD-4D3F-82F7-CB11996949F9')) {
       return "/en/help/logging-in/how-to-log-in-to-altinn/";
+    } else {
+      return "/en/help/access-and-power-of-attorney/"
     }
   } else if (aspxPath.startsWith("/nn")) {
     if (containsGuid(aspxPath, 'B9DCB0CA-2342-40B7-848E-09831F3BBC26')) {
@@ -169,7 +171,9 @@ function resolveAspxRedirect(aspxPath) {
       return "/nn/hjelp/tilgangsstyring/";  
     } else if (containsGuid(aspxPath, '5B1E2E22-38DD-4D3F-82F7-CB11996949F9')) {
       return "/nn/hjelp/innlogging/slik-loggar-du-inn-i-altinn/";
-    }    
+    } else {
+      return "/nn/hjelp/tilgang-og-fullmakt/";
+    }
   } else {
     if (containsGuid(aspxPath, 'B9DCB0CA-2342-40B7-848E-09831F3BBC26')) {
       return "/hjelp/ny-tilgangsstyring/";
@@ -187,9 +191,10 @@ function resolveAspxRedirect(aspxPath) {
       return "/hjelp/ny-tilgangsstyring/";  
     } else if (containsGuid(aspxPath, '5B1E2E22-38DD-4D3F-82F7-CB11996949F9')) {
       return "/hjelp/innlogging/slik-logger-du-inn-i-altinn/";
-    }    
+    } else {
+      return "/hjelp/tilgang-og-fullmakt/"
+    }
   }
-  return "/404";
 }
 
 function containsGuid(aspxPath, guid) {
