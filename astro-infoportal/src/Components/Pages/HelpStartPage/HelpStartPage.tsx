@@ -3,7 +3,6 @@ import {
   ArticleHeader,
   Grid,
   Heading,
-  ListItem,
   Typography,
 } from "@altinn/altinn-components";
 import { Card, Details } from "@digdir/designsystemet-react";
@@ -34,55 +33,34 @@ const SectionHeading = ({
   );
 };
 
-// ListItem renders the card as an <a> and defaults its aria-label to `title`,
-// which would hide the description from screen readers. Announce both so the
-// link name matches what is rendered.
-const drilldownAriaLabel = (page: any) =>
-  page.description ? `${page.pageName}. ${page.description}` : page.pageName;
-
 const getIcon = (iconName?: string) => {
   if (!iconName) return undefined;
   const IconComponent = (AkselIcons as any)[iconName];
   return IconComponent || undefined;
 };
 
-// The design puts the description on its own full-width row below the icon+title
-// row, rather than indented beside the icon. ListItem's own `title`/`description`
-// slots share one flex column next to the icon, so the card content is composed
-// through the public `label` slot (which replaces that column) and the icon is
-// rendered inline instead of via the `icon` prop.
 const DrilldownCard = ({ page, id }: { page: any; id: string }) => {
   const IconComponent = getIcon(page.akselIcon);
 
   return (
-    <ListItem
-      className="help-start-page__drilldown-item"
-      id={id}
-      as="a"
-      href={page.url || "#"}
-      variant="subtle"
-      ariaLabel={drilldownAriaLabel(page)}
-      label={
-        <span className="help-start-page__drilldown-card">
-          <span className="help-start-page__drilldown-card-head">
-            {IconComponent && (
-              <IconComponent
-                className="help-start-page__drilldown-card-icon"
-                aria-hidden
-              />
-            )}
-            <h3 className="help-start-page__drilldown-card-title">
-              {page.pageName}
-            </h3>
-          </span>
-          {page.description && (
-            <span className="help-start-page__drilldown-card-description">
-              {page.description}
-            </span>
+    <li className="help-start-page__drilldown-item" id={id}>
+      <a className="help-start-page__drilldown-card" href={page.url || "#"}>
+        <h3 className="help-start-page__drilldown-card-head">
+          {IconComponent && (
+            <IconComponent
+              className="help-start-page__drilldown-card-icon"
+              aria-hidden
+            />
           )}
-        </span>
-      }
-    />
+          {page.pageName}
+        </h3>
+        {page.description && (
+          <span className="help-start-page__drilldown-card-description">
+            {page.description}
+          </span>
+        )}
+      </a>
+    </li>
   );
 };
 
