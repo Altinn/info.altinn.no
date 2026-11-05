@@ -69,6 +69,31 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
                 return Task.CompletedTask;
             };
         }
+
+        // Stale or abandoned login attempts (correlation cookie expired after
+        // RemoteAuthenticationTimeout, or the user pressed back into Entra's /authorize URL
+        // after logging in, replaying an old state) would otherwise surface as an unhandled
+        // AuthenticationFailureException. Send the user back to the backoffice instead: an
+        // already logged-in user just lands in the backoffice, others get the login page.
+        options.Events.OnRemoteFailure = context =>
+        {
+            var logger = context.HttpContext.RequestServices
+                .GetRequiredService<ILogger<ConfigureMicrosoftEntraIdAuthenticationOptions>>();
+            var message = context.Failure?.Message ?? string.Empty;
+
+            if (message == "Correlation failed." || message.Contains("access_denied"))
+            {
+                logger.LogInformation("Entra ID login aborted (stale or cancelled attempt): {Reason}", message);
+            }
+            else
+            {
+                logger.LogError(context.Failure, "Entra ID login failed: {Reason}", message);
+            }
+
+            context.Response.Redirect("/umbraco");
+            context.HandleResponse();
+            return Task.CompletedTask;
+        };
     }
 
     public void Configure(string? name, OpenIdConnectOptions options)
