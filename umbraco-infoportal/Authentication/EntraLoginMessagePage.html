@@ -1,15 +1,15 @@
 <!doctype html>
 <!--
   Shown by EntraLoginMessagePage when a Microsoft Entra ID backoffice login is cancelled or fails.
-  Embedded resource: {{placeholders}} are replaced with HTML-encoded values at runtime.
-  The body class ("failed" or "cancelled") selects colours, icon and the error reference.
+  Embedded resource: {{kind}} and {{traceId}} are filled in at runtime.
+  The body class ("failed" or "cancelled") selects colours, icon, texts and the error reference.
 -->
-<html lang="{{lang}}">
+<html lang="nb">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>{{title}}</title>
+<title>Innlogging med Microsoft</title>
 <style>
   :root {
     --bg: #f3f4f6;
@@ -77,9 +77,8 @@
   }
   .failed .icon { background: var(--failed-bg); color: var(--failed-icon); }
   .cancelled .icon { background: var(--cancelled-bg); color: var(--cancelled-icon); }
-  .failed .icon-cancelled,
-  .cancelled .icon-failed,
-  .cancelled .ref { display: none; }
+  .failed .only-cancelled,
+  .cancelled .only-failed { display: none; }
 
   h1 { margin: 0 0 0.5rem; font-size: 1.375rem; }
   p { margin: 0 0 1.5rem; color: var(--muted); }
@@ -104,14 +103,20 @@
   <div class="icon" aria-hidden="true">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="10"/>
-      <g class="icon-failed"><path d="M12 7v6"/><path d="M12 17h.01"/></g>
-      <g class="icon-cancelled"><path d="M15 9l-6 6"/><path d="M9 9l6 6"/></g>
+      <g class="only-failed"><path d="M12 7v6"/><path d="M12 17h.01"/></g>
+      <g class="only-cancelled"><path d="M15 9l-6 6"/><path d="M9 9l6 6"/></g>
     </svg>
   </div>
-  <h1>{{title}}</h1>
-  <p>{{text}}</p>
-  <p class="ref">{{errorReference}}: <code>{{traceId}}</code></p>
-  <a class="button" href="/umbraco">{{tryAgain}}</a>
+  <div class="only-failed">
+    <h1>Innlogging feilet</h1>
+    <p>Vi klarte ikke å logge deg inn med Microsoft. Prøv igjen om litt. Hvis feilen vedvarer, kontakt en administrator og oppgi feilreferansen under.</p>
+    <p class="ref">Feilreferanse: <code>{{traceId}}</code></p>
+  </div>
+  <div class="only-cancelled">
+    <h1>Innlogging avbrutt</h1>
+    <p>Innloggingen med Microsoft ble avbrutt.</p>
+  </div>
+  <a class="button" href="/umbraco">Prøv igjen</a>
 </main>
 </body>
 </html>
