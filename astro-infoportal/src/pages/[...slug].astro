@@ -45,7 +45,11 @@ if (path.indexOf(".aspx") > -1) {
   return Astro.redirect(Astro.url.origin + resolveAspxRedirect(path), 302);
 }
 
- if (path.startsWith('/api/') || path.match(/\.[a-zA-Z0-9]+$/)) {
+if (path.startsWith("/%7BlocalLink:")) {
+  return Astro.redirect(Astro.url.origin + resolveLocalLinkRedirect(path), 302);
+}
+
+if (path.startsWith('/api/') || path.match(/\.[a-zA-Z0-9]+$/)) {
   return new Response(null, { status: 404 });
 }
 
@@ -200,6 +204,25 @@ function resolveAspxRedirect(aspxPath) {
 function containsGuid(aspxPath, guid) {
   return aspxPath.toUpperCase().indexOf(guid.replaceAll("-", "")) > -1;
 }
+
+function resolveLocalLinkRedirect(localLink) {
+  if (localLinkContainsGuid(localLink, 'fa3d5585-c3ba-4163-bf65-5a2160895f92')) {
+      return "/hjelp/logge-inn-og-ut-av-altinn/";
+  } else if (localLinkContainsGuid(localLink, '0194a771-70f8-4333-8fca-55b61bcd8903')) {
+      return "/hjelp/tilgang-og-fullmakt/#maskinportenadministrasjon";
+  } else if (localLinkContainsGuid(localLink, '4415822d-8379-4b6a-984b-ce895b838ecf')) {
+      return "/hjelp/tilgang-og-fullmakt/#klientadministrasjon";
+  } else if (localLinkContainsGuid(localLink, '798a9970-96fa-42e3-967b-17029950f261')) {
+      return "/hjelp/logge-inn-og-ut-av-altinn/#logge-inn-uten-norsk-id";
+  } else {
+    return "/hjelp/tilgang-og-fullmakt/"
+  }
+}
+
+function localLinkContainsGuid(localLink, guid) {
+  return localLink.indexOf(guid) > -1;
+}
+
 ---
 
 <AstroSiteLayout pageData={pageData} {...metadata} />
