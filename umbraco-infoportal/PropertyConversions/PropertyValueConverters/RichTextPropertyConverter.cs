@@ -104,6 +104,17 @@ public class RichTextPropertyConverter : IPropertyValueConverter
         string markup = ParseInlineUrlBlocks(rawValue);
         markup = _markupFilter.FilterMarkup(markup);
 
+        // Blocks nested inside lists (or other elements) would cut that element
+        // in two when we split below. Render nested link blocks as links in
+        // place and move other nested blocks up to the top level first.
+        markup = RichTextBlockLayout.LiftNestedBlocks(markup, blockGuid =>
+        {
+            JsonObject nestedBlockData = GetContentDataItem(blockGuid, rteValue);
+            return nestedBlockData is null
+                ? null
+                : ConvertPickerBlock(GetBlockPickerUri(nestedBlockData));
+        });
+
         JsonArray items = [];
 
         Match match = Regex.Match(markup, pattern);
