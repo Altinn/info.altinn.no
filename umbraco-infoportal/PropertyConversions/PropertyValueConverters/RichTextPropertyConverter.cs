@@ -135,16 +135,17 @@ public class RichTextPropertyConverter : IPropertyValueConverter
 
             JsonObject blockItemData = GetContentDataItem(blockGuid, rteValue);
 
-            if (blockItemData is null)
+            // A block reference without block data (e.g. left behind by the
+            // Optimizely import) is skipped. Returning here used to drop all
+            // content after the reference.
+            if (blockItemData is not null)
             {
-                return items;
+                string uriString = GetBlockPickerUri(blockItemData);
+
+                JsonObject jsonObject = ConvertPickerBlock(uriString);
+
+                items.Add(jsonObject);
             }
-
-            string uriString = GetBlockPickerUri(blockItemData);
-
-            JsonObject jsonObject = ConvertPickerBlock(uriString);
-
-            items.Add(jsonObject);
 
             if (markup.Length > match.Length)
             {
