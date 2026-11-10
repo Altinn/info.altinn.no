@@ -7,12 +7,16 @@
  */
 const ATTRIBUTE_PATTERN = /\b(?:src|href)\s*=\s*["']([^"']+)["']/gi;
 const SRCSET_PATTERN = /\bsrcset\s*=\s*["']([^"']+)["']/gi;
-const CSS_URL_PATTERN = /url\(\s*["']?([^"')]+)["']?\s*\)/gi;
+// Case-sensitive on purpose: CSS uses url(...), while JavaScript has `new URL(...)`, which is not a file reference.
+const CSS_URL_PATTERN = /\burl\(\s*["']?([^"')]+)["']?\s*\)/g;
+// Inline scripts contain code, not markup. Keep the opening tag (it may have src=...), drop the body.
+const INLINE_SCRIPT_PATTERN = /(<script\b[^>]*>)[\s\S]*?<\/script>/gi;
 
 const EXCLUDED_PREFIXES = ['/media/', '/api/'];
 
 export function extractAssetPaths(body: string, pageUrl: string, siteOrigin: string): string[] {
 	const candidates: string[] = [];
+	body = body.replace(INLINE_SCRIPT_PATTERN, '$1</script>');
 
 	for (const match of body.matchAll(ATTRIBUTE_PATTERN)) candidates.push(match[1]);
 	for (const match of body.matchAll(SRCSET_PATTERN)) {

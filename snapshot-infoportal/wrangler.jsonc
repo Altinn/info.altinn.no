@@ -27,8 +27,9 @@
 	"env": {
 		"at22": {
 			"name": "snapshot-infoportal-at22",
-			// TODO: confirm cron time. 02:00 UTC = 03:00/04:00 Norwegian time.
-			"triggers": { "crons": ["0 2 * * *"] },
+			// Nightly run is off while the PoC is tested with manual runs (wrangler workflows trigger).
+			// To enable: "triggers": { "crons": ["0 2 * * *"] }   (02:00 UTC = 03:00/04:00 Norwegian time)
+			"triggers": { "crons": [] },
 			"vars": {
 				// Public hostname in at22 (Umbraco__CMS__WebRouting__UmbracoApplicationUrl in syncroot/at22).
 				"SITE_ORIGIN": "https://info.at22.altinn.cloud",

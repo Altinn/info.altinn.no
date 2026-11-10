@@ -1,5 +1,14 @@
 import { extractAssetPaths } from './assets';
-import { CURRENT_POINTER_KEY, manifestKey, objectKey, redirectsKey, SNAPSHOT_PREFIX, type SnapshotManifest, type SnapshotPointer } from './keys';
+import {
+	CURRENT_POINTER_KEY,
+	manifestKey,
+	objectKey,
+	redirectsKey,
+	SNAPSHOT_PREFIX,
+	TEST_SNAPSHOT_ID_PREFIX,
+	type SnapshotManifest,
+	type SnapshotPointer,
+} from './keys';
 import { parseSitemapPaths } from './sitemap';
 
 /** The parts of the environment the snapshot logic needs. Kept small so tests can pass fakes. */
@@ -19,6 +28,38 @@ export type CaptureResult = {
 };
 
 const USER_AGENT = 'snapshot-infoportal';
+
+/** Max pages in a test run. A larger test is just a normal run. */
+export const MAX_TEST_PAGES = 500;
+
+/**
+ * Reads the optional test parameters of a run. Returns null for a normal (full) run.
+ * Throws with a readable message for invalid input, so the run stops before touching anything.
+ */
+export function parseTestSelection(params: { limit?: unknown; paths?: unknown } | undefined): { limit?: number; paths?: string[] } | null {
+	const limit = params?.limit;
+	const paths = params?.paths;
+
+	if (limit === undefined && paths === undefined) return null;
+	if (limit !== undefined && paths !== undefined) throw new Error('Use either "limit" or "paths", not both');
+
+	if (limit !== undefined) {
+		if (typeof limit !== 'number' || !Number.isInteger(limit) || limit < 1 || limit > MAX_TEST_PAGES) {
+			throw new Error(`"limit" must be a whole number from 1 to ${MAX_TEST_PAGES}`);
+		}
+		return { limit };
+	}
+
+	if (!Array.isArray(paths) || paths.length === 0 || paths.length > MAX_TEST_PAGES) {
+		throw new Error(`"paths" must be a list of 1 to ${MAX_TEST_PAGES} paths`);
+	}
+	for (const path of paths) {
+		if (typeof path !== 'string' || !path.startsWith('/') || path.startsWith('//')) {
+			throw new Error(`"paths" must contain site paths starting with "/", got ${JSON.stringify(path)}`);
+		}
+	}
+	return { paths: [...new Set(paths as string[])] };
+}
 
 export async function readSitemapPaths(deps: SnapshotDeps): Promise<string[]> {
 	const response = await fetchFromOrigin(deps, '/sitemap.xml');
@@ -117,7 +158,8 @@ export async function readCurrentPointer(kv: KVNamespace): Promise<SnapshotPoint
  */
 export async function cleanupSnapshots(deps: SnapshotDeps, keep: number): Promise<string[]> {
 	const current = await readCurrentPointer(deps.kv);
-	const ids = await listSnapshotIds(deps.bucket);
+	// Test runs are left alone: they must not push real snapshots out of the "keep" window.
+	const ids = (await listSnapshotIds(deps.bucket)).filter((id) => !id.startsWith(TEST_SNAPSHOT_ID_PREFIX));
 
 	// Ids are ISO timestamps, so lexical order is chronological.
 	const newestFirst = ids.sort().reverse();

@@ -1,11 +1,25 @@
 import { WorkflowEntrypoint, type WorkflowEvent, type WorkflowStep } from 'cloudflare:workers';
 import { NonRetryableError } from 'cloudflare:workflows';
-import { createSnapshotId, type SnapshotManifest } from './keys';
-import { capturePaths, chunk, cleanupSnapshots, promoteSnapshot, readSitemapPaths, validateManifest, writeManifest, type SnapshotDeps } from './snapshot';
+import { createSnapshotId, TEST_SNAPSHOT_ID_PREFIX, type SnapshotManifest } from './keys';
+import {
+	capturePaths,
+	chunk,
+	cleanupSnapshots,
+	parseTestSelection,
+	promoteSnapshot,
+	readSitemapPaths,
+	validateManifest,
+	writeManifest,
+	type SnapshotDeps,
+} from './snapshot';
 
 export type SnapshotParams = {
 	/** "cron" or "manual". Only used for logging and the manifest. */
 	trigger?: string;
+	/** Test run: only the first `limit` URLs from the sitemap. */
+	limit?: number;
+	/** Test run: exactly these paths (for example ["/", "/hjelp/"]). The sitemap is not read. */
+	paths?: string[];
 };
 
 const BATCH_STEP = {
@@ -41,12 +55,27 @@ export class SnapshotWorkflow extends WorkflowEntrypoint<Env, SnapshotParams> {
 		const batchSize = Number(this.env.BATCH_SIZE);
 		const concurrency = Number(this.env.CONCURRENCY);
 
+		// A test run (limit or paths) is stored like a normal snapshot, but never becomes snapshot:current
+		// and never deletes other snapshots. Its id starts with "test-", so it is easy to find and remove.
+		let selection: ReturnType<typeof parseTestSelection>;
+		try {
+			selection = parseTestSelection(event.payload);
+		} catch (error) {
+			throw new NonRetryableError(error instanceof Error ? error.message : String(error));
+		}
+		const isTest = selection !== null;
+
 		const { id, createdAt } = await step.do('create snapshot id', async () => {
 			const now = new Date();
-			return { id: createSnapshotId(now), createdAt: now.toISOString() };
+			return { id: `${isTest ? TEST_SNAPSHOT_ID_PREFIX : ''}${createSnapshotId(now)}`, createdAt: now.toISOString() };
 		});
 
-		const pagePaths = await step.do('read sitemap', BATCH_STEP, () => readSitemapPaths(deps));
+		const pagePaths =
+			selection?.paths ??
+			(await step.do('read sitemap', BATCH_STEP, async () => {
+				const all = await readSitemapPaths(deps);
+				return selection?.limit ? all.slice(0, selection.limit) : all;
+			}));
 
 		let pages = 0;
 		const redirects: Record<string, string> = {};
@@ -88,6 +117,7 @@ export class SnapshotWorkflow extends WorkflowEntrypoint<Env, SnapshotParams> {
 				completedAt: new Date().toISOString(),
 				siteOrigin: deps.siteOrigin,
 				trigger: event.payload?.trigger ?? 'unknown',
+				test: isTest,
 				sitemapUrls: pagePaths.length,
 				pages,
 				assets,
@@ -106,10 +136,14 @@ export class SnapshotWorkflow extends WorkflowEntrypoint<Env, SnapshotParams> {
 			}
 		});
 
+		if (isTest) {
+			return { id, test: true, pages, assets, failed: failed.length, promoted: false };
+		}
+
 		await step.do('promote', () => promoteSnapshot(deps, { id, createdAt }));
 
 		const deleted = await step.do('cleanup old snapshots', () => cleanupSnapshots(deps, Number(this.env.KEEP_SNAPSHOTS)));
 
-		return { id, pages, assets, failed: failed.length, deleted };
+		return { id, test: false, pages, assets, failed: failed.length, promoted: true, deleted };
 	}
 }

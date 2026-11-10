@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { extractAssetPaths } from '../src/assets';
 import { CURRENT_POINTER_KEY, createSnapshotId, objectKey, type SnapshotManifest } from '../src/keys';
 import { parseSitemapPaths } from '../src/sitemap';
-import { capturePaths, cleanupSnapshots, readSitemapPaths, validateManifest, type SnapshotDeps } from '../src/snapshot';
+import { capturePaths, cleanupSnapshots, parseTestSelection, readSitemapPaths, validateManifest, type SnapshotDeps } from '../src/snapshot';
 
 const SITE = 'https://info.altinn.no';
 
@@ -76,6 +76,16 @@ describe('extractAssetPaths', () => {
 		);
 	});
 
+	it('ignores code in inline scripts, such as Astro\'s island loader', () => {
+		// From the real at22 HTML: `new URL(e,document.baseURI)` was read as a CSS url() and became
+		// /<page>/e,document.baseURI, which then returned 404 for every page.
+		const html = `<script src="/_astro/client.js"></script>
+			<script>getRetryImportUrl(e){let r=new URL(e,document.baseURI);let s="/assets/x.png";}</script>
+			<div style="background:url(/assets/img/y.svg)"></div>`;
+
+		expect(extractAssetPaths(html, `${SITE}/en/`, SITE).sort()).toEqual(['/_astro/client.js', '/assets/img/y.svg']);
+	});
+
 	it('resolves relative CSS urls against the file they appear in', () => {
 		expect(extractAssetPaths('src: url(../fonts/x.woff2)', `${SITE}/assets/css/site.css`, SITE)).toEqual(['/assets/fonts/x.woff2']);
 	});
@@ -135,6 +145,32 @@ describe('validateManifest', () => {
 	});
 });
 
+describe('parseTestSelection', () => {
+	it('treats a run without limit or paths as a normal run', () => {
+		expect(parseTestSelection(undefined)).toBeNull();
+		expect(parseTestSelection({})).toBeNull();
+	});
+
+	it('accepts a limit or a list of paths', () => {
+		expect(parseTestSelection({ limit: 10 })).toEqual({ limit: 10 });
+		expect(parseTestSelection({ paths: ['/', '/hjelp/', '/'] })).toEqual({ paths: ['/', '/hjelp/'] });
+	});
+
+	it.each([
+		[{ limit: 0 }, 'limit'],
+		[{ limit: 2.5 }, 'limit'],
+		[{ limit: '10' }, 'limit'],
+		[{ limit: 100000 }, 'limit'],
+		[{ paths: [] }, 'paths'],
+		[{ paths: ['hjelp'] }, 'paths'],
+		[{ paths: ['https://evil.example/'] }, 'paths'],
+		[{ paths: ['//evil.example/'] }, 'paths'],
+		[{ limit: 5, paths: ['/'] }, 'either'],
+	])('rejects %j', (params, message) => {
+		expect(() => parseTestSelection(params)).toThrow(message);
+	});
+});
+
 describe('cleanupSnapshots', () => {
 	beforeEach(clearBucket);
 
@@ -142,6 +178,8 @@ describe('cleanupSnapshots', () => {
 		const ids = ['2026-11-01', '2026-11-02', '2026-11-03', '2026-11-04', '2026-11-05'];
 		for (const id of ids) await env.SNAPSHOTS.put(`snapshots/${id}/p/index.html`, id);
 		await env.FALLBACK_KV.put(CURRENT_POINTER_KEY, JSON.stringify({ id: '2026-11-01', createdAt: '' }));
+
+		await env.SNAPSHOTS.put('snapshots/test-2026-11-06/p/index.html', 'test run');
 
 		const deleted = await cleanupSnapshots(deps(fakeOrigin({})), 2);
 
@@ -151,6 +189,7 @@ describe('cleanupSnapshots', () => {
 			'snapshots/2026-11-01/p/index.html',
 			'snapshots/2026-11-04/p/index.html',
 			'snapshots/2026-11-05/p/index.html',
+			'snapshots/test-2026-11-06/p/index.html',
 		]);
 	});
 });

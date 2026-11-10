@@ -60,6 +60,18 @@ pnpm wrangler workflows instances list snapshot-infoportal-at22
 pnpm wrangler workflows instances describe snapshot-infoportal-at22 latest
 ```
 
+### Test runs
+
+A test run takes only some pages. It is stored like a normal snapshot (id `test-...`), but it never
+becomes `snapshot:current` and never deletes other snapshots. Remove test snapshots by hand in the dashboard.
+
+```bash
+pnpm wrangler workflows trigger snapshot-infoportal-at22 '{"trigger":"manual","limit":10}'
+pnpm wrangler workflows trigger snapshot-infoportal-at22 '{"trigger":"manual","paths":["/","/hjelp/"]}'
+```
+
+`limit` takes the first N URLs from the sitemap. `paths` takes exactly those paths. At most 500 pages.
+
 To read what is current:
 
 ```bash

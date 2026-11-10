@@ -16,6 +16,8 @@
 export const SNAPSHOT_PREFIX = 'snapshots/';
 export const CURRENT_POINTER_KEY = 'snapshot:current';
 export const FALLBACK_MODE_KEY = 'fallback:mode';
+/** Test runs (a few pages) get ids like test-2026-11-10T09-15-00-000Z. They are never promoted or cleaned up automatically. */
+export const TEST_SNAPSHOT_ID_PREFIX = 'test-';
 
 export type SnapshotPointer = {
 	id: string;
@@ -28,6 +30,8 @@ export type SnapshotManifest = {
 	completedAt: string;
 	siteOrigin: string;
 	trigger: string;
+	/** True for test runs started with `limit` or `paths`. */
+	test?: boolean;
 	sitemapUrls: number;
 	pages: number;
 	assets: number;
