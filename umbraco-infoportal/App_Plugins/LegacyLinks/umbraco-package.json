@@ -1,0 +1,23 @@
+{
+  "$schema": "../../umbraco-package-schema.json",
+  "name": "Altinn.LegacyLinks",
+  "version": "0.1.0",
+  "extensions": [
+    {
+      "type": "dashboard",
+      "alias": "Altinn.Dashboard.LegacyLinks",
+      "name": "Legacy Links",
+      "element": "/App_Plugins/LegacyLinks/dashboard.js",
+      "elementName": "altinn-legacy-links",
+      "weight": 30,
+      "meta": {
+        "label": "Replace legacy links",
+        "pathname": "legacy-links"
+      },
+      "conditions": [
+        { "alias": "Umb.Condition.SectionAlias", "match": "Umb.Section.Settings" },
+        { "alias": "Umb.Condition.CurrentUser.IsAdmin" }
+      ]
+    }
+  ]
+}
