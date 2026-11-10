@@ -30,8 +30,8 @@ function mapCampaignBlock(item: any) {
 
 // Mirrors the legacy Optimizely ContactListBlockViewModelBuilder: contactNumberText
 // always comes from i18n, and the contactFormLocation MNTP ref is reshaped into a
-// LinkItem-ish object with localized link text. contactFormPageData is attached
-// later by hydrateNestedContactFormPageData in JSONTransformer.
+// LinkItem-ish object with localized link text. contactPageUrl is attached
+// later by addContactPageUrls in JSONTransformer.
 function mapContactListBlock(props: any, locale: Locale) {
   const locationRefs = Array.isArray(props.contactFormLocation)
     ? props.contactFormLocation

@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using Umbraco.Cms.Api.Management.Controllers;
 using Umbraco.Cms.Api.Management.Routing;
 using Umbraco.Cms.Web.Common.Authorization;
-using umbraco_infoportal.LegacyLinks.Jobs;
+using Infoportal.Cms.LegacyLinks.Jobs;
 
-namespace umbraco_infoportal.LegacyLinks.Controllers;
+namespace Infoportal.Cms.LegacyLinks.Controllers;
 
 [ApiVersion("1.0")]
 [VersionedApiBackOfficeRoute("legacy-links")]

@@ -1,7 +1,7 @@
 using Umbraco.Cms.Core.Composing;
-using umbraco_infoportal.LegacyLinks.Jobs;
+using Infoportal.Cms.LegacyLinks.Jobs;
 
-namespace umbraco_infoportal.LegacyLinks;
+namespace Infoportal.Cms.LegacyLinks;
 
 public class LegacyLinkComposer : IComposer
 {

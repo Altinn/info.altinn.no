@@ -9,6 +9,7 @@ const { pageData, htmlLanguage, title, canonicalUrl, metaNoIndex, metaDescriptio
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="format-detection" content="telephone=no" />
     <title>{title || "Altinn - Start"}</title>
     {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
     {metaNoIndex && <meta name="robots" content="noindex" />}

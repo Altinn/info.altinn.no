@@ -1,0 +1,12 @@
+---
+import ContactPageRoute from "@components/Pages/ContactPage/ContactPageRoute.astro";
+
+const variants = { altinn: "altinn", business: "business" } as const;
+const variant = variants[Astro.params.form as keyof typeof variants];
+
+if (!variant) {
+  return new Response(null, { status: 404 });
+}
+---
+
+<ContactPageRoute language="en" variant={variant} />

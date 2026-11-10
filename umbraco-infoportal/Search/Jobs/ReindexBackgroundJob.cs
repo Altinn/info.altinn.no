@@ -1,8 +1,8 @@
-using Infoportal.Adapters.Elasticsearch.Services;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
+using Infoportal.Cms.Search.Services;
 
-namespace umbraco_infoportal.Search.Jobs;
+namespace Infoportal.Cms.Search.Jobs;
 
 public class ReindexBackgroundJob : IHostedService
 {

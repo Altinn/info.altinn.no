@@ -1,9 +1,9 @@
-using Infoportal.RichText;
+using Infoportal.Cms.LegacyLinks.Services;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
 
-namespace umbraco_infoportal.LegacyLinks.Jobs;
+namespace Infoportal.Cms.LegacyLinks.Jobs;
 
 /// <summary>
 /// One-off job (#710) that replaces legacy "~/link/{guid}.aspx" links from the old CMS

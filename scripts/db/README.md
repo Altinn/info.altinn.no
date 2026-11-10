@@ -66,7 +66,7 @@ dotnet run
 Then, to log in:
 
 1. **Turn off the Entra auto-redirect.** In
-   `umbraco-infoportal/App_Plugins/ExternalLoginProviders/umbraco-package.json`, set
+   `umbraco-infoportal/App_Plugins/Authentication/umbraco-package.json`, set
    `"autoRedirect"` to `false`.
 
    Without this, `/umbraco` immediately redirects to Microsoft Entra ID, which is not
