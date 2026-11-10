@@ -6,7 +6,10 @@
  * R2 (bucket infoportal-snapshots-{env}):
  *   snapshots/{id}/p{pathname}        one object per page or static asset (index.html appended for paths ending in "/")
  *   snapshots/{id}/manifest.json      summary of the snapshot (see SnapshotManifest)
- *   snapshots/{id}/redirects.json     { "/old/path/": "/new/path/" } for 3xx responses seen during the run
+ *   snapshots/{id}/redirects.json     { "/old/path/": "/new/path/" } for 3xx responses seen during the run.
+ *                                     Same-site targets are paths (with query string); other sites keep the full URL.
+ *   snapshots/{id}/404/{locale}.html  the site's 404 page per language (nb, nn, en). Serve with status 404.
+ *   snapshots/{id}/unlisted.json      [{ path, linkedFrom }] every internal link that is still missing (see manifest.unlisted)
  *
  * KV (namespace infoportal-fallback-{env}):
  *   snapshot:current                  JSON SnapshotPointer. Written only after a snapshot passes validation.
@@ -32,11 +35,47 @@ export type SnapshotManifest = {
 	trigger: string;
 	/** True for test runs started with `limit` or `paths`. */
 	test?: boolean;
+	/** Pages taken from the sitemap (or the test selection). */
 	sitemapUrls: number;
+	/** Astro-only pages added to the sitemap pages (EXTRA_PATHS). 0 for test runs with explicit paths. */
+	extraPaths?: number;
+	/** Extra paths that answered 404 in this environment (for example /llms.txt without content). Not a failure. */
+	unavailable?: string[];
+	/** Pages and files stored, out of sitemapUrls + extraPaths - unavailable. */
 	pages: number;
+	/**
+	 * Pages found by following internal links that are not in the page list (one round, see LINKED_PAGES_LIMIT).
+	 * Not part of validation: they are a bonus on top of the listed pages.
+	 */
+	linked?: {
+		/** Rounds used (at most 3: links on linked pages are followed too). */
+		rounds: number;
+		/** Links fetched or left out, over all rounds. Not in the page list and not a known redirect. */
+		candidates: number;
+		/** Links not fetched, because of the limit or the last round. They are reported in unlisted. */
+		skipped: number;
+		stored: number;
+		redirects: number;
+		/** Usually broken links in content (404). */
+		failed: { path: string; status: number | string }[];
+	};
+	/** 404 pages stored (one per language). */
+	notFoundPages?: number;
 	assets: number;
 	redirects: number;
 	failed: { path: string; status: number | string }[];
+	/**
+	 * Internal links that are still missing after the linked round: neither listed, captured nor a known redirect.
+	 * These pages will be missing in fallback mode. Not a validation error, but should be close to 0.
+	 * The full list is in unlisted.json.
+	 */
+	unlisted?: { count: number; sample: UnlistedLink[] };
+};
+
+export type UnlistedLink = {
+	path: string;
+	/** The first captured page where the link was found. */
+	linkedFrom: string;
 };
 
 /** Sortable, URL- and key-safe id, e.g. 2026-11-09T02-00-00-000Z */
@@ -57,6 +96,14 @@ export function objectKey(id: string, pathname: string): string {
 
 export function manifestKey(id: string): string {
 	return `${snapshotRoot(id)}manifest.json`;
+}
+
+export function notFoundKey(id: string, locale: string): string {
+	return `${snapshotRoot(id)}404/${locale}.html`;
+}
+
+export function unlistedKey(id: string): string {
+	return `${snapshotRoot(id)}unlisted.json`;
 }
 
 export function redirectsKey(id: string): string {

@@ -72,6 +72,39 @@ pnpm wrangler workflows trigger snapshot-infoportal-at22 '{"trigger":"manual","p
 
 `limit` takes the first N URLs from the sitemap. `paths` takes exactly those paths. At most 500 pages.
 
+`limit` also adds the extra paths and the 404 pages (see below). `paths` takes only the given paths
+(plus the 404 pages).
+
+### What is captured
+
+- All URLs in `/sitemap.xml`.
+- `EXTRA_PATHS` in `src/extra-paths.ts`: pages Astro renders itself (search, contact forms, robots.txt, sitemaps).
+  A 404 for one of these (for example `/llms.txt` without content in Umbraco) is listed under `unavailable`, not `failed`.
+- The 404 page per language, stored as `404/{locale}.html` (from `NOT_FOUND_PROBES`).
+- Linked pages: internal links (`<a href>`) on the captured pages that are not in the lists above are fetched too,
+  up to 3 levels away from a listed page and at most `LINKED_PAGES_LIMIT` pages in total (500 in test runs). This
+  catches pages the sitemap leaves out, such as nb-only pages linked under `/en/` or `/nn/` and the pages below
+  `/om-altinn/`. Links that redirect go into `redirects.json` (same-site targets as paths), and their targets are
+  fetched as well. The result is under
+  `linked` in the manifest. Broken links show up in `linked.failed`.
+- Static files referenced by the pages (CSS, JS, images, fonts).
+
+Validation (`MIN_SUCCESS_RATIO`) only counts the sitemap and extra paths. Linked pages are a bonus and do not count.
+
+### Watching Umbraco during a run
+
+`scripts/probe-umbraco.sh` calls the Delivery API directly every 5 seconds and prints the response time, with a
+summary (median, p95, max) on Ctrl+C. Start it a few minutes before a run for a baseline. If response times grow a
+lot, lower `CONCURRENCY` or stop the run: `pnpm wrangler workflows instances terminate snapshot-infoportal-at22 <id>`.
+
+### Unlisted links
+
+Links that are still missing after the linked round (found on linked pages, or over the limit) are listed in
+`unlisted.json` next to the manifest. The manifest has the count and the first 50. These pages will be missing in
+fallback mode. It does not stop promotion.
+
+In a test run the links are compared against the whole sitemap, so the rest of the site is not reported.
+
 To read what is current:
 
 ```bash

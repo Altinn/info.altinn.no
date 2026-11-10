@@ -1,9 +1,22 @@
 import { env } from 'cloudflare:test';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { extractAssetPaths } from '../src/assets';
-import { CURRENT_POINTER_KEY, createSnapshotId, objectKey, type SnapshotManifest } from '../src/keys';
+import { CURRENT_POINTER_KEY, createSnapshotId, notFoundKey, objectKey, unlistedKey, type SnapshotManifest } from '../src/keys';
+import { extractPageLinks } from '../src/links';
 import { parseSitemapPaths } from '../src/sitemap';
-import { capturePaths, cleanupSnapshots, parseTestSelection, readSitemapPaths, validateManifest, type SnapshotDeps } from '../src/snapshot';
+import {
+	captureNotFoundPages,
+	capturePaths,
+	cleanupSnapshots,
+	findUnlistedLinks,
+	parseTestSelection,
+	readSitemapPaths,
+	summarizeUnlisted,
+	toRedirectTarget,
+	validateManifest,
+	writeManifest,
+	type SnapshotDeps,
+} from '../src/snapshot';
 
 const SITE = 'https://info.altinn.no';
 
@@ -91,6 +104,29 @@ describe('extractAssetPaths', () => {
 	});
 });
 
+describe('extractPageLinks', () => {
+	it('finds same-origin page links and normalizes them like listed pages', () => {
+		const html = `
+			<a href="/hjelp/">Hjelp</a> <a class="x" href="/nn/hjelp">uten skråstrek</a>
+			<a href="relativ/side/?q=1#topp">relativ</a> <a href="https://info.altinn.no/om-altinn/#kontakt">absolutt</a>
+			<a href="/Hjelp/Stor/">stor bokstav</a> <a href="/sok/?q=a&amp;b=c">søk</a>`;
+
+		expect(extractPageLinks(html, `${SITE}/starte-og-drive/`, SITE).sort()).toEqual(
+			['/hjelp/', '/nn/hjelp/', '/starte-og-drive/relativ/side/', '/om-altinn/', '/Hjelp/Stor/', '/sok/'].sort(),
+		);
+	});
+
+	it('ignores other sites, files, media, APIs, anchors and code', () => {
+		const html = `
+			<a href="https://www.altinn.no/">ekstern</a> <a href="mailto:a@b.no">e-post</a> <a href="tel:+4775006000">tlf</a>
+			<a href="#innhold">anker</a> <a href="/media/abc/fil.pdf">pdf</a> <a href="/media/abc/">media</a>
+			<a href="/api/redirect">api</a> <a href="/robots.txt">fil</a> <a href="javascript:void(0)">js</a>
+			<link href="/side-fra-link/"> <script>const a = '<a href="/fra-script/">';</script>`;
+
+		expect(extractPageLinks(html, `${SITE}/`, SITE)).toEqual([]);
+	});
+});
+
 describe('readSitemapPaths', () => {
 	it('fails when sitemap is unavailable, so the workflow step retries', async () => {
 		const origin = fakeOrigin({ '/sitemap.xml': () => new Response('down', { status: 503 }) });
@@ -104,7 +140,7 @@ describe('capturePaths', () => {
 	it('stores 200 responses, records redirects and failures, and reports referenced assets', async () => {
 		const origin = fakeOrigin({
 			'/': () => new Response('<link href="/vendor.css">', { headers: { 'content-type': 'text/html; charset=utf-8' } }),
-			'/gammel/': () => new Response(null, { status: 301, headers: { location: '/ny/' } }),
+			'/gammel/': () => new Response(null, { status: 301, headers: { location: `${SITE}/ny/` } }),
 			'/feil/': () => new Response('error', { status: 500 }),
 			'/kaster/': () => {
 				throw new Error('network down');
@@ -131,6 +167,89 @@ describe('capturePaths', () => {
 		const request = origin.fetch.mock.calls[0][0] as Request;
 		expect(request.redirect).toBe('manual');
 	});
+
+	it('reports page links that are not in the known paths, with the page they were found on', async () => {
+		const html = (body: string) => () => new Response(body, { headers: { 'content-type': 'text/html' } });
+		const origin = fakeOrigin({
+			'/': html('<a href="/hjelp/">kjent</a><a href="/om-altinn/">ukjent</a>'),
+			'/hjelp/': html('<a href="/om-altinn/">ukjent igjen</a><a href="/hjelp/sok/">ukjent</a>'),
+		});
+
+		const result = await capturePaths(deps(origin), 'snap1', ['/', '/hjelp/'], 1, { knownPaths: new Set(['/', '/hjelp/']) });
+
+		expect(result.unknownLinks).toEqual({ '/om-altinn/': '/', '/hjelp/sok/': '/hjelp/' });
+	});
+
+	it('reports a 404 for an optional path as unavailable, not as a failure', async () => {
+		const origin = fakeOrigin({});
+
+		const result = await capturePaths(deps(origin), 'snap1', ['/llms.txt', '/mangler/'], 1, { optionalPaths: new Set(['/llms.txt']) });
+
+		expect(result.unavailable).toEqual(['/llms.txt']);
+		expect(result.failed).toEqual([{ path: '/mangler/', status: 404 }]);
+	});
+});
+
+describe('toRedirectTarget', () => {
+	it('stores same-site targets as paths and keeps other sites as full URLs', () => {
+		expect(toRedirectTarget(`${SITE}/hjelp/innlogging/`, '/gammel/', SITE)).toBe('/hjelp/innlogging/');
+		expect(toRedirectTarget(`${SITE}/sok/?q=a`, '/gammel/', SITE)).toBe('/sok/?q=a');
+		expect(toRedirectTarget('../ny/', '/a/gammel/', SITE)).toBe('/a/ny/');
+		expect(toRedirectTarget('https://www.altinn.no/x', '/gammel/', SITE)).toBe('https://www.altinn.no/x');
+	});
+});
+
+describe('captureNotFoundPages', () => {
+	beforeEach(clearBucket);
+
+	it('stores the 404 page per language and rejects anything that is not a 404 page', async () => {
+		const notFound = (body: string) => () => new Response(body, { status: 404, headers: { 'content-type': 'text/html' } });
+		const origin = fakeOrigin({
+			'/__snapshot-404__/': notFound('<link href="/vendor.css">Fant ikke siden'),
+			'/nn/__snapshot-404__/': notFound('Fann ikkje sida'),
+			// For example a redirect rule that happens to match, or Umbraco being down.
+			'/en/__snapshot-404__/': () => new Response('error', { status: 500 }),
+		});
+
+		const result = await captureNotFoundPages(deps(origin), 'snap1');
+
+		expect(result.stored).toBe(2);
+		expect(result.assetPaths).toEqual(['/vendor.css']);
+		expect(result.failed).toEqual([{ path: '/en/__snapshot-404__/', status: 'expected 404 page, got 500 text/plain;charset=UTF-8' }]);
+		expect(await (await env.SNAPSHOTS.get(notFoundKey('snap1', 'nn')))?.text()).toBe('Fann ikkje sida');
+		expect(await env.SNAPSHOTS.get(notFoundKey('snap1', 'en'))).toBeNull();
+	});
+});
+
+describe('findUnlistedLinks', () => {
+	it('drops links that became known or are redirects, and sorts the rest', () => {
+		const links = { '/b/': '/', '/a/': '/x/', '/kjent/': '/', '/gammel/': '/' };
+		const result = findUnlistedLinks(links, new Set(['/kjent/']), { '/gammel/': '/ny/' });
+
+		expect(result).toEqual([
+			{ path: '/a/', linkedFrom: '/x/' },
+			{ path: '/b/', linkedFrom: '/' },
+		]);
+	});
+
+	it('keeps the full count but only a sample in the manifest', () => {
+		const many = Array.from({ length: 120 }, (_, i) => ({ path: `/side-${i}/`, linkedFrom: '/' }));
+		const summary = summarizeUnlisted(many);
+
+		expect(summary.count).toBe(120);
+		expect(summary.sample).toHaveLength(50);
+	});
+});
+
+describe('writeManifest', () => {
+	beforeEach(clearBucket);
+
+	it('writes the full unlisted list next to the manifest', async () => {
+		const unlisted = [{ path: '/a/', linkedFrom: '/' }];
+		await writeManifest(deps(fakeOrigin({})), { id: 'snap1' } as SnapshotManifest, {}, unlisted);
+
+		expect(await (await env.SNAPSHOTS.get(unlistedKey('snap1')))?.json()).toEqual(unlisted);
+	});
 });
 
 describe('validateManifest', () => {
@@ -142,6 +261,16 @@ describe('validateManifest', () => {
 
 	it('rejects a snapshot taken while the origin was failing', () => {
 		expect(validateManifest(manifest(10, 100), 0.98)).toContain('only 10 of 100');
+	});
+
+	it('counts extra paths as expected pages, except those unavailable in the environment', () => {
+		expect(validateManifest({ pages: 100, sitemapUrls: 100, extraPaths: 10 } as SnapshotManifest, 0.98)).toContain('only 100 of 110');
+		expect(validateManifest({ pages: 3, sitemapUrls: 2, extraPaths: 2, unavailable: ['/llms.txt'] } as SnapshotManifest, 1)).toBeNull();
+	});
+
+	it('does not count linked pages, so following links cannot hide missing listed pages', () => {
+		const manifest = { pages: 50, sitemapUrls: 100, linked: { stored: 900 } } as SnapshotManifest;
+		expect(validateManifest(manifest, 0.98)).toContain('only 50 of 100');
 	});
 });
 

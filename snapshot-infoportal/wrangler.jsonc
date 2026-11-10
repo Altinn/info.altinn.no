@@ -18,7 +18,9 @@
 		"BATCH_SIZE": "50",
 		"CONCURRENCY": "6",
 		"KEEP_SNAPSHOTS": "3",
-		"MIN_SUCCESS_RATIO": "0.98"
+		"MIN_SUCCESS_RATIO": "0.98",
+		// Max pages fetched by following links that are not in the page list (one round). Test runs use at most 500.
+		"LINKED_PAGES_LIMIT": "3000"
 	},
 	"r2_buckets": [{ "binding": "SNAPSHOTS", "bucket_name": "infoportal-snapshots-local" }],
 	"kv_namespaces": [{ "binding": "FALLBACK_KV", "id": "local" }],
@@ -36,7 +38,8 @@
 				"BATCH_SIZE": "50",
 				"CONCURRENCY": "6",
 				"KEEP_SNAPSHOTS": "3",
-				"MIN_SUCCESS_RATIO": "0.98"
+				"MIN_SUCCESS_RATIO": "0.98",
+				"LINKED_PAGES_LIMIT": "3000"
 			},
 			"services": [{ "binding": "ASTRO_INFOPORTAL", "service": "astro-infoportal-at22" }],
 			"r2_buckets": [{ "binding": "SNAPSHOTS", "bucket_name": "infoportal-snapshots-at22", "jurisdiction": "eu" }],

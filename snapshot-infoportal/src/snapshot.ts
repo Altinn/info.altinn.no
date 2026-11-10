@@ -1,14 +1,19 @@
 import { extractAssetPaths } from './assets';
+import { NOT_FOUND_PROBES } from './extra-paths';
 import {
 	CURRENT_POINTER_KEY,
 	manifestKey,
+	notFoundKey,
 	objectKey,
 	redirectsKey,
 	SNAPSHOT_PREFIX,
 	TEST_SNAPSHOT_ID_PREFIX,
 	type SnapshotManifest,
 	type SnapshotPointer,
+	type UnlistedLink,
+	unlistedKey,
 } from './keys';
+import { extractPageLinks } from './links';
 import { parseSitemapPaths } from './sitemap';
 
 /** The parts of the environment the snapshot logic needs. Kept small so tests can pass fakes. */
@@ -25,7 +30,24 @@ export type CaptureResult = {
 	failed: { path: string; status: number | string }[];
 	/** Static files referenced by the captured HTML/CSS. Captured in a later step. */
 	assetPaths: string[];
+	/**
+	 * Internal page links found in captured HTML that are not in `knownPaths`, mapped to the page they were found on.
+	 * Filtered here so the step result stays small (Workflows persists every step result).
+	 */
+	unknownLinks: Record<string, string>;
+	/** Optional paths (see CaptureOptions.optionalPaths) that answered 404. */
+	unavailable: string[];
 };
+
+export type CaptureOptions = {
+	/** Page links to these paths are not reported in unknownLinks. */
+	knownPaths?: ReadonlySet<string>;
+	/** A 404 for these paths is reported in `unavailable` instead of `failed` (for example /llms.txt). */
+	optionalPaths?: ReadonlySet<string>;
+};
+
+/** Unlisted links shown in the manifest. The count is always complete, and unlisted.json has the full list. */
+export const MAX_UNLISTED_SAMPLE = 50;
 
 const USER_AGENT = 'snapshot-infoportal';
 
@@ -79,8 +101,14 @@ export async function readSitemapPaths(deps: SnapshotDeps): Promise<string[]> {
  * Per-path failures are recorded instead of thrown, so a workflow retry of the batch does not
  * hide which paths failed, and a few broken pages do not stop the snapshot.
  */
-export async function capturePaths(deps: SnapshotDeps, snapshotId: string, paths: string[], concurrency: number): Promise<CaptureResult> {
-	const result: CaptureResult = { stored: 0, redirects: {}, failed: [], assetPaths: [] };
+export async function capturePaths(
+	deps: SnapshotDeps,
+	snapshotId: string,
+	paths: string[],
+	concurrency: number,
+	{ knownPaths = new Set(), optionalPaths = new Set() }: CaptureOptions = {},
+): Promise<CaptureResult> {
+	const result: CaptureResult = { stored: 0, redirects: {}, failed: [], assetPaths: [], unknownLinks: {}, unavailable: [] };
 	const assetPaths = new Set<string>();
 
 	await forEachWithLimit(paths, concurrency, async (path) => {
@@ -89,7 +117,13 @@ export async function capturePaths(deps: SnapshotDeps, snapshotId: string, paths
 
 			if (response.status >= 300 && response.status < 400) {
 				const location = response.headers.get('location');
-				if (location) result.redirects[path] = location;
+				if (location) result.redirects[path] = toRedirectTarget(location, path, deps.siteOrigin);
+				await response.body?.cancel();
+				return;
+			}
+
+			if (response.status === 404 && optionalPaths.has(path)) {
+				result.unavailable.push(path);
 				await response.body?.cancel();
 				return;
 			}
@@ -102,12 +136,10 @@ export async function capturePaths(deps: SnapshotDeps, snapshotId: string, paths
 
 			const contentType = response.headers.get('content-type') ?? 'application/octet-stream';
 			const body = await response.arrayBuffer();
-
-			if (contentType.includes('text/html') || contentType.includes('text/css')) {
-				const text = new TextDecoder().decode(body);
-				for (const assetPath of extractAssetPaths(text, new URL(path, deps.siteOrigin).toString(), deps.siteOrigin)) {
-					assetPaths.add(assetPath);
-				}
+			const found = scanBody(deps, path, contentType, body);
+			found.assetPaths.forEach((assetPath) => assetPaths.add(assetPath));
+			for (const link of found.pageLinks) {
+				if (!knownPaths.has(link) && !(link in result.unknownLinks)) result.unknownLinks[link] = path;
 			}
 
 			await deps.bucket.put(objectKey(snapshotId, path), body, {
@@ -124,8 +156,69 @@ export async function capturePaths(deps: SnapshotDeps, snapshotId: string, paths
 	return result;
 }
 
-export async function writeManifest(deps: SnapshotDeps, manifest: SnapshotManifest, redirects: Record<string, string>): Promise<void> {
+/**
+ * Stores the site's 404 page for each language (see NOT_FOUND_PROBES). Astro answers an unknown path with
+ * status 404 and the 404 page from Umbraco, so 404 is the expected status here; anything else is a failure.
+ */
+export async function captureNotFoundPages(deps: SnapshotDeps, snapshotId: string): Promise<Pick<CaptureResult, 'stored' | 'failed' | 'assetPaths'>> {
+	const result: Pick<CaptureResult, 'stored' | 'failed' | 'assetPaths'> = { stored: 0, failed: [], assetPaths: [] };
+	const assetPaths = new Set<string>();
+
+	for (const probe of NOT_FOUND_PROBES) {
+		try {
+			const response = await fetchFromOrigin(deps, probe.path);
+			const contentType = response.headers.get('content-type') ?? '';
+			if (response.status !== 404 || !contentType.includes('text/html')) {
+				result.failed.push({ path: probe.path, status: `expected 404 page, got ${response.status} ${contentType}`.trim() });
+				await response.body?.cancel();
+				continue;
+			}
+
+			const body = await response.arrayBuffer();
+			scanBody(deps, probe.path, contentType, body).assetPaths.forEach((assetPath) => assetPaths.add(assetPath));
+			await deps.bucket.put(notFoundKey(snapshotId, probe.locale), body, {
+				httpMetadata: { contentType },
+				customMetadata: { capturedAt: new Date().toISOString() },
+			});
+			result.stored++;
+		} catch (error) {
+			result.failed.push({ path: probe.path, status: error instanceof Error ? error.message : String(error) });
+		}
+	}
+
+	result.assetPaths = [...assetPaths];
+	return result;
+}
+
+/**
+ * Links that point at neither a known page nor a known redirect, sorted by path.
+ * `links` maps each link to the page it was found on (from CaptureResult.unknownLinks).
+ */
+export function findUnlistedLinks(
+	links: Record<string, string>,
+	knownPaths: ReadonlySet<string>,
+	redirects: Record<string, string>,
+): UnlistedLink[] {
+	return Object.entries(links)
+		.filter(([path]) => !knownPaths.has(path) && !(path in redirects))
+		.map(([path, linkedFrom]) => ({ path, linkedFrom }))
+		.sort((a, b) => a.path.localeCompare(b.path));
+}
+
+export function summarizeUnlisted(unlisted: UnlistedLink[]): { count: number; sample: UnlistedLink[] } {
+	return { count: unlisted.length, sample: unlisted.slice(0, MAX_UNLISTED_SAMPLE) };
+}
+
+export async function writeManifest(
+	deps: SnapshotDeps,
+	manifest: SnapshotManifest,
+	redirects: Record<string, string>,
+	unlisted: UnlistedLink[] = [],
+): Promise<void> {
 	await deps.bucket.put(redirectsKey(manifest.id), JSON.stringify(redirects), {
+		httpMetadata: { contentType: 'application/json' },
+	});
+	await deps.bucket.put(unlistedKey(manifest.id), JSON.stringify(unlisted, null, 1), {
 		httpMetadata: { contentType: 'application/json' },
 	});
 	await deps.bucket.put(manifestKey(manifest.id), JSON.stringify(manifest, null, 2), {
@@ -137,9 +230,10 @@ export async function writeManifest(deps: SnapshotDeps, manifest: SnapshotManife
 export function validateManifest(manifest: SnapshotManifest, minSuccessRatio: number): string | null {
 	if (manifest.sitemapUrls === 0) return 'sitemap was empty';
 
-	const pageRatio = manifest.pages / manifest.sitemapUrls;
+	const expected = manifest.sitemapUrls + (manifest.extraPaths ?? 0) - (manifest.unavailable?.length ?? 0);
+	const pageRatio = manifest.pages / expected;
 	if (pageRatio < minSuccessRatio) {
-		return `only ${manifest.pages} of ${manifest.sitemapUrls} sitemap URLs were stored (${(pageRatio * 100).toFixed(1)}%)`;
+		return `only ${manifest.pages} of ${expected} listed pages were stored (${(pageRatio * 100).toFixed(1)}%)`;
 	}
 	return null;
 }
@@ -196,6 +290,33 @@ async function deletePrefix(bucket: R2Bucket, prefix: string): Promise<void> {
 		}
 		cursor = listing.truncated ? listing.cursor : undefined;
 	} while (cursor);
+}
+
+/**
+ * Astro answers with an absolute Location (https://info.at22.altinn.cloud/ny/). Same-site targets are stored as a
+ * path, so redirects.json does not depend on the hostname the snapshot was taken from. Other sites are kept as-is.
+ */
+export function toRedirectTarget(location: string, fromPath: string, siteOrigin: string): string {
+	let url: URL;
+	try {
+		url = new URL(location, new URL(fromPath, siteOrigin));
+	} catch {
+		return location;
+	}
+	return url.origin === new URL(siteOrigin).origin ? `${url.pathname}${url.search}${url.hash}` : url.toString();
+}
+
+/** Finds asset references (HTML and CSS) and page links (HTML only) in a captured response. */
+function scanBody(deps: SnapshotDeps, path: string, contentType: string, body: ArrayBuffer): { assetPaths: string[]; pageLinks: string[] } {
+	const isHtml = contentType.includes('text/html');
+	if (!isHtml && !contentType.includes('text/css')) return { assetPaths: [], pageLinks: [] };
+
+	const text = new TextDecoder().decode(body);
+	const pageUrl = new URL(path, deps.siteOrigin).toString();
+	return {
+		assetPaths: extractAssetPaths(text, pageUrl, deps.siteOrigin),
+		pageLinks: isHtml ? extractPageLinks(text, pageUrl, deps.siteOrigin) : [],
+	};
 }
 
 /**
