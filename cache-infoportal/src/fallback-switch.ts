@@ -3,9 +3,10 @@
  * snapshot-infoportal (src/fallback.ts there), reached through the SNAPSHOT_INFOPORTAL service binding.
  * Runbook: snapshot-infoportal/FALLBACK.md.
  *
- * Kept small on purpose, since it runs on every request:
+ * Kept small on purpose:
+ * - isFallbackPreview() is a header comparison, no I/O
+ * - isFallbackOn() is only called when the edge cache cannot answer, and reads KV at most every 15 seconds per isolate
  * - environments without SNAPSHOT_INFOPORTAL and FALLBACK_KV return false at once
- * - fallback:mode is read from KV at most every 15 seconds per isolate
  */
 export type FallbackSwitchEnv = {
 	SNAPSHOT_INFOPORTAL?: Fetcher;
@@ -25,11 +26,15 @@ export function resetFallbackSwitch(): void {
 	memo = undefined;
 }
 
-export async function isFallbackActive(request: Request, env: FallbackSwitchEnv, now = Date.now()): Promise<boolean> {
-	if (!env.SNAPSHOT_INFOPORTAL || !env.FALLBACK_KV) return false;
-
+/** True when the request asks for fallback mode with the right preview token (for testing a single request). */
+export function isFallbackPreview(request: Request, env: FallbackSwitchEnv): boolean {
 	const token = env.FALLBACK_PREVIEW_TOKEN;
-	if (token && request.headers.get(PREVIEW_HEADER) === token) return true;
+	return !!env.SNAPSHOT_INFOPORTAL && !!token && request.headers.get(PREVIEW_HEADER) === token;
+}
+
+/** True when fallback:mode is "on" in KV (fallback for everyone). */
+export async function isFallbackOn(env: FallbackSwitchEnv, now = Date.now()): Promise<boolean> {
+	if (!env.SNAPSHOT_INFOPORTAL || !env.FALLBACK_KV) return false;
 
 	if (memo && memo.expires > now) return memo.on;
 	let on = false;

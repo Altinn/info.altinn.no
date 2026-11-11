@@ -1,4 +1,4 @@
-import { isFallbackActive, type FallbackSwitchEnv } from "./fallback-switch";
+import { isFallbackOn, isFallbackPreview, type FallbackSwitchEnv } from "./fallback-switch";
 
 interface WorkerEnv extends FallbackSwitchEnv {
 	ASTRO_INFOPORTAL: any
@@ -21,13 +21,16 @@ export default {
 			throw new Error(`Failed to fetch API request from origin: ${error}`);
 		}
 
-		// Fallback mode: snapshot-infoportal serves the site from the R2 snapshot. Origin and the edge cache are not used.
-		if (await isFallbackActive(request, env)) {
+		// Preview of fallback mode for this request only (see snapshot-infoportal/FALLBACK.md). Skips the edge cache,
+		// so what you see really comes from the snapshot.
+		if (isFallbackPreview(request, env)) {
 			return env.SNAPSHOT_INFOPORTAL!.fetch(request);
 		}
 
 		try {
 			if (request.method !== "GET") {
+				// In fallback mode, posts are answered by snapshot-infoportal (503) instead of a failing origin.
+				if (await isFallbackOn(env)) return env.SNAPSHOT_INFOPORTAL!.fetch(request);
 				return await env.ASTRO_INFOPORTAL.fetch(request);
 			}
 		} catch (error) {
@@ -46,6 +49,15 @@ export default {
 			response = await cache.match(cacheKey);
 		} catch (error) {
 			throw new Error(`Failed to check cache match: ${error}`);
+		}
+
+		// Cached pages are served as usual, also in fallback mode: they are at least as fresh as the snapshot.
+		// Only when the cache cannot answer (miss, or a cached 4xx such as a 404 from an Umbraco timeout) does
+		// fallback mode decide where the request goes.
+		if (!response || response.status >= 400) {
+			if (await isFallbackOn(env)) {
+				return env.SNAPSHOT_INFOPORTAL!.fetch(request);
+			}
 		}
 
 		if (!response) {

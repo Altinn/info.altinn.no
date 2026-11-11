@@ -8,15 +8,19 @@ Only set up in **at22** for now.
 ## How it works
 
 ```
-                          ┌─ fallback off → astro-infoportal (as before, with the edge cache)
-browser → cache-infoportal
-                          └─ fallback on  → snapshot-infoportal (fetch handler, serves from R2)
+                                              ┌─ fallback off → astro-infoportal (as before)
+browser → cache-infoportal → edge cache ─ miss ┤
+                                              └─ fallback on  → snapshot-infoportal (serves from R2)
 ```
 
-- `cache-infoportal` only decides (`src/fallback-switch.ts`): `fallback:mode` = `on` in KV, or the preview header
-  (below). It then hands the request to `snapshot-infoportal` through the `SNAPSHOT_INFOPORTAL` service binding.
+- The edge cache is used as usual, also in fallback mode: a page that is in the cache is served from there.
+- Only when the cache cannot answer (a miss, or a cached 4xx) does `cache-infoportal` check `fallback:mode`
+  (`src/fallback-switch.ts`). If it is `on`, the request goes to `snapshot-infoportal` through the
+  `SNAPSHOT_INFOPORTAL` service binding instead of to Astro. Posts outside `/api/` go there too.
+- A cached 4xx is not trusted in fallback mode, because Astro answers 404 when it cannot reach Umbraco, and
+  that 404 is cached like any other page.
 - `snapshot-infoportal` (`src/fallback.ts`) serves pages, static files, redirects and the 404 page from the
-  snapshot that `snapshot:current` points to. Astro/Umbraco and the edge cache are not used.
+  snapshot that `snapshot:current` points to. Responses from the snapshot are not put in the edge cache.
   It has no public route, so it can only be reached through `cache-infoportal`.
 - Every fallback response has the header `x-infoportal-snapshot: <snapshot id>` and `cache-control: no-store`
   (static files: 5 minutes), so browsers do not keep fallback pages after the site is back.
@@ -34,6 +38,7 @@ What does not work in fallback mode:
 ## Test without affecting others (preview)
 
 Requests with the header `x-infoportal-fallback: <token>` are served from the snapshot, for that request only.
+They skip the edge cache, so what you see really comes from the snapshot.
 
 Set the token once per environment on `cache-infoportal` (any long random string, for example from
 `openssl rand -hex 32`; keep it in the team's password manager):
