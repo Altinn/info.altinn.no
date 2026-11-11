@@ -17,7 +17,8 @@ Only set up in **at22** for now.
 
 What does not work in fallback mode:
 
-- Submitting forms (contact forms): answered with 503 and a short message.
+- Contact forms. They post to `/api/contactform/send`, which goes to origin also in fallback mode (all of `/api/`
+  does). If Umbraco is down, the form shows its usual error message. Other form posts outside `/api/` get 503.
 - Search results and other dynamic data (`/sok/?q=...`, `/inforportalapi/...`). The empty search page is shown.
 - Media (`/media/...`) until the media bucket is bound (`MEDIA`, see below). Until then images and PDFs give 404.
 - Old URLs that only exist in Umbraco's redirect tables and were not seen by the snapshot job.
