@@ -35,27 +35,6 @@ What does not work in fallback mode:
 - Media (`/media/...`) until the media bucket is bound (`MEDIA`, see below). Until then images and PDFs give 404.
 - Old URLs that only exist in Umbraco's redirect tables and were not seen by the snapshot job.
 
-## Test without affecting others (preview)
-
-Requests with the header `x-infoportal-fallback: <token>` are served from the snapshot, for that request only.
-They skip the edge cache, so what you see really comes from the snapshot.
-
-Set the token once per environment on `cache-infoportal` (any long random string, for example from
-`openssl rand -hex 32`; keep it in the team's password manager):
-
-```bash
-cd cache-infoportal && pnpm wrangler secret put FALLBACK_PREVIEW_TOKEN --env at22
-```
-
-Then:
-
-```bash
-curl -sI -H "x-infoportal-fallback: <token>" https://info.at22.altinn.cloud/hjelp/
-```
-
-Look for `x-infoportal-snapshot` in the response. In a browser, use an extension that adds request headers
-(for example ModHeader).
-
 ## Turn on / off
 
 ```bash
@@ -72,9 +51,24 @@ pnpm wrangler kv key get snapshot:current --namespace-id 0edfe96c8cad4d7f8b4408d
 
 The namespace id is for at22 (`infoportal-fallback-at22`).
 
-After turning on: check a few pages for `x-infoportal-snapshot`. After turning off: check that the header is gone.
 Consider also turning off the nightly snapshot run while fallback is on, so a run against a broken origin cannot
 fail validation in confusing ways (it would not replace the current snapshot anyway).
+
+## Check that fallback mode works
+
+Pages that are in the edge cache are still served from there in fallback mode, and have no
+`x-infoportal-snapshot` header. That is expected. To see what the snapshot serves, add a random query string:
+the edge cache treats it as a new page (a miss), while the snapshot ignores the query string.
+
+```bash
+curl -sI "https://info.at22.altinn.cloud/hjelp/?t=$RANDOM" | grep -i x-infoportal-snapshot
+```
+
+In a browser, open pages with `?t=<something>` added and look for `x-infoportal-snapshot` in the developer tools
+(Network tab, response headers).
+
+Testing in at22 means turning fallback mode on for everyone in at22 for a while, so tell the team first.
+After turning off: the same `curl` should no longer show the header (after about a minute).
 
 ## Deploy
 
@@ -91,7 +85,6 @@ cd ../cache-infoportal && pnpm wrangler deploy --env at22
 |---|---|---|---|
 | cache-infoportal | `SNAPSHOT_INFOPORTAL` | Service binding to `snapshot-infoportal-{env}` | at22 |
 | cache-infoportal | `FALLBACK_KV` | KV namespace `infoportal-fallback-{env}`, for `fallback:mode` | at22 |
-| cache-infoportal | `FALLBACK_PREVIEW_TOKEN` | Secret for the preview header (set by hand) | at22 |
 | snapshot-infoportal | `SNAPSHOTS`, `FALLBACK_KV` | The snapshot bucket and the same KV namespace | at22 |
 | snapshot-infoportal | `MEDIA` | R2 bucket with the Umbraco media mirror (`media/...`), written by backup-infoportal | not yet |
 

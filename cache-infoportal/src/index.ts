@@ -1,4 +1,4 @@
-import { isFallbackOn, isFallbackPreview, type FallbackSwitchEnv } from "./fallback-switch";
+import { isFallbackOn, type FallbackSwitchEnv } from "./fallback-switch";
 
 interface WorkerEnv extends FallbackSwitchEnv {
 	ASTRO_INFOPORTAL: any
@@ -19,12 +19,6 @@ export default {
 			}
 		} catch (error) {
 			throw new Error(`Failed to fetch API request from origin: ${error}`);
-		}
-
-		// Preview of fallback mode for this request only (see snapshot-infoportal/FALLBACK.md). Skips the edge cache,
-		// so what you see really comes from the snapshot.
-		if (isFallbackPreview(request, env)) {
-			return env.SNAPSHOT_INFOPORTAL!.fetch(request);
 		}
 
 		try {

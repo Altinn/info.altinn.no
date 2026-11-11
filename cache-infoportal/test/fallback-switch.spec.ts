@@ -1,10 +1,10 @@
 import { createExecutionContext, env as testEnv, waitOnExecutionContext } from "cloudflare:test";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import worker from "../src/index";
-import { PREVIEW_HEADER, resetFallbackSwitch } from "../src/fallback-switch";
+import { resetFallbackSwitch } from "../src/fallback-switch";
 
 const IncomingRequest = Request<unknown, IncomingRequestCfProperties>;
-const bindings = testEnv as unknown as { FALLBACK_KV: KVNamespace; FALLBACK_PREVIEW_TOKEN: string };
+const bindings = testEnv as unknown as { FALLBACK_KV: KVNamespace };
 
 let pathCounter = 0;
 const uniqueUrl = (path = "/side") => `https://info.altinn.no${path}-switch-${++pathCounter}`;
@@ -81,15 +81,6 @@ describe("fallback switch", () => {
 		await call("https://info.altinn.no/api/contactform/send", env, { method: "POST", body: "x" });
 		expect(astro).toHaveBeenCalledTimes(2);
 		expect(snapshot).not.toHaveBeenCalled();
-	});
-
-	it("turns on fallback for a single request with the preview header", async () => {
-		const { astro, snapshot, env } = createEnv();
-
-		await call(uniqueUrl(), env, { headers: { [PREVIEW_HEADER]: "test-token" } });
-		await call(uniqueUrl(), env, { headers: { [PREVIEW_HEADER]: "wrong" } });
-		expect(snapshot).toHaveBeenCalledTimes(1);
-		expect(astro).toHaveBeenCalledTimes(1);
 	});
 
 	it("is never active in environments without the bindings", async () => {

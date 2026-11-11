@@ -4,18 +4,14 @@
  * Runbook: snapshot-infoportal/FALLBACK.md.
  *
  * Kept small on purpose:
- * - isFallbackPreview() is a header comparison, no I/O
- * - isFallbackOn() is only called when the edge cache cannot answer, and reads KV at most every 15 seconds per isolate
+ * - only called when the edge cache cannot answer, and reads KV at most every 15 seconds per isolate
  * - environments without SNAPSHOT_INFOPORTAL and FALLBACK_KV return false at once
  */
 export type FallbackSwitchEnv = {
 	SNAPSHOT_INFOPORTAL?: Fetcher;
 	FALLBACK_KV?: KVNamespace;
-	FALLBACK_PREVIEW_TOKEN?: string;
 };
 
-/** A request with this header and the FALLBACK_PREVIEW_TOKEN value is served in fallback mode, for testing. */
-export const PREVIEW_HEADER = "x-infoportal-fallback";
 const FALLBACK_MODE_KEY = "fallback:mode";
 const MEMO_TTL_MS = 15_000;
 
@@ -24,12 +20,6 @@ let memo: { on: boolean; expires: number } | undefined;
 /** For tests: forget the value cached in this isolate. */
 export function resetFallbackSwitch(): void {
 	memo = undefined;
-}
-
-/** True when the request asks for fallback mode with the right preview token (for testing a single request). */
-export function isFallbackPreview(request: Request, env: FallbackSwitchEnv): boolean {
-	const token = env.FALLBACK_PREVIEW_TOKEN;
-	return !!env.SNAPSHOT_INFOPORTAL && !!token && request.headers.get(PREVIEW_HEADER) === token;
 }
 
 /** True when fallback:mode is "on" in KV (fallback for everyone). */

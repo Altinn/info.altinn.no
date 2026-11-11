@@ -25,8 +25,7 @@
 					"service": "snapshot-infoportal-at22"
 				}
 			],
-			// fallback:mode is read from here. The secret FALLBACK_PREVIEW_TOKEN is set with:
-			//   pnpm wrangler secret put FALLBACK_PREVIEW_TOKEN --env at22
+			// fallback:mode is read from here.
 			"kv_namespaces": [
 				{
 					// infoportal-fallback-at22 (same namespace as snapshot-infoportal-at22)
