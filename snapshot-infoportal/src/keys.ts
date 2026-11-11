@@ -1,7 +1,8 @@
 /**
- * Storage contract between snapshot-infoportal (writes) and cache-infoportal (reads).
+ * Storage layout of a snapshot. Written by the workflow (src/workflow.ts) and read by the fallback
+ * fetch handler (src/fallback.ts) in this worker.
  *
- * Any change here must be made in both workers at the same time.
+ * fallback:mode in KV is also read by cache-infoportal (src/fallback-switch.ts).
  *
  * R2 (bucket infoportal-snapshots-{env}):
  *   snapshots/{id}/p{pathname}        one object per page or static asset (index.html appended for paths ending in "/")

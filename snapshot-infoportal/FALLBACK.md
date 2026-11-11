@@ -1,15 +1,23 @@
 # Fallback mode (runbook)
 
-When Azure/Umbraco is down, `cache-infoportal` can serve info.altinn.no from the latest snapshot in R2 instead of
-from Astro/Umbraco (issue #905, option B). The snapshot is made by `snapshot-infoportal`.
+When Azure/Umbraco is down, info.altinn.no can be served from the latest snapshot in R2 instead of from
+Astro/Umbraco (issue #905, option B).
 
 Only set up in **at22** for now.
 
 ## How it works
 
-- `fallback:mode` = `on` in KV turns on fallback mode for all visitors.
-- With fallback mode on, pages, static files, redirects and the 404 page come from the snapshot that
-  `snapshot:current` points to. Astro/Umbraco and the edge cache are not used.
+```
+                          ┌─ fallback off → astro-infoportal (as before, with the edge cache)
+browser → cache-infoportal
+                          └─ fallback on  → snapshot-infoportal (fetch handler, serves from R2)
+```
+
+- `cache-infoportal` only decides (`src/fallback-switch.ts`): `fallback:mode` = `on` in KV, or the preview header
+  (below). It then hands the request to `snapshot-infoportal` through the `SNAPSHOT_INFOPORTAL` service binding.
+- `snapshot-infoportal` (`src/fallback.ts`) serves pages, static files, redirects and the 404 page from the
+  snapshot that `snapshot:current` points to. Astro/Umbraco and the edge cache are not used.
+  It has no public route, so it can only be reached through `cache-infoportal`.
 - Every fallback response has the header `x-infoportal-snapshot: <snapshot id>` and `cache-control: no-store`
   (static files: 5 minutes), so browsers do not keep fallback pages after the site is back.
 - `/health`, `/api/` and `/ui/` always go to origin, so health checks show the real state.
@@ -18,7 +26,7 @@ Only set up in **at22** for now.
 What does not work in fallback mode:
 
 - Contact forms. They post to `/api/contactform/send`, which goes to origin also in fallback mode (all of `/api/`
-  does). If Umbraco is down, the form shows its usual error message. Other form posts outside `/api/` get 503.
+  does). If Umbraco is down, the form shows its usual error message. Other posts outside `/api/` get 503.
 - Search results and other dynamic data (`/sok/?q=...`, `/inforportalapi/...`). The empty search page is shown.
 - Media (`/media/...`) until the media bucket is bound (`MEDIA`, see below). Until then images and PDFs give 404.
 - Old URLs that only exist in Umbraco's redirect tables and were not seen by the snapshot job.
@@ -27,10 +35,11 @@ What does not work in fallback mode:
 
 Requests with the header `x-infoportal-fallback: <token>` are served from the snapshot, for that request only.
 
-Set the token once per environment (any long random string, keep it in the team's password manager):
+Set the token once per environment on `cache-infoportal` (any long random string, for example from
+`openssl rand -hex 32`; keep it in the team's password manager):
 
 ```bash
-pnpm wrangler secret put FALLBACK_PREVIEW_TOKEN --env at22
+cd cache-infoportal && pnpm wrangler secret put FALLBACK_PREVIEW_TOKEN --env at22
 ```
 
 Then:
@@ -62,13 +71,23 @@ After turning on: check a few pages for `x-infoportal-snapshot`. After turning o
 Consider also turning off the nightly snapshot run while fallback is on, so a run against a broken origin cannot
 fail validation in confusing ways (it would not replace the current snapshot anyway).
 
+## Deploy
+
+Deploy `snapshot-infoportal` first (it has the fetch handler), then `cache-infoportal` (it binds to it):
+
+```bash
+cd snapshot-infoportal && pnpm wrangler deploy --env at22
+cd ../cache-infoportal && pnpm wrangler deploy --env at22
+```
+
 ## Bindings
 
-| Binding | What | Environments |
-|---|---|---|
-| `SNAPSHOTS` | R2 bucket `infoportal-snapshots-{env}` (same as snapshot-infoportal) | at22 |
-| `FALLBACK_KV` | KV namespace `infoportal-fallback-{env}` (same as snapshot-infoportal) | at22 |
-| `MEDIA` | R2 bucket with the Umbraco media mirror (`media/...`), written by backup-infoportal | not yet |
-| `FALLBACK_PREVIEW_TOKEN` | Secret for the preview header | at22 (set by hand) |
+| Worker | Binding | What | Environments |
+|---|---|---|---|
+| cache-infoportal | `SNAPSHOT_INFOPORTAL` | Service binding to `snapshot-infoportal-{env}` | at22 |
+| cache-infoportal | `FALLBACK_KV` | KV namespace `infoportal-fallback-{env}`, for `fallback:mode` | at22 |
+| cache-infoportal | `FALLBACK_PREVIEW_TOKEN` | Secret for the preview header (set by hand) | at22 |
+| snapshot-infoportal | `SNAPSHOTS`, `FALLBACK_KV` | The snapshot bucket and the same KV namespace | at22 |
+| snapshot-infoportal | `MEDIA` | R2 bucket with the Umbraco media mirror (`media/...`), written by backup-infoportal | not yet |
 
-Without `SNAPSHOTS` and `FALLBACK_KV`, fallback mode is never active and the worker behaves as before.
+Without `SNAPSHOT_INFOPORTAL` and `FALLBACK_KV`, `cache-infoportal` never turns on fallback mode and behaves as before.

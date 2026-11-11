@@ -1,0 +1,75 @@
+import { createExecutionContext, env as testEnv, waitOnExecutionContext } from "cloudflare:test";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import worker from "../src/index";
+import { PREVIEW_HEADER, resetFallbackSwitch } from "../src/fallback-switch";
+
+const IncomingRequest = Request<unknown, IncomingRequestCfProperties>;
+const bindings = testEnv as unknown as { FALLBACK_KV: KVNamespace; FALLBACK_PREVIEW_TOKEN: string };
+
+let pathCounter = 0;
+const uniqueUrl = (path = "/side") => `https://info.altinn.no${path}-switch-${++pathCounter}`;
+
+function createEnv() {
+	const astro = vi.fn(async () => new Response("from astro"));
+	const snapshot = vi.fn(async () => new Response("from snapshot"));
+	const env = { ...bindings, ASTRO_INFOPORTAL: { fetch: astro }, SNAPSHOT_INFOPORTAL: { fetch: snapshot } as unknown as Fetcher };
+	return { astro, snapshot, env };
+}
+
+async function call(url: string, env: ReturnType<typeof createEnv>["env"], init: RequestInit<IncomingRequestCfProperties> = {}) {
+	const ctx = createExecutionContext();
+	const response = await worker.fetch(new IncomingRequest(url, init), env, ctx);
+	await waitOnExecutionContext(ctx);
+	return response;
+}
+
+beforeEach(async () => {
+	resetFallbackSwitch();
+	await bindings.FALLBACK_KV.delete("fallback:mode");
+});
+
+describe("fallback switch", () => {
+	it("uses astro and the cache when fallback:mode is not on", async () => {
+		const { astro, snapshot, env } = createEnv();
+		expect(await (await call(uniqueUrl(), env)).text()).toBe("from astro");
+		expect(astro).toHaveBeenCalledTimes(1);
+		expect(snapshot).not.toHaveBeenCalled();
+	});
+
+	it("sends everything to snapshot-infoportal when fallback:mode is on, also POST", async () => {
+		await bindings.FALLBACK_KV.put("fallback:mode", "on");
+		const { astro, snapshot, env } = createEnv();
+
+		expect(await (await call(uniqueUrl(), env)).text()).toBe("from snapshot");
+		expect(await (await call(uniqueUrl(), env, { method: "POST", body: "x" })).text()).toBe("from snapshot");
+		expect(snapshot).toHaveBeenCalledTimes(2);
+		expect(astro).not.toHaveBeenCalled();
+	});
+
+	it("still sends /health and /api/ to astro in fallback mode", async () => {
+		await bindings.FALLBACK_KV.put("fallback:mode", "on");
+		const { astro, snapshot, env } = createEnv();
+
+		await call("https://info.altinn.no/health", env);
+		await call("https://info.altinn.no/api/contactform/send", env, { method: "POST", body: "x" });
+		expect(astro).toHaveBeenCalledTimes(2);
+		expect(snapshot).not.toHaveBeenCalled();
+	});
+
+	it("turns on fallback for a single request with the preview header", async () => {
+		const { astro, snapshot, env } = createEnv();
+
+		await call(uniqueUrl(), env, { headers: { [PREVIEW_HEADER]: "test-token" } });
+		await call(uniqueUrl(), env, { headers: { [PREVIEW_HEADER]: "wrong" } });
+		expect(snapshot).toHaveBeenCalledTimes(1);
+		expect(astro).toHaveBeenCalledTimes(1);
+	});
+
+	it("is never active in environments without the bindings", async () => {
+		await bindings.FALLBACK_KV.put("fallback:mode", "on");
+		const astro = vi.fn(async () => new Response("from astro"));
+
+		const response = await call(uniqueUrl(), { ASTRO_INFOPORTAL: { fetch: astro } } as never);
+		expect(await response.text()).toBe("from astro");
+	});
+});

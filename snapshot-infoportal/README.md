@@ -1,7 +1,7 @@
 # snapshot-infoportal
 
-Cloudflare Worker that takes a full snapshot of info.altinn.no and stores it in R2.
-`cache-infoportal` serves this snapshot if Azure/Umbraco is unavailable, so the site stays up.
+Cloudflare Worker that takes a full snapshot of info.altinn.no and stores it in R2, and serves the site from that
+snapshot when fallback mode is on (switched on by `cache-infoportal`), so the site stays up if Azure/Umbraco is down.
 Background and design: GitHub issue #905 and `docs/reservelosning/`.
 
 **Status:** proof of concept, set up for `at22` only. Fallback is switched on manually (option B).
@@ -29,7 +29,8 @@ The storage format shared with `cache-infoportal` is described in [`src/keys.ts`
 ## Not done yet
 
 - Umbraco media (`/media/...`) is not captured. It will get a shared `media/` mirror.
-- Fallback reading is in `cache-infoportal` (see [`cache-infoportal/FALLBACK.md`](../cache-infoportal/FALLBACK.md)). Only at22 so far.
+- Serving in fallback mode is in this worker's `fetch()` ([`src/fallback.ts`](./src/fallback.ts)), switched on by `cache-infoportal`.
+  See [`FALLBACK.md`](./FALLBACK.md). Only at22 so far.
 - Environments `at23`, `tt02` and `prod`.
 
 ## One-time setup per environment (example: at22)

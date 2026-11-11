@@ -1,6 +1,6 @@
-import { isFallbackActive, serveFallback, type FallbackEnv } from "./fallback";
+import { isFallbackActive, type FallbackSwitchEnv } from "./fallback-switch";
 
-interface WorkerEnv extends FallbackEnv {
+interface WorkerEnv extends FallbackSwitchEnv {
 	ASTRO_INFOPORTAL: any
 }
 
@@ -21,9 +21,9 @@ export default {
 			throw new Error(`Failed to fetch API request from origin: ${error}`);
 		}
 
-		// Fallback mode: serve from the R2 snapshot and never touch origin or the edge cache.
+		// Fallback mode: snapshot-infoportal serves the site from the R2 snapshot. Origin and the edge cache are not used.
 		if (await isFallbackActive(request, env)) {
-			return serveFallback(request, env);
+			return env.SNAPSHOT_INFOPORTAL!.fetch(request);
 		}
 
 		try {

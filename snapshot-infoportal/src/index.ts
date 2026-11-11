@@ -1,3 +1,5 @@
+import { serveFallback, type FallbackEnv } from './fallback';
+
 export { SnapshotWorkflow } from './workflow';
 
 /**
@@ -10,7 +12,9 @@ export { SnapshotWorkflow } from './workflow';
  *   - nightly via the cron trigger in wrangler.jsonc
  *   - manually: pnpm wrangler workflows trigger snapshot-infoportal-<env> '{"trigger":"manual"}'
  *
- * The worker has no public routes. fetch() exists only so `wrangler dev` has something to answer.
+ * fetch() serves the site from the current snapshot (fallback mode, see FALLBACK.md and src/fallback.ts).
+ * The worker has no public route: requests only arrive through the SNAPSHOT_INFOPORTAL service binding in
+ * cache-infoportal, when fallback mode is active.
  */
 export default {
 	async scheduled(_controller, env, ctx) {
@@ -21,7 +25,8 @@ export default {
 		);
 	},
 
-	async fetch() {
-		return new Response('Not found', { status: 404 });
+	async fetch(request, env) {
+		// MEDIA is only bound once the backup job writes the media mirror to R2.
+		return serveFallback(request, env as Env & FallbackEnv);
 	},
 } satisfies ExportedHandler<Env>;
