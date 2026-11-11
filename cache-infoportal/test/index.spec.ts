@@ -72,6 +72,17 @@ describe("cache-infoportal worker", () => {
 		},
 	);
 
+	it("does not cache server errors", async () => {
+		const fetch = vi.fn(async () => new Response("error", { status: 502 }));
+		const env = { ASTRO_INFOPORTAL: { fetch } };
+		const url = uniqueUrl();
+
+		await callWorker(new IncomingRequest(url), env);
+		await callWorker(new IncomingRequest(url), env);
+
+		expect(fetch).toHaveBeenCalledTimes(2);
+	});
+
 	it("wraps origin failures in a descriptive error", async () => {
 		const env = {
 			ASTRO_INFOPORTAL: {

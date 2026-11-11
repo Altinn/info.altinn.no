@@ -1,19 +1,14 @@
-interface Env {
+import { isFallbackActive, serveFallback, type FallbackEnv } from "./fallback";
+
+interface WorkerEnv extends FallbackEnv {
 	ASTRO_INFOPORTAL: any
 }
 
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
-		try {
-			if (request.method !== "GET") {
-				return await env.ASTRO_INFOPORTAL.fetch(request);
-			}
-		} catch (error) {
-			throw new Error(`Failed to fetch NON-GET-request from origin: ${error}`);
-		}
-
 		const url = new URL(request.url);
 
+		// API, UI and health checks always go to origin, also in fallback mode, so /health reports the real state.
 		const excludedPathNames= ["/api/", "/ui/", "/health"];
 
 		try {
@@ -24,6 +19,19 @@ export default {
 			}
 		} catch (error) {
 			throw new Error(`Failed to fetch API request from origin: ${error}`);
+		}
+
+		// Fallback mode: serve from the R2 snapshot and never touch origin or the edge cache.
+		if (await isFallbackActive(request, env)) {
+			return serveFallback(request, env);
+		}
+
+		try {
+			if (request.method !== "GET") {
+				return await env.ASTRO_INFOPORTAL.fetch(request);
+			}
+		} catch (error) {
+			throw new Error(`Failed to fetch NON-GET-request from origin: ${error}`);
 		}
 
 		const cacheKey = new Request(url.toString(), {
@@ -48,7 +56,11 @@ export default {
 			}
 
 			try {
-				ctx.waitUntil(cache.put(cacheKey, response.clone()));
+				// Server errors are not cached, so a short outage does not leave error pages in the cache
+				// after origin has recovered.
+				if (response.status < 500) {
+					ctx.waitUntil(cache.put(cacheKey, response.clone()));
+				}
 			} catch (error) {
 				throw new Error(`Failed to put response in cache: ${error}`);
 			}
@@ -56,4 +68,4 @@ export default {
 
 		return response;
 	}
-} satisfies ExportedHandler<Env>;
+} satisfies ExportedHandler<WorkerEnv>;

@@ -29,7 +29,7 @@ The storage format shared with `cache-infoportal` is described in [`src/keys.ts`
 ## Not done yet
 
 - Umbraco media (`/media/...`) is not captured. It will get a shared `media/` mirror.
-- Fallback reading in `cache-infoportal` (KV flag `fallback:mode`, serving from R2).
+- Fallback reading is in `cache-infoportal` (see [`cache-infoportal/FALLBACK.md`](../cache-infoportal/FALLBACK.md)). Only at22 so far.
 - Environments `at23`, `tt02` and `prod`.
 
 ## One-time setup per environment (example: at22)

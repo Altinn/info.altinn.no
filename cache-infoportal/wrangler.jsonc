@@ -19,6 +19,22 @@
 					"binding": "ASTRO_INFOPORTAL",
 					"service": "astro-infoportal-at22"
 				}
+			],
+			// Fallback mode (see FALLBACK.md). Same bucket and KV namespace as snapshot-infoportal-at22.
+			// The secret FALLBACK_PREVIEW_TOKEN is set with: pnpm wrangler secret put FALLBACK_PREVIEW_TOKEN --env at22
+			"r2_buckets": [
+				{
+					"binding": "SNAPSHOTS",
+					"bucket_name": "infoportal-snapshots-at22",
+					"jurisdiction": "eu"
+				}
+			],
+			"kv_namespaces": [
+				{
+					// infoportal-fallback-at22
+					"binding": "FALLBACK_KV",
+					"id": "0edfe96c8cad4d7f8b4408d7f4120667"
+				}
 			]
 		},
 		"at23": {
