@@ -41,10 +41,6 @@ export const PREVIEW_FRAME_ANCESTORS = [
   "https://cms.at23.altinn.no",
   "https://cms.tt02.altinn.no",
   "https://cms.prod.altinn.no",
-  "https://infoportal.at22.dis-core.altinn.cloud",
-  "https://infoportal.at23.dis-core.altinn.cloud",
-  "https://infoportal.tt02.dis-core.altinn.cloud",
-  "https://infoportal.prod.dis-core.altinn.cloud",
   "https://localhost:44391",
   "http://localhost:43450",
 ];
