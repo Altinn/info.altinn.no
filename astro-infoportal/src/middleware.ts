@@ -1,5 +1,5 @@
 import {defineMiddleware} from 'astro:middleware';
-import {CSP_POLICY} from '@utils/csp';
+import {CSP_POLICY, isPreviewPath, PREVIEW_CSP_POLICY} from '@utils/csp';
 
 /**
  * Adds defense-in-depth security headers to every response.
@@ -103,8 +103,13 @@ function applySecurityHeaders(response: Response, pathname: string): void {
 		);
 	}
 
+	// /preview is shown in an iframe in the Umbraco backoffice, on another origin.
+	// X-Frame-Options can't allow named origins, so it is left out there and
+	// PREVIEW_CSP_POLICY's frame-ancestors lists the CMS hosts instead.
+	const isPreview = isPreviewPath(pathname);
+
 	// Low-risk: same-origin framing is preserved; cross-origin framing is blocked.
-	if (!headers.has('X-Frame-Options')) {
+	if (!isPreview && !headers.has('X-Frame-Options')) {
 		headers.set('X-Frame-Options', 'SAMEORIGIN');
 	}
 
@@ -121,7 +126,7 @@ function applySecurityHeaders(response: Response, pathname: string): void {
 		!headers.has('Content-Security-Policy') &&
 		!headers.has('Content-Security-Policy-Report-Only')
 	) {
-		headers.set('Content-Security-Policy', CSP_POLICY);
+		headers.set('Content-Security-Policy', isPreview ? PREVIEW_CSP_POLICY : CSP_POLICY);
 	}
 }
 
