@@ -186,6 +186,7 @@
   "schema.accordions.whoDoesntNeedToSend": "Who is exempt",
   "schema.accordions.ifYouDontSend": "What if I don't complete",
   "schema.accordions.access": "Access and powers of attorney",
+  "schema.accordions.regulations": "Which regulations apply?",
   "schema.withAccessPackages.aboveLists": "<p>To fill in and submit this form, you must have a role in the Central Coordinating Register for Legal Entities. Alternatively, you must have power of attorney for either the single service or one of these access packages:</p>",
   "schema.withAccessPackages.betweenLists": "<p><a href=\"/en/help/access-and-power-of-attorney/\">See how you can get power of attorney.</a></p><p>In a transition period, you can use the form if you already have one of these roles from the old Altinn:</p>",
   "schema.withRolesOnly.aboveList": "<p>To fill in and submit this form, you must have a role in the Central Coordinating Register for Legal Entities. Alternatively, you must have power of attorney for the single service. <a href=\"/en/help/access-managment/request-power-of-attorney/request-power-of-attorney/\">See how you can get power of attorney for a single service.</a></p><p>In a transition period, you can use the form if you already have one of these roles from the old Altinn:</p>",
