@@ -28,6 +28,7 @@ internal static class SchemaAccordionLabels
         ["schema.accordions.whoNeedsToSend"] = new() { ["nb"] = "Hvem må sende", ["nn"] = "Kven må sende", ["en"] = "Who has to complete" },
         ["schema.accordions.whoDoesntNeedToSend"] = new() { ["nb"] = "Hvem må ikke sende", ["nn"] = "Kven må ikkje sende", ["en"] = "Who is exempt" },
         ["schema.accordions.ifYouDontSend"] = new() { ["nb"] = "Hvis du ikke leverer", ["nn"] = "Om du ikkje leverer", ["en"] = "What if I don't complete" },
+        ["schema.accordions.regulations"] = new() { ["nb"] = "Hvilket regelverk gjelder?", ["nn"] = "Kva regelverk gjeld?", ["en"] = "Which regulations apply?" },
         ["schema.importAccordions.a"] = new() { ["nb"] = "Hva skal jeg legge ved?", ["nn"] = "Kva skal eg leggje ved?", ["en"] = "What should I attach?" },
         ["schema.importAccordions.b"] = new() { ["nb"] = "Når skal skjemaet brukes?", ["nn"] = "Når skal skjemaet brukast?", ["en"] = "When should I use this form?" },
         ["schema.importAccordions.c"] = new() { ["nb"] = "Hvem skal bruke skjemaet?", ["nn"] = "Kven skal bruke skjemaet?", ["en"] = "Who should use this form?" },
