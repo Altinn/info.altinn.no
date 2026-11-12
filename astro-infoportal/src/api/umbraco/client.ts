@@ -511,6 +511,12 @@ export async function fetchUmbracoRelated(
   return items;
 }
 
+/**
+ * Fetches a media file from Umbraco. Returns null when Umbraco has no such file,
+ * so the caller can answer 404 instead of failing the whole request: a rich-text
+ * <img> pointing at a deleted or never-uploaded file is a content problem, not
+ * a server error.
+ */
 export async function fetchUmbracoMedia(path: string) {
   // Transitioning from old cms media structure */
   path = path.replace("/publicassets/", "/media/");
@@ -520,6 +526,11 @@ export async function fetchUmbracoMedia(path: string) {
   }
   const url = `${env.UMBRACO_API_URL}${path}`;
   const response = await fetch(url);
+
+  if (response.status === 404) {
+    console.warn(`Media not found in Umbraco: ${url}`);
+    return null;
+  }
 
   if (!response.ok) {
     throw new Error(`Failed to fetch media from Umbraco: ${response.statusText} ${url}`);

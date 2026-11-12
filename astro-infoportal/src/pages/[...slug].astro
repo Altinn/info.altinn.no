@@ -38,6 +38,9 @@ if (path.startsWith(legacyInternalUrlPrefix)) {
 
 if (path.startsWith("/media/") || path.startsWith("/contentassets/") || path.startsWith("/publicassets/")) {
    const bytes = await fetchUmbracoMedia(path + search);
+   if (!bytes) {
+     return new Response(null, { status: 404 });
+   }
    return new Response(bytes);
  }
 
