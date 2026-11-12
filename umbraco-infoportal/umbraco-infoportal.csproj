@@ -43,6 +43,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Search\Resources\norwegian_words.txt" />
     <EmbeddedResource Include="Search\Resources\norwegian_synonyms.txt" />
+    <EmbeddedResource Include="Authentication\EntraLoginMessagePage.html" />
   </ItemGroup>
 
   <PropertyGroup>
