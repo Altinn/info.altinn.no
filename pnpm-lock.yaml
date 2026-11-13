@@ -166,6 +166,7 @@ overrides:
   '@babel/plugin-transform-modules-systemjs': ^8.0.1
   devalue: ^5.9.2
   esbuild: ^0.28.2
+  glob@13: ^14.0.0
   picomatch: ^4.0.7
   postcss: ^8.5.28
   sharp: ^0.35.4
