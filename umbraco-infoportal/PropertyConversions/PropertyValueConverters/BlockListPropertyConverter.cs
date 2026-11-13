@@ -303,6 +303,9 @@ public class BlockListPropertyConverter : IPropertyValueConverter
             "f40759db-1340-4c5b-ad4f-f4f0a61fcb00" => "schema.importAccordions.d",
             "951043bd-5cff-4bde-b522-64b983d960b1" => "schema.importAccordions.e",
             "03fd6b74-8be9-46cc-bb03-4a4f2cf3fedf" => "schema.accordions.access",
+            // formElement6 "Hvilket regelverk gjelder?" (issue #898). GUID from the local
+            // database for now; to be aligned across environments via uSync export/import.
+            "88e7de3f-2bc2-4863-8832-d22308c59c0d" => "schema.accordions.regulations",
             _ => null,
         };
     }
