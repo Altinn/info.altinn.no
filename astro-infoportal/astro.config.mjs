@@ -11,9 +11,14 @@ function viteClientFix() {
   return {
     name: 'vite-client-fix',
     configResolved(config) {
+      // Resolve vite from astro's location so we serve the client of the vite
+      // instance that is actually running. The project's own `vite` devDependency
+      // can be a different version, and vite only injects __HMR_*__ defines into
+      // its own client.mjs.
       const require = createRequire(import.meta.url);
+      const astroRequire = createRequire(require.resolve('astro/package.json'));
       clientEntry = path.resolve(
-        path.dirname(require.resolve('vite/package.json')),
+        path.dirname(astroRequire.resolve('vite/package.json')),
         'dist/client/client.mjs',
       );
     },
