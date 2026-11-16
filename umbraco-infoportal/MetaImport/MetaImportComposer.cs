@@ -1,7 +1,7 @@
 using Umbraco.Cms.Core.Composing;
-using umbraco_infoportal.MetaImport.Jobs;
+using Infoportal.Cms.MetaImport.Jobs;
 
-namespace umbraco_infoportal.MetaImport;
+namespace Infoportal.Cms.MetaImport;
 
 public class MetaImportComposer : IComposer
 {

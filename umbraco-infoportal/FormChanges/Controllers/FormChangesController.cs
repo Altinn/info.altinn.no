@@ -2,13 +2,13 @@ using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using umbraco_infoportal.FormChanges.Models;
-using umbraco_infoportal.FormChanges.Services;
 using Umbraco.Cms.Api.Management.Controllers;
 using Umbraco.Cms.Api.Management.Routing;
 using Umbraco.Cms.Web.Common.Authorization;
+using Infoportal.Cms.FormChanges.Models;
+using Infoportal.Cms.FormChanges.Services;
 
-namespace umbraco_infoportal.FormChanges.Controllers;
+namespace Infoportal.Cms.FormChanges.Controllers;
 
 [ApiVersion("1.0")]
 [VersionedApiBackOfficeRoute("form-changes")]

@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-    <RootNamespace>umbraco_infoportal.Tests</RootNamespace>
+    <RootNamespace>Infoportal.Cms.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

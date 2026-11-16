@@ -19,6 +19,16 @@ pnpm dev
 
 This will start the Rspack dev build and the Astro development server.
 
+### Using a local Umbraco
+
+By default the frontend fetches content from the AT22 Umbraco (`UMBRACO_API_URL` in `wrangler.jsonc`). To use a locally running Umbraco instead, create `astro-infoportal/.dev.vars`:
+
+```
+UMBRACO_API_URL=http://localhost:43450/
+```
+
+`.dev.vars` is git-ignored and overrides `vars` from `wrangler.jsonc` during local development only. Restart `pnpm dev` after changing it.
+
 ## Building for Production
 
 To create a production build and preview it locally:

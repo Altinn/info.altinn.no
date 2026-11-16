@@ -1,16 +1,18 @@
-using Infoportal.Adapters.Elasticsearch;
 using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.Notifications;
-using umbraco_infoportal.Search.EventHandlers;
-using umbraco_infoportal.Search.Jobs;
+using Infoportal.Cms.Search.Jobs;
+using Infoportal.Cms.Search.NotificationHandlers;
+using Infoportal.Cms.Search.Services;
 
-namespace umbraco_infoportal.Search;
+namespace Infoportal.Cms.Search;
 
 public class SearchComposer : IComposer
 {
     public void Compose(IUmbracoBuilder builder)
     {
-        builder.Services.AddElasticsearchAdapter(builder.Config);
+        builder.Services.Configure<ElasticsearchOptions>(builder.Config.GetSection("Elasticsearch"));
+        builder.Services.AddSingleton<ElasticsearchClientFactory>();
+        builder.Services.AddScoped<ISearchService, ElasticsearchSearchService>();
         builder.Services.AddScoped<ContentTextExtractor>();
         builder.Services.AddSingleton<ReindexBackgroundJob>();
         builder.Services.AddHostedService(sp => sp.GetRequiredService<ReindexBackgroundJob>());

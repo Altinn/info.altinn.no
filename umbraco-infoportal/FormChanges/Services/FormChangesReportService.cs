@@ -1,7 +1,7 @@
-using umbraco_infoportal.FormChanges.Models;
 using Umbraco.Cms.Infrastructure.Scoping;
+using Infoportal.Cms.FormChanges.Models;
 
-namespace umbraco_infoportal.FormChanges.Services;
+namespace Infoportal.Cms.FormChanges.Services;
 
 // Lists what has happened to the form catalog (skjemakatalogen) in a date range, so the
 // editorial secretariat can quality-assure pages that service owners publish themselves.

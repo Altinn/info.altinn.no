@@ -58,7 +58,7 @@ const ContactPage = ({
           <Heading as="h1" size="xl">
             {texts.heading}
           </Heading>
-          {texts.alertHeading && (
+          {/* {texts.alertHeading && (
             <Alert data-color="warning">
               <DsHeading level={2} data-size="xs">
                 {texts.alertHeading}
@@ -70,7 +70,7 @@ const ContactPage = ({
                 </strong>
               </Paragraph>
             </Alert>
-          )}
+          )} */}
           <ContactPageForm
             variant={variant}
             schemaId={schemaId}

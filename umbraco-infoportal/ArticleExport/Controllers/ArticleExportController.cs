@@ -2,13 +2,13 @@ using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using umbraco_infoportal.ArticleExport.Models;
-using umbraco_infoportal.ArticleExport.Services;
 using Umbraco.Cms.Api.Management.Controllers;
 using Umbraco.Cms.Api.Management.Routing;
 using Umbraco.Cms.Web.Common.Authorization;
+using Infoportal.Cms.ArticleExport.Models;
+using Infoportal.Cms.ArticleExport.Services;
 
-namespace umbraco_infoportal.ArticleExport.Controllers;
+namespace Infoportal.Cms.ArticleExport.Controllers;
 
 [ApiVersion("1.0")]
 [VersionedApiBackOfficeRoute("article-export")]

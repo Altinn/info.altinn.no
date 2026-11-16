@@ -1,7 +1,7 @@
-using umbraco_infoportal.FormChanges.Services;
 using Umbraco.Cms.Core.Composing;
+using Infoportal.Cms.FormChanges.Services;
 
-namespace umbraco_infoportal.FormChanges;
+namespace Infoportal.Cms.FormChanges;
 
 public class FormChangesComposer : IComposer
 {

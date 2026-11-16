@@ -15,7 +15,7 @@ import type {
 // Field weights mirror legacy Optimizely RelativeImportance.xml intent
 // (title/metaTitle highest, curated keywords next, ingress, then description, then body).
 // IMPORTANT: keep in sync with
-//   Adapters/Infoportal.Adapters.Elasticsearch/Services/ElasticsearchSearchService.cs SearchFields.
+//   umbraco-infoportal/Search/Services/ElasticsearchSearchService.cs SearchFields.
 // This is the user-facing query path; the C# SearchAsync is only for backend/admin use.
 // Note: this path also adds semantic hits (see fetchSemanticHits); the C# SearchAsync
 // is lexical-only, so only the lexical multi_match query mirrors it.

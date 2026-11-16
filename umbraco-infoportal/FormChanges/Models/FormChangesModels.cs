@@ -1,4 +1,4 @@
-namespace umbraco_infoportal.FormChanges.Models;
+namespace Infoportal.Cms.FormChanges.Models;
 
 public sealed class FormChangesFilters
 {
