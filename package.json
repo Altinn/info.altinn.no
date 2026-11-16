@@ -14,6 +14,10 @@
     "build": "pnpm --filter astro-infoportal build",
     "preview": "pnpm --filter astro-infoportal preview",
     "storybook": "pnpm --filter astro-infoportal storybook",
-    "test": "pnpm --filter astro-infoportal test"
+    "test": "pnpm --filter astro-infoportal test",
+    "frontend:deploy:at22": "pnpm --filter astro-infoportal run deploy:at22",
+    "frontend:deploy:at23": "pnpm --filter astro-infoportal run deploy:at23",
+    "frontend:deploy:tt02": "pnpm --filter astro-infoportal run deploy:tt02",
+    "frontend:deploy:prod": "pnpm --filter astro-infoportal run deploy:prod"
   }
 }
