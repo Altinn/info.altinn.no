@@ -32,8 +32,8 @@ const BATCH_STEP = {
 	timeout: '5 minutes',
 } as const;
 
-/** Asset files can reference further assets (CSS -> fonts/images). Follow at most this many levels. */
-const MAX_ASSET_ROUNDS = 3;
+/** Asset files can reference further assets (CSS -> fonts/images, JS module -> imported modules). Follow at most this many levels. */
+const MAX_ASSET_ROUNDS = 5;
 
 /** Follow links that are not in the page list at most this many levels away from a listed page. */
 const MAX_LINK_ROUNDS = 3;

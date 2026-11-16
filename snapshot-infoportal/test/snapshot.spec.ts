@@ -1,6 +1,6 @@
 import { env } from 'cloudflare:test';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { extractAssetPaths } from '../src/assets';
+import { extractAssetPaths, extractScriptAssetPaths } from '../src/assets';
 import { CURRENT_POINTER_KEY, createSnapshotId, notFoundKey, objectKey, unlistedKey, type SnapshotManifest } from '../src/keys';
 import { extractPageLinks } from '../src/links';
 import { parseSitemapPaths } from '../src/sitemap';
@@ -99,6 +99,14 @@ describe('extractAssetPaths', () => {
 		expect(extractAssetPaths(html, `${SITE}/en/`, SITE).sort()).toEqual(['/_astro/client.js', '/assets/img/y.svg']);
 	});
 
+	it('finds the JavaScript of Astro islands', () => {
+		// Real markup from at22. Without these files no React component (menus, login) works in fallback mode.
+		const html = `<astro-island uid="1afKU" prefix="r1" component-url="/SiteLayout.js" component-export="default"
+			renderer-url="/client.js" before-hydration-url="/hydrate.js" props="{}" ssr client="load"></astro-island>`;
+
+		expect(extractAssetPaths(html, `${SITE}/hjelp/`, SITE).sort()).toEqual(['/SiteLayout.js', '/client.js', '/hydrate.js']);
+	});
+
 	it('resolves relative CSS urls against the file they appear in', () => {
 		expect(extractAssetPaths('src: url(../fonts/x.woff2)', `${SITE}/assets/css/site.css`, SITE)).toEqual(['/assets/fonts/x.woff2']);
 	});
@@ -124,6 +132,24 @@ describe('extractPageLinks', () => {
 			<link href="/side-fra-link/"> <script>const a = '<a href="/fra-script/">';</script>`;
 
 		expect(extractPageLinks(html, `${SITE}/`, SITE)).toEqual([]);
+	});
+});
+
+describe('extractScriptAssetPaths', () => {
+	it('finds imported modules and static files referenced from JavaScript', () => {
+		// Shapes from the at22 build: minified static imports, a dynamic import and an image path in a string.
+		const js = `import{t as a}from"./vendor.js";export{a as default};
+			import"./side-effect.js";const l=()=>import("./lazy.js");
+			const img="/assets/img/illustration/illustrasjon_nyhetsbrev.svg";
+			const a2="https://cdn.example/x.js";const m="/media/x.png";const notAFile="/hjelp/";`;
+
+		expect(extractScriptAssetPaths(js, `${SITE}/SiteLayout.js`, SITE).sort()).toEqual(
+			['/vendor.js', '/side-effect.js', '/lazy.js', '/assets/img/illustration/illustrasjon_nyhetsbrev.svg'].sort(),
+		);
+	});
+
+	it('resolves relative imports against the module they appear in', () => {
+		expect(extractScriptAssetPaths('import"../shared/x.js"', `${SITE}/_astro/a/b.js`, SITE)).toEqual(['/_astro/shared/x.js']);
 	});
 });
 
@@ -178,6 +204,17 @@ describe('capturePaths', () => {
 		const result = await capturePaths(deps(origin), 'snap1', ['/', '/hjelp/'], 1, { knownPaths: new Set(['/', '/hjelp/']) });
 
 		expect(result.unknownLinks).toEqual({ '/om-altinn/': '/', '/hjelp/sok/': '/hjelp/' });
+	});
+
+	it('reports the modules a captured JavaScript file imports', async () => {
+		const origin = fakeOrigin({
+			'/SiteLayout.js': () => new Response('import{t}from"./vendor.js";', { headers: { 'content-type': 'text/javascript' } }),
+		});
+
+		const result = await capturePaths(deps(origin), 'snap1', ['/SiteLayout.js'], 1);
+
+		expect(result.stored).toBe(1);
+		expect(result.assetPaths).toEqual(['/vendor.js']);
 	});
 
 	it('reports a 404 for an optional path as unavailable, not as a failure', async () => {

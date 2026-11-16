@@ -1,4 +1,4 @@
-import { extractAssetPaths } from './assets';
+import { extractAssetPaths, extractScriptAssetPaths } from './assets';
 import { NOT_FOUND_PROBES } from './extra-paths';
 import {
 	CURRENT_POINTER_KEY,
@@ -306,13 +306,15 @@ export function toRedirectTarget(location: string, fromPath: string, siteOrigin:
 	return url.origin === new URL(siteOrigin).origin ? `${url.pathname}${url.search}${url.hash}` : url.toString();
 }
 
-/** Finds asset references (HTML and CSS) and page links (HTML only) in a captured response. */
+/** Finds asset references (HTML, CSS and JavaScript) and page links (HTML only) in a captured response. */
 function scanBody(deps: SnapshotDeps, path: string, contentType: string, body: ArrayBuffer): { assetPaths: string[]; pageLinks: string[] } {
 	const isHtml = contentType.includes('text/html');
-	if (!isHtml && !contentType.includes('text/css')) return { assetPaths: [], pageLinks: [] };
+	const isScript = contentType.includes('javascript');
+	if (!isHtml && !isScript && !contentType.includes('text/css')) return { assetPaths: [], pageLinks: [] };
 
 	const text = new TextDecoder().decode(body);
 	const pageUrl = new URL(path, deps.siteOrigin).toString();
+	if (isScript) return { assetPaths: extractScriptAssetPaths(text, pageUrl, deps.siteOrigin), pageLinks: [] };
 	return {
 		assetPaths: extractAssetPaths(text, pageUrl, deps.siteOrigin),
 		pageLinks: isHtml ? extractPageLinks(text, pageUrl, deps.siteOrigin) : [],

@@ -1,18 +1,33 @@
 /**
- * Finds same-origin static files (CSS, JS, images, fonts, favicons ...) referenced by an HTML page or a CSS file,
- * so they can be stored in the snapshot next to the pages.
+ * Finds same-origin static files (CSS, JS, images, fonts, favicons ...) referenced by an HTML page, a CSS file
+ * or a JavaScript module, so they can be stored in the snapshot next to the pages.
  *
  * Page links (no file extension) are ignored: pages come from the sitemap.
  * /media/ is ignored: Umbraco media gets its own shared mirror in a later step of the PoC.
  */
-const ATTRIBUTE_PATTERN = /\b(?:src|href)\s*=\s*["']([^"']+)["']/gi;
+// component-url, renderer-url and before-hydration-url are how Astro islands load their JavaScript
+// (<astro-island component-url="/SiteLayout.js" renderer-url="/client.js">). Without them no React component runs.
+const ATTRIBUTE_PATTERN = /\b(?:src|href|component-url|renderer-url|before-hydration-url)\s*=\s*["']([^"']+)["']/gi;
 const SRCSET_PATTERN = /\bsrcset\s*=\s*["']([^"']+)["']/gi;
 // Case-sensitive on purpose: CSS uses url(...), while JavaScript has `new URL(...)`, which is not a file reference.
 const CSS_URL_PATTERN = /\burl\(\s*["']?([^"')]+)["']?\s*\)/g;
 // Inline scripts contain code, not markup. Keep the opening tag (it may have src=...), drop the body.
 const INLINE_SCRIPT_PATTERN = /(<script\b[^>]*>)[\s\S]*?<\/script>/gi;
 
+// JavaScript modules: static and dynamic imports (from"./vendor.js", import("./chunk.js"), import"./x.js").
+const SCRIPT_IMPORT_PATTERN = /\b(?:from|import)\s*\(?\s*["'`]([^"'`\s]+\.m?js)["'`]/g;
+// Absolute paths to static files written as strings in JavaScript ("/assets/img/x.svg").
+const SCRIPT_ASSET_PATTERN = /["'`](\/[A-Za-z0-9_.\/-]+\.(?:png|svg|jpe?g|webp|avif|gif|ico|woff2?|css|m?js|json))["'`]/g;
+
 const EXCLUDED_PREFIXES = ['/media/', '/api/'];
+
+/** Finds the modules and static files a JavaScript file loads. */
+export function extractScriptAssetPaths(body: string, scriptUrl: string, siteOrigin: string): string[] {
+	const candidates: string[] = [];
+	for (const match of body.matchAll(SCRIPT_IMPORT_PATTERN)) candidates.push(match[1]);
+	for (const match of body.matchAll(SCRIPT_ASSET_PATTERN)) candidates.push(match[1]);
+	return toSameOriginFiles(candidates, scriptUrl, siteOrigin);
+}
 
 export function extractAssetPaths(body: string, pageUrl: string, siteOrigin: string): string[] {
 	const candidates: string[] = [];
@@ -24,6 +39,10 @@ export function extractAssetPaths(body: string, pageUrl: string, siteOrigin: str
 	}
 	for (const match of body.matchAll(CSS_URL_PATTERN)) candidates.push(match[1]);
 
+	return toSameOriginFiles(candidates, pageUrl, siteOrigin);
+}
+
+function toSameOriginFiles(candidates: string[], baseUrl: string, siteOrigin: string): string[] {
 	const origin = new URL(siteOrigin).origin;
 	const paths = new Set<string>();
 
@@ -32,7 +51,7 @@ export function extractAssetPaths(body: string, pageUrl: string, siteOrigin: str
 
 		let url: URL;
 		try {
-			url = new URL(candidate, pageUrl);
+			url = new URL(candidate, baseUrl);
 		} catch {
 			continue;
 		}
