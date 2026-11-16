@@ -75,8 +75,11 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
         // The backoffice login auto-redirects to Entra, and with an active Entra session Entra
         // answers without user interaction. Redirecting every failure back to the login would
         // therefore loop forever on persistent failures (e.g. an expired client secret). Only stale
-        // attempts (correlation cookie expired after RemoteAuthenticationTimeout, or the user pressed
-        // back into Entra's /authorize URL, replaying an old state) are retried, and only once.
+        // attempts are retried, and only once:
+        // - the correlation cookie expired after RemoteAuthenticationTimeout, or the user pressed
+        //   back into Entra's /authorize URL, replaying an old state;
+        // - the same callback reached us twice (reload or double submit while the first one was
+        //   still running), so Entra had already redeemed the code (AADSTS54005).
         options.Events.OnRemoteFailure = async context =>
         {
             var logger = context.HttpContext.RequestServices
@@ -97,7 +100,8 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
             // drops the correlation cookie on Entra's cross-site callback would drop a retry cookie
             // too, and every callback would look like a first attempt.
             var properties = context.Properties;
-            var isStaleAttempt = message == CorrelationFailedMessage && properties is not null;
+            var isStaleAttempt = (message == CorrelationFailedMessage || IsCodeAlreadyRedeemed(context.Failure))
+                && properties is not null;
             if (isStaleAttempt && !properties!.Items.ContainsKey(RetryMarker))
             {
                 // Same properties as the original challenge, so Umbraco's callback and return URL
@@ -116,8 +120,9 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
             // TraceId matches the error reference shown on the page.
             if (isStaleAttempt)
             {
-                // The retry failed as well. Can be a single user (back pressed twice, browser
-                // dropping cookies), so log as a warning: errors trigger alerts.
+                // The retry failed as well. Can be a single user (back pressed twice, reloading
+                // the callback twice, browser dropping cookies), so log as a warning: errors
+                // trigger alerts.
                 logger.LogWarning("Entra ID login failed again after retry: {Reason} (TraceId {TraceId})",
                     message, context.HttpContext.TraceIdentifier);
             }
@@ -137,6 +142,15 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
 
     // Set in the authentication properties (protected into the OIDC state) when a stale attempt is retried.
     private const string RetryMarker = "Infoportal.EntraLoginRetry";
+
+    // Entra's answer when an authorization code is redeemed a second time. Only this code is
+    // retried: other invalid_grant errors (e.g. a PKCE mismatch) can be persistent and must be seen.
+    private const string CodeAlreadyRedeemedError = "AADSTS54005";
+
+    private static bool IsCodeAlreadyRedeemed(Exception? failure) =>
+        failure is OpenIdConnectProtocolException exception &&
+        exception.Data["error"] as string == "invalid_grant" &&
+        (exception.Data["error_description"] as string)?.StartsWith(CodeAlreadyRedeemedError, StringComparison.Ordinal) == true;
 
     public void Configure(string? name, OpenIdConnectOptions options)
     {
