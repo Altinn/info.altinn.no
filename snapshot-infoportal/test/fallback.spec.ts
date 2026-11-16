@@ -41,20 +41,20 @@ beforeEach(async () => {
 });
 
 describe('serving from the snapshot', () => {
-	it('serves pages with no-store and the snapshot id', async () => {
+	it('serves pages with the snapshot id, cacheable at the edge but only briefly in the browser', async () => {
 		const response = await call('/hjelp/?q=1');
 
 		expect(response.status).toBe(200);
 		expect(await response.text()).toBe('hjelp');
 		expect(response.headers.get('content-type')).toBe('text/html; charset=utf-8');
-		expect(response.headers.get('cache-control')).toBe('no-store');
+		expect(response.headers.get('cache-control')).toBe('public, max-age=60, s-maxage=86400');
 		expect(response.headers.get(SNAPSHOT_HEADER)).toBe(ID);
 	});
 
 	it('lets the browser keep static files for a short while', async () => {
 		const response = await call('/_astro/app.js');
 		expect(await response.text()).toBe('js');
-		expect(response.headers.get('cache-control')).toBe('public, max-age=300');
+		expect(response.headers.get('cache-control')).toBe('public, max-age=300, s-maxage=86400');
 	});
 
 	it('answers HEAD without a body', async () => {
@@ -105,6 +105,7 @@ describe('serving from the snapshot', () => {
 		const response = await call('/hjelp/skriv-til-oss/altinn/', { method: 'POST', body: 'x' });
 		expect(response.status).toBe(503);
 		expect(response.headers.get('retry-after')).toBe('300');
+		expect(response.headers.get('cache-control')).toBe('no-store');
 	});
 
 	it('answers 503 when there is no current snapshot', async () => {

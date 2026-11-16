@@ -87,15 +87,22 @@ export function redirectLocation(target: string, requestUrl: URL): string {
 	return `${location.pathname}${location.search}${location.hash}`;
 }
 
+/**
+ * Fallback responses are cached at the edge like pages from Astro (s-maxage), so cache-infoportal can serve repeat
+ * requests from the edge cache. The browser keeps them only briefly (max-age), so visitors get the live site soon
+ * after fallback mode is turned off and the edge cache is purged (see FALLBACK.md).
+ */
+const FALLBACK_CACHE_CONTROL = 'public, max-age=60, s-maxage=86400';
+
 function fallbackHeaders(snapshotId: string, extra: Record<string, string> = {}): Headers {
-	// no-store: the browser must not keep fallback pages after the site is back.
-	return new Headers({ 'cache-control': 'no-store', [SNAPSHOT_HEADER]: snapshotId, ...extra });
+	return new Headers({ 'cache-control': FALLBACK_CACHE_CONTROL, [SNAPSHOT_HEADER]: snapshotId, ...extra });
 }
 
 function unavailable(snapshotId: string, message: string): Response {
 	return new Response(message, {
 		status: 503,
-		headers: fallbackHeaders(snapshotId, { 'content-type': 'text/plain; charset=utf-8', 'retry-after': '300' }),
+		// Never cached: the error is temporary.
+		headers: fallbackHeaders(snapshotId, { 'content-type': 'text/plain; charset=utf-8', 'retry-after': '300', 'cache-control': 'no-store' }),
 	});
 }
 
@@ -106,8 +113,8 @@ async function serveObject(bucket: R2Bucket, key: string, request: Request, snap
 	const headers = fallbackHeaders(snapshotId);
 	object.writeHttpMetadata(headers);
 	headers.set('etag', object.httpEtag);
-	// Hashed build files and media do not change, so the browser may keep them for a while.
-	if (!(headers.get('content-type') ?? '').includes('text/html')) headers.set('cache-control', 'public, max-age=300');
+	// Static files (JS, CSS, images) may stay a bit longer in the browser than pages.
+	if (!(headers.get('content-type') ?? '').includes('text/html')) headers.set('cache-control', 'public, max-age=300, s-maxage=86400');
 
 	const body = 'body' in object ? (object as R2ObjectBody).body : null;
 	return new Response(request.method === 'HEAD' ? null : body, { status, headers });

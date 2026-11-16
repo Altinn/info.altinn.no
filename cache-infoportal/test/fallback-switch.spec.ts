@@ -11,7 +11,9 @@ const uniqueUrl = (path = "/side") => `https://info.altinn.no${path}-switch-${++
 
 function createEnv() {
 	const astro = vi.fn(async () => new Response("from astro", { headers: { "Cache-Control": "public, max-age=60" } }));
-	const snapshot = vi.fn(async () => new Response("from snapshot"));
+	const snapshot = vi.fn(
+		async () => new Response("from snapshot", { headers: { "Cache-Control": "public, max-age=60, s-maxage=86400" } }),
+	);
 	const env = { ...bindings, ASTRO_INFOPORTAL: { fetch: astro }, SNAPSHOT_INFOPORTAL: { fetch: snapshot } as unknown as Fetcher };
 	return { astro, snapshot, env };
 }
@@ -71,6 +73,28 @@ describe("fallback switch", () => {
 
 		expect(await (await call(url, env)).text()).toBe("from snapshot");
 		expect(snapshot).toHaveBeenCalledTimes(1);
+	});
+
+	it("caches snapshot responses, so repeat requests in fallback mode come from the edge cache", async () => {
+		await bindings.FALLBACK_KV.put("fallback:mode", "on");
+		const { astro, snapshot, env } = createEnv();
+		const url = uniqueUrl();
+
+		expect(await (await call(url, env)).text()).toBe("from snapshot");
+		expect(await (await call(url, env)).text()).toBe("from snapshot");
+		expect(snapshot).toHaveBeenCalledTimes(1);
+		expect(astro).not.toHaveBeenCalled();
+	});
+
+	it("does not cache snapshot server errors", async () => {
+		await bindings.FALLBACK_KV.put("fallback:mode", "on");
+		const snapshot = vi.fn(async () => new Response("unavailable", { status: 503, headers: { "Cache-Control": "no-store" } }));
+		const { env } = createEnv();
+		const url = uniqueUrl();
+
+		await call(url, { ...env, SNAPSHOT_INFOPORTAL: { fetch: snapshot } as unknown as Fetcher });
+		await call(url, { ...env, SNAPSHOT_INFOPORTAL: { fetch: snapshot } as unknown as Fetcher });
+		expect(snapshot).toHaveBeenCalledTimes(2);
 	});
 
 	it("still sends /health and /api/ to astro in fallback mode", async () => {

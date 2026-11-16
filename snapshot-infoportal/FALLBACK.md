@@ -20,10 +20,15 @@ browser → cache-infoportal → edge cache ─ miss ┤
 - A cached 4xx is not trusted in fallback mode, because Astro answers 404 when it cannot reach Umbraco, and
   that 404 is cached like any other page.
 - `snapshot-infoportal` (`src/fallback.ts`) serves pages, static files, redirects and the 404 page from the
-  snapshot that `snapshot:current` points to. Responses from the snapshot are not put in the edge cache.
-  It has no public route, so it can only be reached through `cache-infoportal`.
-- Every fallback response has the header `x-infoportal-snapshot: <snapshot id>` and `cache-control: no-store`
-  (static files: 5 minutes), so browsers do not keep fallback pages after the site is back.
+  snapshot that `snapshot:current` points to. It has no public route, so it can only be reached through
+  `cache-infoportal`.
+- Responses from the snapshot are put in the edge cache like responses from Astro (`s-maxage=86400`), so repeat
+  requests are served from the cache. Browsers keep them only briefly (`max-age=60`, static files 5 minutes).
+  503 answers (no snapshot, form posts) are never cached.
+- **When fallback mode is turned off, the edge cache must be purged** (see below). Otherwise pages from the
+  snapshot stay in the cache for up to 24 hours.
+- Every fallback response has the header `x-infoportal-snapshot: <snapshot id>`. It stays on cached copies too,
+  so it shows whether a page still comes from the snapshot.
 - `/health`, `/api/` and `/ui/` always go to origin, so health checks show the real state.
 - Turning fallback on or off takes up to about a minute to reach all visitors (KV and in-memory caching).
 
@@ -41,7 +46,7 @@ What does not work in fallback mode:
 # on
 pnpm wrangler kv key put fallback:mode on --namespace-id 0edfe96c8cad4d7f8b4408d7f4120667 --remote
 
-# off
+# off (then purge the edge cache, see below)
 pnpm wrangler kv key put fallback:mode off --namespace-id 0edfe96c8cad4d7f8b4408d7f4120667 --remote
 
 # current state, and which snapshot is served
@@ -51,14 +56,31 @@ pnpm wrangler kv key get snapshot:current --namespace-id 0edfe96c8cad4d7f8b4408d
 
 The namespace id is for at22 (`infoportal-fallback-at22`).
 
+### Purge the edge cache after turning off
+
+Wait about a minute after setting `off` (so no new snapshot responses are cached), then purge the site's cache in
+the Cloudflare dashboard: the zone that contains the hostname → **Caching** → **Configuration** → **Purge Cache**.
+
+- Prefer **Custom Purge** by hostname or prefix (`info.at22.altinn.cloud/`), so only this site is purged.
+- **Purge Everything** purges the whole zone. Only use it if the zone contains nothing but this site.
+
+Afterwards, pages without a query string should no longer have `x-infoportal-snapshot`:
+
+```bash
+curl -sI "https://info.at22.altinn.cloud/hjelp/" | grep -i x-infoportal-snapshot   # expect no output
+```
+
+The first requests after the purge go to Astro/Umbraco again, so expect some extra load on Umbraco for a while.
+
 Consider also turning off the nightly snapshot run while fallback is on, so a run against a broken origin cannot
 fail validation in confusing ways (it would not replace the current snapshot anyway).
 
 ## Check that fallback mode works
 
-Pages that are in the edge cache are still served from there in fallback mode, and have no
-`x-infoportal-snapshot` header. That is expected. To see what the snapshot serves, add a random query string:
-the edge cache treats it as a new page (a miss), while the snapshot ignores the query string.
+Pages that were in the edge cache before fallback mode was turned on are still served from there, and have no
+`x-infoportal-snapshot` header. That is expected. To see what the snapshot serves, add a random query string that
+has not been used before: the edge cache treats it as a new page (a miss), while the snapshot ignores the query
+string. The second request for the same URL comes from the edge cache, still with the header.
 
 ```bash
 curl -sI "https://info.at22.altinn.cloud/hjelp/?t=$RANDOM" | grep -i x-infoportal-snapshot
@@ -68,7 +90,7 @@ In a browser, open pages with `?t=<something>` added and look for `x-infoportal-
 (Network tab, response headers).
 
 Testing in at22 means turning fallback mode on for everyone in at22 for a while, so tell the team first.
-After turning off: the same `curl` should no longer show the header (after about a minute).
+After turning off and purging: the same URL (same query string) should no longer show the header.
 
 ## Deploy
 
