@@ -67,7 +67,7 @@ the Cloudflare dashboard: the zone that contains the hostname → **Caching** �
 Afterwards, pages without a query string should no longer have `x-infoportal-snapshot`:
 
 ```bash
-curl -sI "https://info.at22.altinn.cloud/hjelp/" | grep -i x-infoportal-snapshot   # expect no output
+curl -s -o /dev/null -D - "https://info.at22.altinn.cloud/hjelp/" | grep -i x-infoportal-snapshot   # expect no output
 ```
 
 The first requests after the purge go to Astro/Umbraco again, so expect some extra load on Umbraco for a while.
@@ -83,8 +83,14 @@ has not been used before: the edge cache treats it as a new page (a miss), while
 string. The second request for the same URL comes from the edge cache, still with the header.
 
 ```bash
-curl -sI "https://info.at22.altinn.cloud/hjelp/?t=$RANDOM" | grep -i x-infoportal-snapshot
+curl -s -o /dev/null -D - "https://info.at22.altinn.cloud/hjelp/?t=$RANDOM" | grep -i x-infoportal-snapshot
 ```
+
+Use GET as above, not `curl -I`: HEAD requests never use the edge cache in `cache-infoportal` (all non-GET
+requests skip it), so they would always go to the snapshot or to Astro and give a misleading result.
+
+To test purging without purging the whole site, purge a single URL (Custom Purge → URL) with the exact query
+string you used, for example `https://info.at22.altinn.cloud/hjelp/?t=12345`.
 
 In a browser, open pages with `?t=<something>` added and look for `x-infoportal-snapshot` in the developer tools
 (Network tab, response headers).
