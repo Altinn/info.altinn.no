@@ -17,12 +17,12 @@ using Serilog.Events;
 namespace Infoportal.Cms.Tests.Authentication;
 
 /// <summary>
-/// Runs Entra's callback through the real OpenIdConnectHandler, with a token endpoint that answers
-/// like Entra does when the same callback is sent twice (AADSTS54005: code already redeemed).
-/// Every log event goes to two sinks: one through Serilog configured from the app's
+/// Runs requests to the callback URL (/signin-entra) through the real OpenIdConnectHandler, with a
+/// token endpoint that answers like Entra, e.g. when the same callback is sent twice (AADSTS54005:
+/// code already redeemed). Every log event goes to two sinks: one through Serilog configured from the app's
 /// appsettings.json (what reaches the alerts), and one without any filtering.
 /// </summary>
-public class EntraCodeAlreadyRedeemedTests
+public class EntraCallbackTests
 {
     private const string Scheme = "test-scheme";
     private const string AuthorizationEndpoint = "https://login.example.test/tenant/oauth2/v2.0/authorize";
@@ -37,7 +37,7 @@ public class EntraCodeAlreadyRedeemedTests
     private readonly CollectingSink _unfiltered = new();
     private readonly ServiceProvider _services;
 
-    public EntraCodeAlreadyRedeemedTests()
+    public EntraCallbackTests()
     {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -144,6 +144,34 @@ public class EntraCodeAlreadyRedeemedTests
         Assert.DoesNotContain(_alerted.Events, e => Category(e) == HandlerCategory && e.Level == LogEventLevel.Error);
     }
 
+    [Fact]
+    public async Task Callback_url_opened_by_the_browser_starts_a_new_login()
+    {
+        // E.g. Enter in the address bar on the error page, which is shown at /signin-entra.
+        var context = await SendAsync(request => request.Method = HttpMethods.Get);
+
+        Assert.Equal(StatusCodes.Status302Found, context.Response.StatusCode);
+        Assert.Equal("/umbraco", context.Response.Headers.Location.ToString());
+        Assert.Empty(AlertedWarningsAndErrors);
+        Assert.Contains(_alerted.Events, e => e.Level == LogEventLevel.Information && Category(e) == OurCategory);
+    }
+
+    [Fact]
+    public async Task Post_without_state_is_not_redirected()
+    {
+        // Only Entra (or a proxy in between) posts to the callback URL. If the post arrives
+        // without a state, redirecting to a new login could loop, so this must still alert.
+        var context = await SendAsync(request =>
+        {
+            request.Method = HttpMethods.Post;
+            request.ContentType = "application/x-www-form-urlencoded";
+            request.Body = new MemoryStream(Encoding.UTF8.GetBytes("code=the-code"));
+        });
+
+        Assert.Equal(StatusCodes.Status500InternalServerError, context.Response.StatusCode);
+        Assert.Equal(LogEventLevel.Error, Assert.Single(AlertedWarningsAndErrors).Level);
+    }
+
     // The backoffice login redirecting to Entra. Returns what Entra sends back on the callback.
     private async Task<EntraCallback> ChallengeAsync()
     {
@@ -153,15 +181,21 @@ public class EntraCodeAlreadyRedeemedTests
     }
 
     // Entra posting the code and state back (response_mode=form_post), with the browser's cookies.
-    private async Task<HttpContext> CallbackAsync(EntraCallback callback)
+    private Task<HttpContext> CallbackAsync(EntraCallback callback) => SendAsync(request =>
+    {
+        request.Method = HttpMethods.Post;
+        request.ContentType = "application/x-www-form-urlencoded";
+        request.Body = new MemoryStream(Encoding.UTF8.GetBytes(
+            $"code=the-code&state={Uri.EscapeDataString(callback.State)}"));
+        request.Headers.Cookie = callback.Cookies;
+    });
+
+    // Any request to the callback URL, handled by the OpenID Connect handler.
+    private async Task<HttpContext> SendAsync(Action<HttpRequest> configure)
     {
         var context = NewContext();
-        context.Request.Method = HttpMethods.Post;
         context.Request.Path = "/signin-entra";
-        context.Request.ContentType = "application/x-www-form-urlencoded";
-        context.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(
-            $"code=the-code&state={Uri.EscapeDataString(callback.State)}"));
-        context.Request.Headers.Cookie = callback.Cookies;
+        configure(context.Request);
 
         var handlers = context.RequestServices.GetRequiredService<IAuthenticationHandlerProvider>();
         var handler = (IAuthenticationRequestHandler)(await handlers.GetHandlerAsync(context, Scheme))!;
