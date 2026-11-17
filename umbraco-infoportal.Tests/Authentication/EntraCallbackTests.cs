@@ -17,10 +17,8 @@ using Serilog.Events;
 namespace Infoportal.Cms.Tests.Authentication;
 
 /// <summary>
-/// Runs requests to the callback URL (/signin-entra) through the real OpenIdConnectHandler, with a
-/// token endpoint that answers like Entra, e.g. when the same callback is sent twice (AADSTS54005:
-/// code already redeemed). Every log event goes to two sinks: one through Serilog configured from the app's
-/// appsettings.json (what reaches the alerts), and one without any filtering.
+/// Sends requests to /signin-entra through the real OpenIdConnectHandler, with a fake Entra token
+/// endpoint. Logs go both through Serilog configured from appsettings.json (what alerts) and unfiltered.
 /// </summary>
 public class EntraCallbackTests
 {
@@ -129,9 +127,7 @@ public class EntraCallbackTests
     [Fact]
     public async Task Handler_errors_reported_by_our_handler_are_filtered_out()
     {
-        // The handler logs every token endpoint error twice at Error level (EventId 52 for the
-        // response, 17 for the exception) before OnRemoteFailure runs. Without the filter in
-        // appsettings.json every failure would alert three times.
+        // Without the filter in appsettings.json every failure would alert three times.
         _tokenEndpoint.Fail("invalid_client", "AADSTS7000222: The provided client secret keys for app 'client-id' are expired.");
 
         await CallbackAsync(await ChallengeAsync());
@@ -159,8 +155,7 @@ public class EntraCallbackTests
     [Fact]
     public async Task Post_without_state_is_not_redirected()
     {
-        // Only Entra (or a proxy in between) posts to the callback URL. If the post arrives
-        // without a state, redirecting to a new login could loop, so this must still alert.
+        // Could come from Entra or a proxy dropping the state, where a redirect could loop.
         var context = await SendAsync(request =>
         {
             request.Method = HttpMethods.Post;
@@ -172,7 +167,7 @@ public class EntraCallbackTests
         Assert.Equal(LogEventLevel.Error, Assert.Single(AlertedWarningsAndErrors).Level);
     }
 
-    // The backoffice login redirecting to Entra. Returns what Entra sends back on the callback.
+    // Returns what Entra posts back on the callback.
     private async Task<EntraCallback> ChallengeAsync()
     {
         var context = NewContext();
@@ -180,7 +175,6 @@ public class EntraCallbackTests
         return ReadEntraCallback(context);
     }
 
-    // Entra posting the code and state back (response_mode=form_post), with the browser's cookies.
     private Task<HttpContext> CallbackAsync(EntraCallback callback) => SendAsync(request =>
     {
         request.Method = HttpMethods.Post;
@@ -190,7 +184,6 @@ public class EntraCallbackTests
         request.Headers.Cookie = callback.Cookies;
     });
 
-    // Any request to the callback URL, handled by the OpenID Connect handler.
     private async Task<HttpContext> SendAsync(Action<HttpRequest> configure)
     {
         var context = NewContext();
@@ -213,7 +206,6 @@ public class EntraCallbackTests
         return context;
     }
 
-    // The state from a redirect to Entra, and the correlation and nonce cookies set with it.
     private static EntraCallback ReadEntraCallback(HttpContext redirect)
     {
         var location = new Uri(redirect.Response.Headers.Location.ToString());
@@ -253,7 +245,6 @@ public class EntraCallbackTests
 
     private sealed record EntraCallback(string State, string Cookies);
 
-    // Answers every token request with the configured error, like Entra does.
     private sealed class StubTokenEndpoint : HttpMessageHandler
     {
         private string _error = string.Empty;

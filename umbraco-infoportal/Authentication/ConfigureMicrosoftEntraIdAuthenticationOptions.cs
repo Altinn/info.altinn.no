@@ -40,7 +40,7 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
         options.RequireHttpsMetadata = false;
 
         options.ResponseType = "code";
-        // The default, set explicitly since OnRemoteFailure relies on it (see IsOpenedWithoutEntra).
+        // The default, but IsOpenedWithoutEntra relies on it.
         options.ResponseMode = OpenIdConnectResponseMode.FormPost;
 
         options.Scope.Clear();
@@ -91,9 +91,7 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
 
             if (IsOpenedWithoutEntra(context.Request))
             {
-                // Not a callback at all: the browser opened the callback URL itself (Enter in the
-                // address bar on the error page, history, a bookmark). Start a new login. This cannot
-                // loop, since the new login gets a state, and Entra always posts it back.
+                // The browser opened the callback URL itself (e.g. Enter in the address bar on the error page).
                 logger.LogInformation("Entra ID callback URL opened without a login in progress: {Reason}", message);
                 context.Response.Redirect(BackOfficePath);
                 return;
@@ -155,7 +153,6 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
     // Set in the authentication properties (protected into the OIDC state) when a stale attempt is retried.
     private const string RetryMarker = "Infoportal.EntraLoginRetry";
 
-    // OAuth 2.0 error codes (RFC 6749), as the handler puts them in OpenIdConnectProtocolException.Data.
     private const string AccessDeniedError = "access_denied";
     private const string InvalidGrantError = "invalid_grant";
 
@@ -163,12 +160,11 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
     // retried: other invalid_grant errors (e.g. a PKCE mismatch) can be persistent and must be seen.
     private const string CodeAlreadyRedeemedError = "AADSTS54005";
 
-    // Where a new login starts. Same target as the "Prøv igjen" button on the message page.
     private const string BackOfficePath = "/umbraco";
 
-    // Entra answers with a form post (response_mode=form_post), so a GET without a state never
-    // comes from Entra. A POST without a state is not handled here: it would come from Entra or a
-    // proxy in between, and redirecting it to a new login could loop.
+    // Entra always answers with a form post, so a GET without a state is not a callback, and
+    // redirecting it to a new login cannot loop. A POST without a state is left as an error:
+    // it comes from Entra or a proxy, where a redirect could loop.
     private static bool IsOpenedWithoutEntra(HttpRequest request) =>
         HttpMethods.IsGet(request.Method) &&
         string.IsNullOrEmpty(request.Query[OpenIdConnectParameterNames.State]);
