@@ -83,10 +83,12 @@ The `umbraco` ServiceAccount must have the workload identity annotation for the 
 
 ## Deploying
 
-Non-sensitive values are configured in `terraform.tfvars`. The Elastic Cloud API key must be provided via environment variable or `-var`:
+Non-sensitive values are configured in `terraform.tfvars`. The two keys are ephemeral variables, so Terraform stores them in neither saved plans nor state. Provide them through the environment for both plan and apply. The version tells Terraform when the Elasticsearch API key has changed; derive it from the key the same way the workflow does:
 
 ```bash
 export TF_VAR_elastic_cloud_api_key="<your-elastic-cloud-api-key>"
+export TF_VAR_elasticsearch_api_key="<encoded-elasticsearch-api-key>"
+export TF_VAR_elasticsearch_api_key_version=$((16#$(printf '%s' "$TF_VAR_elasticsearch_api_key" | sha256sum | cut -c1-12)))
 
 terraform init
 terraform plan
