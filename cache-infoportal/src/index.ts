@@ -4,18 +4,23 @@ interface WorkerEnv extends FallbackSwitchEnv {
 	ASTRO_INFOPORTAL: any
 }
 
+// API, UI and health checks always go to origin, also in fallback mode, so /health reports the real state.
+const excludedPathNames = ["/api/", "/ui/", "/health"];
+
+// Exception: GET to /api/ endpoints with static Umbraco data goes through the cache like pages, so they work in
+// fallback mode (the snapshot stores them). Keep in sync with SNAPSHOT_API_PREFIXES in snapshot-infoportal/src/keys.ts.
+const cachedApiPathNames = ["/api/subsidies/", "/api/schema/municipalities"];
+
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
 		const url = new URL(request.url);
 
-		// API, UI and health checks always go to origin, also in fallback mode, so /health reports the real state.
-		const excludedPathNames= ["/api/", "/ui/", "/health"];
+		const isCachedApi =
+			request.method === "GET" && cachedApiPathNames.some((pathName) => url.pathname.startsWith(pathName));
 
 		try {
-			for (const excludedPathName of excludedPathNames) {
-				if (url.pathname.startsWith(excludedPathName)) {
-					return await env.ASTRO_INFOPORTAL.fetch(request);
-				}
+			if (!isCachedApi && excludedPathNames.some((pathName) => url.pathname.startsWith(pathName))) {
+				return await env.ASTRO_INFOPORTAL.fetch(request);
 			}
 		} catch (error) {
 			throw new Error(`Failed to fetch API request from origin: ${error}`);

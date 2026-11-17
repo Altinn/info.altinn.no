@@ -6,7 +6,8 @@
  *
  * R2 (bucket infoportal-snapshots-{env}):
  *   snapshots/{id}/p{pathname}        one object per page or static asset (index.html appended for paths ending in "/")
- *   snapshots/{id}/p/media/...?{q}    a resized Umbraco image, exactly as pages ask for it (see mediaPath)
+ *   snapshots/{id}/p/media/...?{q}    a resized Umbraco image, exactly as pages ask for it (see storagePath)
+ *   snapshots/{id}/p/api/...          static API data used by pages, see SNAPSHOT_API_PREFIXES (query in the key, see storagePath)
  *   snapshots/{id}/manifest.json      summary of the snapshot (see SnapshotManifest)
  *   snapshots/{id}/redirects.json     { "/old/path/": "/new/path/" } for 3xx responses seen during the run.
  *                                     Same-site targets are paths (with query string); other sites keep the full URL.
@@ -97,26 +98,44 @@ export function objectKey(id: string, pathname: string): string {
 }
 
 /**
- * Query parameters that change which file Umbraco/ImageSharp returns for /media/... Anything else
- * (cache busters like ?t=123) is ignored, so it does not hide a stored image.
+ * /api/ endpoints with static Umbraco data that pages load in the browser. The snapshot stores them (their URLs are
+ * found in the page HTML), and cache-infoportal sends them through the cache and to the snapshot like pages.
+ * Keep in sync with cachedApiPathNames in cache-infoportal/src/index.ts.
  */
-const MEDIA_QUERY_PARAMS = new Set([
-	'width', 'height', 'rmode', 'ranchor', 'rxy', 'rsampler', 'rcolor', 'compand', 'orient',
-	'format', 'quality', 'bgcolor', 'crop', 'cc', 'mode', 'anchor', 'v', 'hmac',
-]);
+export const SNAPSHOT_API_PREFIXES = ['/api/subsidies/', '/api/schema/municipalities'];
 
 /**
- * The path a media file is stored under: the pathname plus the image parameters, sorted, so the same image
- * size always gets the same key. Astro writes media URLs as "/media/a/b.png??rmode=max&width=698&height=488"
- * (two question marks), which becomes "/media/a/b.png?height=488&rmode=max&width=698". No image parameters
- * (documents, the original image) gives just the pathname.
+ * Query parameters that change the response, per path prefix. Anything else (cache busters like ?t=123) is
+ * ignored, so it does not hide a stored file. Parameter names are compared without case.
  */
-export function mediaPath(url: URL): string {
+const STORED_QUERY_PARAMS: [prefix: string, params: ReadonlySet<string>][] = [
+	[
+		'/media/',
+		// Umbraco/ImageSharp image processing.
+		new Set([
+			'width', 'height', 'rmode', 'ranchor', 'rxy', 'rsampler', 'rcolor', 'compand', 'orient',
+			'format', 'quality', 'bgcolor', 'crop', 'cc', 'mode', 'anchor', 'v', 'hmac',
+		]),
+	],
+	['/api/schema/municipalities', new Set(['path', 'locale'])],
+];
+
+/**
+ * The path a file is stored under: the pathname plus the query parameters that change the response, sorted, so the
+ * same request always gets the same key. Astro writes media URLs as "/media/a/b.png??rmode=max&width=698&height=488"
+ * (two question marks), which becomes "/media/a/b.png?height=488&rmode=max&width=698". Without such parameters
+ * (pages, documents, the original image) it is just the pathname.
+ */
+export function storagePath(url: URL): string {
+	const allowed = STORED_QUERY_PARAMS.find(([prefix]) => url.pathname.startsWith(prefix))?.[1];
+	if (!allowed) return url.pathname;
+
+	// Strip all leading "?": Astro writes "??rmode=max&...".
 	const params = new URLSearchParams(url.search.replace(/^\?+/, ''));
-	const kept = [...params].filter(([name]) => MEDIA_QUERY_PARAMS.has(name.toLowerCase()));
-	if (kept.length === 0) return url.pathname;
-	kept.sort(([a, x], [b, y]) => (a === b ? x.localeCompare(y) : a.localeCompare(b)));
-	return `${url.pathname}?${new URLSearchParams(kept).toString()}`;
+	const kept = new URLSearchParams([...params].filter(([name]) => allowed.has(name.toLowerCase())));
+	kept.sort();
+	const query = kept.toString();
+	return query ? `${url.pathname}?${query}` : url.pathname;
 }
 
 export function manifestKey(id: string): string {

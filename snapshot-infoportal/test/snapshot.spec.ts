@@ -1,7 +1,7 @@
 import { env } from 'cloudflare:test';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { extractAssetPaths, extractScriptAssetPaths } from '../src/assets';
-import { CURRENT_POINTER_KEY, createSnapshotId, mediaPath, notFoundKey, objectKey, unlistedKey, type SnapshotManifest } from '../src/keys';
+import { CURRENT_POINTER_KEY, createSnapshotId, storagePath, notFoundKey, objectKey, unlistedKey, type SnapshotManifest } from '../src/keys';
 import { extractPageLinks } from '../src/links';
 import { parseSitemapPaths } from '../src/sitemap';
 import {
@@ -125,6 +125,21 @@ describe('extractAssetPaths', () => {
 		expect(extractAssetPaths(html, `${SITE}/hjelp/`, SITE).sort()).toEqual(['/SiteLayout.js', '/client.js', '/hydrate.js']);
 	});
 
+	it('finds static API data in Astro island props, and ignores other API calls', () => {
+		// Real markup from at22 (shortened).
+		const html = `<astro-island component-url="/SchemaPage.js" props="{&quot;apiSourceUrl&quot;:[0,&quot;/api/schema/municipalities?path=%2Fskjemaoversikt%2Fkommunene%2Ffrisor%2F&amp;locale=nb&quot;]}"></astro-island>
+			<astro-island component-url="/SubsidyOverviewPage.js" props="{&quot;subsidyApiUrl&quot;:[0,&quot;/api/subsidies/nb&quot;],&quot;searchUrl&quot;:[0,&quot;/api/search&quot;]}"></astro-island>`;
+
+		expect(extractAssetPaths(html, `${SITE}/skjemaoversikt/`, SITE).sort()).toEqual(
+			[
+				'/SchemaPage.js',
+				'/SubsidyOverviewPage.js',
+				'/api/schema/municipalities?locale=nb&path=%2Fskjemaoversikt%2Fkommunene%2Ffrisor%2F',
+				'/api/subsidies/nb',
+			].sort(),
+		);
+	});
+
 	it('resolves relative CSS urls against the file they appear in', () => {
 		expect(extractAssetPaths('src: url(../fonts/x.woff2)', `${SITE}/assets/css/site.css`, SITE)).toEqual(['/assets/fonts/x.woff2']);
 	});
@@ -171,14 +186,22 @@ describe('extractScriptAssetPaths', () => {
 	});
 });
 
-describe('mediaPath', () => {
-	const path = (url: string) => mediaPath(new URL(url, SITE));
+describe('storagePath', () => {
+	const path = (url: string) => storagePath(new URL(url, SITE));
 
 	it('keeps image parameters, sorted, and drops the rest', () => {
 		expect(path('/media/a/b.png??rmode=max&width=698&height=488')).toBe('/media/a/b.png?height=488&rmode=max&width=698');
 		expect(path('/media/a/b.png?Width=698&t=123')).toBe('/media/a/b.png?Width=698');
 		expect(path('/media/a/b.pdf?t=123')).toBe('/media/a/b.pdf');
 		expect(path('/media/a/b.pdf')).toBe('/media/a/b.pdf');
+	});
+
+	it('keeps path and locale for the municipality search, and no query for other paths', () => {
+		expect(path('/api/schema/municipalities?path=%2Fskjema%2Fx%2F&locale=nn&t=1')).toBe(
+			'/api/schema/municipalities?locale=nn&path=%2Fskjema%2Fx%2F',
+		);
+		expect(path('/api/subsidies/nb?purpose=a')).toBe('/api/subsidies/nb');
+		expect(path('/hjelp/?width=698')).toBe('/hjelp/');
 	});
 });
 
@@ -281,6 +304,21 @@ describe('capturePaths', () => {
 		const request = origin.fetch.mock.calls[0][0] as Request;
 		expect(new URL(request.url).search).toBe('?height=488&width=698');
 		expect(await (await env.SNAPSHOTS.get(objectKey('snap1', '/media/a/bilde.png?height=488&width=698')))?.text()).toBe('liten');
+	});
+
+	it('stores static API data with its query, fetched with the same query', async () => {
+		const origin = fakeOrigin({
+			'/api/schema/municipalities': () => new Response('{"items":[]}', { headers: { 'content-type': 'application/json; charset=utf-8' } }),
+		});
+		const path = '/api/schema/municipalities?locale=nb&path=%2Fx%2F';
+
+		const result = await capturePaths(deps(origin), 'snap1', [path], 1);
+
+		expect(result.stored).toBe(1);
+		expect(new URL((origin.fetch.mock.calls[0][0] as Request).url).search).toBe('?locale=nb&path=%2Fx%2F');
+		const stored = await env.SNAPSHOTS.get(objectKey('snap1', path));
+		expect(stored?.httpMetadata?.contentType).toBe('application/json; charset=utf-8');
+		expect(await stored?.text()).toBe('{"items":[]}');
 	});
 
 	it('skips files larger than MAX_FILE_BYTES and reports them as failed', async () => {

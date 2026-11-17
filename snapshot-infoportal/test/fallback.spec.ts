@@ -42,6 +42,9 @@ beforeEach(async () => {
 	await env.SNAPSHOTS.put(objectKey(ID, '/media/abc/bilde.png?width=300'), 'png 300', png);
 	await env.SNAPSHOTS.put(objectKey(ID, '/media/org/original.png'), 'original', png);
 	await env.SNAPSHOTS.put(objectKey(ID, '/media/doc/veiledning.pdf'), 'pdf', { httpMetadata: { contentType: 'application/pdf' } });
+	const json = { httpMetadata: { contentType: 'application/json' } };
+	await env.SNAPSHOTS.put(objectKey(ID, '/api/subsidies/nb'), '{"subsidiesList":[]}', json);
+	await env.SNAPSHOTS.put(objectKey(ID, '/api/schema/municipalities?locale=nb&path=%2Fskjema%2Fx%2F'), '{"items":["x"]}', json);
 	await MEDIA.put('media/def/eldre.png', 'eldre', { httpMetadata: { contentType: 'image/png' } });
 });
 
@@ -130,6 +133,18 @@ describe('serving from the snapshot', () => {
 		const response = await call('/media/finnes/ikke.png');
 		expect(response.status).toBe(404);
 		expect(await response.text()).toBe('fant ikke siden');
+	});
+
+	it('serves static API data, matching the query that changes the response', async () => {
+		const subsidies = await call('/api/subsidies/nb');
+		expect(subsidies.status).toBe(200);
+		expect(subsidies.headers.get('content-type')).toBe('application/json');
+		expect(await subsidies.text()).toBe('{"subsidiesList":[]}');
+
+		const municipalities = await call('/api/schema/municipalities?path=%2Fskjema%2Fx%2F&locale=nb&t=1');
+		expect(await municipalities.text()).toBe('{"items":["x"]}');
+
+		expect((await call('/api/schema/municipalities?path=%2Fskjema%2Fy%2F&locale=nb')).status).toBe(404);
 	});
 
 	it('answers form posts with 503', async () => {

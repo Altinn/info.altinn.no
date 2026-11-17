@@ -107,6 +107,18 @@ describe("fallback switch", () => {
 		expect(snapshot).not.toHaveBeenCalled();
 	});
 
+	it("serves static API data from the snapshot in fallback mode, but other /api/ calls from astro", async () => {
+		await bindings.FALLBACK_KV.put("fallback:mode", "on");
+		const { astro, snapshot, env } = createEnv();
+
+		expect(await (await call(uniqueUrl("/api/subsidies/nb"), env)).text()).toBe("from snapshot");
+		expect(await (await call(`${uniqueUrl("/api/schema/municipalities")}?path=%2Fx%2F&locale=nb`, env)).text()).toBe("from snapshot");
+		expect(await (await call(uniqueUrl("/api/search"), env)).text()).toBe("from astro");
+		expect(await (await call(uniqueUrl("/api/subsidies/nb"), env, { method: "POST", body: "x" })).text()).toBe("from astro");
+		expect(snapshot).toHaveBeenCalledTimes(2);
+		expect(astro).toHaveBeenCalledTimes(2);
+	});
+
 	it("is never active in environments without the bindings", async () => {
 		await bindings.FALLBACK_KV.put("fallback:mode", "on");
 		const astro = vi.fn(async () => new Response("from astro"));

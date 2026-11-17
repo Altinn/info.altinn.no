@@ -29,13 +29,16 @@ browser → cache-infoportal → edge cache ─ miss ┤
   snapshot stay in the cache for up to 24 hours.
 - Every fallback response has the header `x-infoportal-snapshot: <snapshot id>`. It stays on cached copies too,
   so it shows whether a page still comes from the snapshot.
-- `/health`, `/api/` and `/ui/` always go to origin, so health checks show the real state.
+- `/health`, `/api/` and `/ui/` always go to origin, so health checks show the real state. Exception: GET to
+  `/api/subsidies/...` (support schemes overview) and `/api/schema/municipalities?...` (municipality search on schema
+  pages). They hold static Umbraco data, are stored in the snapshot and go through the cache like pages. The list is
+  `SNAPSHOT_API_PREFIXES` in `src/keys.ts` and `cachedApiPathNames` in `cache-infoportal/src/index.ts`.
 - Turning fallback on or off takes up to about a minute to reach all visitors (KV and in-memory caching).
 
 What does not work in fallback mode:
 
 - Contact forms. They post to `/api/contactform/send`, which goes to origin also in fallback mode (all of `/api/`
-  does). If Umbraco is down, the form shows its usual error message. Other posts outside `/api/` get 503.
+  does, except the static data above). If Umbraco is down, the form shows its usual error message. Other posts outside `/api/` get 503.
 - Search results and other dynamic data (`/sok/?q=...`, `/inforportalapi/...`). The empty search page is shown.
 - Media (`/media/...`) that no captured page, CSS or JavaScript links to. Images and documents that pages link to are
   in the snapshot, in original size (the `?width=...` resizing is ignored). Files over 50 MB are skipped.

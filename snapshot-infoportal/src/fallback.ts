@@ -5,7 +5,7 @@
  * whether fallback mode is active (KV flag fallback:mode). This worker has no public route.
  * Never calls Astro/Umbraco. See FALLBACK.md.
  */
-import { CURRENT_POINTER_KEY, mediaPath, notFoundKey, objectKey, redirectsKey, type SnapshotPointer } from './keys';
+import { CURRENT_POINTER_KEY, notFoundKey, objectKey, redirectsKey, storagePath, type SnapshotPointer } from './keys';
 
 export type FallbackLocale = 'nb' | 'nn' | 'en';
 
@@ -124,12 +124,12 @@ async function serveObject(bucket: R2Bucket, key: string, request: Request, snap
 }
 
 /**
- * Serves /media/... from the snapshot: first the exact image size the URL asks for (see mediaPath), then the
+ * Serves /media/... from the snapshot: first the exact image size the URL asks for (see storagePath), then the
  * original file, then any stored size of the same file (for example when the URL has no or other image
  * parameters). Last, the optional MEDIA bucket. Returns null when nothing is found.
  */
 async function serveMedia(env: FallbackEnv, url: URL, request: Request, id: string): Promise<Response | null> {
-	const exact = mediaPath(url);
+	const exact = storagePath(url);
 	const found =
 		(await serveObject(env.SNAPSHOTS, objectKey(id, exact), request, id)) ??
 		(exact !== url.pathname ? await serveObject(env.SNAPSHOTS, objectKey(id, url.pathname), request, id) : null);
@@ -165,7 +165,8 @@ export async function serveFallback(request: Request, env: FallbackEnv): Promise
 		const media = await serveMedia(env, url, request, id);
 		if (media) return media;
 	} else {
-		const stored = await serveObject(env.SNAPSHOTS, objectKey(id, pathname), request, id);
+		// Pages and files by pathname; static API data with its query (see storagePath).
+		const stored = await serveObject(env.SNAPSHOTS, objectKey(id, storagePath(url)), request, id);
 		if (stored) return stored;
 
 		// '/hjelp' -> '/hjelp/', as on the live site.

@@ -72,6 +72,19 @@ describe("cache-infoportal worker", () => {
 		},
 	);
 
+	it.each(["/api/subsidies/nb", "/api/schema/municipalities"])(
+		"caches GET to static API data %s like pages",
+		async (path) => {
+			const origin = createOrigin();
+			const url = `${uniqueUrl(path)}?path=%2Fx%2F&locale=nb`;
+
+			await callWorker(new IncomingRequest(url), origin.env);
+			await callWorker(new IncomingRequest(url), origin.env);
+
+			expect(origin.fetch).toHaveBeenCalledTimes(1);
+		},
+	);
+
 	it("does not cache server errors", async () => {
 		const fetch = vi.fn(async () => new Response("error", { status: 502 }));
 		const env = { ASTRO_INFOPORTAL: { fetch } };
