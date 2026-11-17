@@ -134,7 +134,14 @@ export async function capturePaths(
 				return;
 			}
 
-			const contentType = response.headers.get('content-type') ?? 'application/octet-stream';
+			const declaredLength = Number(response.headers.get('content-length') ?? 0);
+			if (declaredLength > MAX_FILE_BYTES) {
+				result.failed.push({ path, status: `too large (${declaredLength} bytes)` });
+				await response.body?.cancel();
+				return;
+			}
+
+			const contentType = contentTypeFor(path, response.headers.get('content-type'));
 			const body = await response.arrayBuffer();
 			const found = scanBody(deps, path, contentType, body);
 			found.assetPaths.forEach((assetPath) => assetPaths.add(assetPath));
@@ -304,6 +311,45 @@ export function toRedirectTarget(location: string, fromPath: string, siteOrigin:
 		return location;
 	}
 	return url.origin === new URL(siteOrigin).origin ? `${url.pathname}${url.search}${url.hash}` : url.toString();
+}
+
+/**
+ * Files larger than this are not stored (the whole file is read into memory). Umbraco media is mostly
+ * screenshots and PDFs well below this; a large video would only be reported in `failed`.
+ */
+export const MAX_FILE_BYTES = 50 * 1024 * 1024;
+
+const CONTENT_TYPES: Record<string, string> = {
+	png: 'image/png',
+	jpg: 'image/jpeg',
+	jpeg: 'image/jpeg',
+	gif: 'image/gif',
+	webp: 'image/webp',
+	avif: 'image/avif',
+	svg: 'image/svg+xml',
+	ico: 'image/x-icon',
+	pdf: 'application/pdf',
+	doc: 'application/msword',
+	docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+	xls: 'application/vnd.ms-excel',
+	xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+	ppt: 'application/vnd.ms-powerpoint',
+	pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+	txt: 'text/plain; charset=utf-8',
+	csv: 'text/csv; charset=utf-8',
+	mp4: 'video/mp4',
+	woff: 'font/woff',
+	woff2: 'font/woff2',
+};
+
+/**
+ * The content type stored with a file. Uses the origin's header, unless it is missing or only says
+ * application/octet-stream; then the file extension decides, so images and PDFs open in the browser.
+ */
+export function contentTypeFor(path: string, header: string | null): string {
+	if (header && !header.toLowerCase().startsWith('application/octet-stream')) return header;
+	const extension = /\.([a-z0-9]{1,8})$/i.exec(path.split('?')[0].split('/').pop() ?? '')?.[1]?.toLowerCase();
+	return (extension && CONTENT_TYPES[extension]) || header || 'application/octet-stream';
 }
 
 /** Finds asset references (HTML, CSS and JavaScript) and page links (HTML only) in a captured response. */

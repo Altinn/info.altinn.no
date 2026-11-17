@@ -37,7 +37,12 @@ beforeEach(async () => {
 			'/ekstern/': 'https://www.altinn.no/',
 		}),
 	);
-	await MEDIA.put('media/abc/bilde.png', 'png', { httpMetadata: { contentType: 'image/png' } });
+	const png = { httpMetadata: { contentType: 'image/png' } };
+	await env.SNAPSHOTS.put(objectKey(ID, '/media/abc/bilde.png?height=488&rmode=max&width=698'), 'png 698', png);
+	await env.SNAPSHOTS.put(objectKey(ID, '/media/abc/bilde.png?width=300'), 'png 300', png);
+	await env.SNAPSHOTS.put(objectKey(ID, '/media/org/original.png'), 'original', png);
+	await env.SNAPSHOTS.put(objectKey(ID, '/media/doc/veiledning.pdf'), 'pdf', { httpMetadata: { contentType: 'application/pdf' } });
+	await MEDIA.put('media/def/eldre.png', 'eldre', { httpMetadata: { contentType: 'image/png' } });
 });
 
 describe('serving from the snapshot', () => {
@@ -95,10 +100,36 @@ describe('serving from the snapshot', () => {
 		expect(await nn.text()).toBe('fant ikke siden');
 	});
 
-	it('serves media from the media bucket', async () => {
-		const response = await call('/media/abc/bilde.png');
+	it('serves the image size the page asks for, ignoring cache busters', async () => {
+		const response = await call('/media/abc/bilde.png??rmode=max&width=698&height=488&t=123');
 		expect(response.status).toBe(200);
-		expect(new TextDecoder().decode(await response.arrayBuffer())).toBe('png');
+		expect(response.headers.get('content-type')).toBe('image/png');
+		expect(response.headers.get('cache-control')).toBe('public, max-age=300, s-maxage=86400');
+		expect(response.headers.get(SNAPSHOT_HEADER)).toBe(ID);
+		expect(await response.text()).toBe('png 698');
+
+		expect(await (await call('/media/abc/bilde.png?width=300')).text()).toBe('png 300');
+	});
+
+	it('serves the original, or else another stored size, when the exact size is missing', async () => {
+		expect(await (await call('/media/org/original.png?width=100')).text()).toBe('original');
+		expect(await (await call('/media/doc/veiledning.pdf?t=1')).text()).toBe('pdf');
+
+		const other = await call('/media/abc/bilde.png?width=50');
+		expect(other.status).toBe(200);
+		expect(['png 698', 'png 300']).toContain(await other.text());
+	});
+
+	it('falls back to the media bucket for media the snapshot does not have', async () => {
+		const response = await call('/media/def/eldre.png');
+		expect(response.status).toBe(200);
+		expect(new TextDecoder().decode(await response.arrayBuffer())).toBe('eldre');
+	});
+
+	it('answers missing media with the 404 page', async () => {
+		const response = await call('/media/finnes/ikke.png');
+		expect(response.status).toBe(404);
+		expect(await response.text()).toBe('fant ikke siden');
 	});
 
 	it('answers form posts with 503', async () => {

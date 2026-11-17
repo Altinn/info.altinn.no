@@ -190,8 +190,6 @@ export class SnapshotWorkflow extends WorkflowEntrypoint<Env, SnapshotParams> {
 			}
 		}
 
-		// TODO (PoC step 2): mirror Umbraco media (/media/...) into the shared media/ prefix.
-
 		const unlisted = findUnlistedLinks(stillUnknown, knownAfterLinks, redirects);
 
 		const manifest = await step.do('write manifest', async () => {

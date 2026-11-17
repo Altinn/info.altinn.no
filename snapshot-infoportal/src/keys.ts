@@ -6,6 +6,7 @@
  *
  * R2 (bucket infoportal-snapshots-{env}):
  *   snapshots/{id}/p{pathname}        one object per page or static asset (index.html appended for paths ending in "/")
+ *   snapshots/{id}/p/media/...?{q}    a resized Umbraco image, exactly as pages ask for it (see mediaPath)
  *   snapshots/{id}/manifest.json      summary of the snapshot (see SnapshotManifest)
  *   snapshots/{id}/redirects.json     { "/old/path/": "/new/path/" } for 3xx responses seen during the run.
  *                                     Same-site targets are paths (with query string); other sites keep the full URL.
@@ -93,6 +94,29 @@ export function objectKey(id: string, pathname: string): string {
 	const path = pathname.startsWith('/') ? pathname : `/${pathname}`;
 	const file = path.endsWith('/') ? `${path}index.html` : path;
 	return `${snapshotRoot(id)}p${file}`;
+}
+
+/**
+ * Query parameters that change which file Umbraco/ImageSharp returns for /media/... Anything else
+ * (cache busters like ?t=123) is ignored, so it does not hide a stored image.
+ */
+const MEDIA_QUERY_PARAMS = new Set([
+	'width', 'height', 'rmode', 'ranchor', 'rxy', 'rsampler', 'rcolor', 'compand', 'orient',
+	'format', 'quality', 'bgcolor', 'crop', 'cc', 'mode', 'anchor', 'v', 'hmac',
+]);
+
+/**
+ * The path a media file is stored under: the pathname plus the image parameters, sorted, so the same image
+ * size always gets the same key. Astro writes media URLs as "/media/a/b.png??rmode=max&width=698&height=488"
+ * (two question marks), which becomes "/media/a/b.png?height=488&rmode=max&width=698". No image parameters
+ * (documents, the original image) gives just the pathname.
+ */
+export function mediaPath(url: URL): string {
+	const params = new URLSearchParams(url.search.replace(/^\?+/, ''));
+	const kept = [...params].filter(([name]) => MEDIA_QUERY_PARAMS.has(name.toLowerCase()));
+	if (kept.length === 0) return url.pathname;
+	kept.sort(([a, x], [b, y]) => (a === b ? x.localeCompare(y) : a.localeCompare(b)));
+	return `${url.pathname}?${new URLSearchParams(kept).toString()}`;
 }
 
 export function manifestKey(id: string): string {

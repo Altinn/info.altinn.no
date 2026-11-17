@@ -1,13 +1,15 @@
 import { env } from 'cloudflare:test';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { extractAssetPaths, extractScriptAssetPaths } from '../src/assets';
-import { CURRENT_POINTER_KEY, createSnapshotId, notFoundKey, objectKey, unlistedKey, type SnapshotManifest } from '../src/keys';
+import { CURRENT_POINTER_KEY, createSnapshotId, mediaPath, notFoundKey, objectKey, unlistedKey, type SnapshotManifest } from '../src/keys';
 import { extractPageLinks } from '../src/links';
 import { parseSitemapPaths } from '../src/sitemap';
 import {
 	captureNotFoundPages,
 	capturePaths,
 	cleanupSnapshots,
+	contentTypeFor,
+	MAX_FILE_BYTES,
 	findUnlistedLinks,
 	parseTestSelection,
 	readSitemapPaths,
@@ -67,7 +69,7 @@ describe('parseSitemapPaths', () => {
 });
 
 describe('extractAssetPaths', () => {
-	it('finds same-origin static files and ignores pages, media, external and data URLs', () => {
+	it('finds same-origin static files and media, and ignores pages, external and data URLs', () => {
 		const html = `
 			<link href="/vendor.css" rel="stylesheet"><link href="/assets/favicon/favicon.ico">
 			<img src="/assets/img/a.svg" srcset="/assets/img/b.png 1x, /assets/img/c.png 2x">
@@ -85,6 +87,22 @@ describe('extractAssetPaths', () => {
 				'/assets/img/c.png',
 				'/_astro/app.123.js',
 				'/assets/img/d.webp',
+				'/media/abc/bilde.png',
+			].sort(),
+		);
+	});
+
+	it('finds Umbraco media in images and links, keeping each image size', () => {
+		// Real markup from at22: Astro writes media URLs as "??rmode=max&amp;width=...".
+		const html = `<img src="/media/12nlklm3/slett-fullmakt.png??rmode=max&amp;width=698&amp;height=488">
+			<img src="/media/12nlklm3/slett-fullmakt.png?width=300&t=1"> <a href="/media/xyz/veiledning.pdf?t=2">PDF</a>
+			<a href="/api/redirect?x=/media/a.png">api</a>`;
+
+		expect(extractAssetPaths(html, `${SITE}/hjelp/`, SITE).sort()).toEqual(
+			[
+				'/media/12nlklm3/slett-fullmakt.png?height=488&rmode=max&width=698',
+				'/media/12nlklm3/slett-fullmakt.png?width=300',
+				'/media/xyz/veiledning.pdf',
 			].sort(),
 		);
 	});
@@ -141,15 +159,39 @@ describe('extractScriptAssetPaths', () => {
 		const js = `import{t as a}from"./vendor.js";export{a as default};
 			import"./side-effect.js";const l=()=>import("./lazy.js");
 			const img="/assets/img/illustration/illustrasjon_nyhetsbrev.svg";
-			const a2="https://cdn.example/x.js";const m="/media/x.png";const notAFile="/hjelp/";`;
+			const a2="https://cdn.example/x.js";const m="/media/x.png";const api="/api/x.json";const notAFile="/hjelp/";`;
 
 		expect(extractScriptAssetPaths(js, `${SITE}/SiteLayout.js`, SITE).sort()).toEqual(
-			['/vendor.js', '/side-effect.js', '/lazy.js', '/assets/img/illustration/illustrasjon_nyhetsbrev.svg'].sort(),
+			['/vendor.js', '/side-effect.js', '/lazy.js', '/assets/img/illustration/illustrasjon_nyhetsbrev.svg', '/media/x.png'].sort(),
 		);
 	});
 
 	it('resolves relative imports against the module they appear in', () => {
 		expect(extractScriptAssetPaths('import"../shared/x.js"', `${SITE}/_astro/a/b.js`, SITE)).toEqual(['/_astro/shared/x.js']);
+	});
+});
+
+describe('mediaPath', () => {
+	const path = (url: string) => mediaPath(new URL(url, SITE));
+
+	it('keeps image parameters, sorted, and drops the rest', () => {
+		expect(path('/media/a/b.png??rmode=max&width=698&height=488')).toBe('/media/a/b.png?height=488&rmode=max&width=698');
+		expect(path('/media/a/b.png?Width=698&t=123')).toBe('/media/a/b.png?Width=698');
+		expect(path('/media/a/b.pdf?t=123')).toBe('/media/a/b.pdf');
+		expect(path('/media/a/b.pdf')).toBe('/media/a/b.pdf');
+	});
+});
+
+describe('contentTypeFor', () => {
+	it('keeps the origin header unless it is missing or octet-stream', () => {
+		expect(contentTypeFor('/hjelp/', 'text/html; charset=utf-8')).toBe('text/html; charset=utf-8');
+		expect(contentTypeFor('/media/a/fil.PDF', null)).toBe('application/pdf');
+		expect(contentTypeFor('/media/a/fil.docx', 'application/octet-stream')).toBe(
+			'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+		);
+		expect(contentTypeFor('/media/a/fil.ukjent', 'application/octet-stream')).toBe('application/octet-stream');
+		expect(contentTypeFor('/media/a/', null)).toBe('application/octet-stream');
+		expect(contentTypeFor('/media/a/bilde.jpg?width=698', null)).toBe('image/jpeg');
 	});
 });
 
@@ -215,6 +257,42 @@ describe('capturePaths', () => {
 
 		expect(result.stored).toBe(1);
 		expect(result.assetPaths).toEqual(['/vendor.js']);
+	});
+
+	it('stores media with a content type from the file extension when the origin gives none', async () => {
+		const origin = fakeOrigin({
+			'/media/a/bilde.png': () => new Response('png', { headers: { 'content-type': 'image/png' } }),
+			'/media/b/veiledning.pdf': () => new Response('pdf', { headers: { 'content-type': 'application/octet-stream' } }),
+		});
+
+		const result = await capturePaths(deps(origin), 'snap1', ['/media/a/bilde.png', '/media/b/veiledning.pdf'], 2);
+
+		expect(result.stored).toBe(2);
+		expect((await env.SNAPSHOTS.head(objectKey('snap1', '/media/a/bilde.png')))?.httpMetadata?.contentType).toBe('image/png');
+		expect((await env.SNAPSHOTS.head(objectKey('snap1', '/media/b/veiledning.pdf')))?.httpMetadata?.contentType).toBe('application/pdf');
+	});
+
+	it('stores a resized image under its size, fetched with the same parameters', async () => {
+		const origin = fakeOrigin({ '/media/a/bilde.png': () => new Response('liten', { headers: { 'content-type': 'image/png' } }) });
+
+		const result = await capturePaths(deps(origin), 'snap1', ['/media/a/bilde.png?height=488&width=698'], 1);
+
+		expect(result.stored).toBe(1);
+		const request = origin.fetch.mock.calls[0][0] as Request;
+		expect(new URL(request.url).search).toBe('?height=488&width=698');
+		expect(await (await env.SNAPSHOTS.get(objectKey('snap1', '/media/a/bilde.png?height=488&width=698')))?.text()).toBe('liten');
+	});
+
+	it('skips files larger than MAX_FILE_BYTES and reports them as failed', async () => {
+		const origin = fakeOrigin({
+			'/media/a/film.mp4': () => new Response('x', { headers: { 'content-length': String(MAX_FILE_BYTES + 1) } }),
+		});
+
+		const result = await capturePaths(deps(origin), 'snap1', ['/media/a/film.mp4'], 1);
+
+		expect(result.stored).toBe(0);
+		expect(result.failed).toEqual([{ path: '/media/a/film.mp4', status: `too large (${MAX_FILE_BYTES + 1} bytes)` }]);
+		expect(await env.SNAPSHOTS.head(objectKey('snap1', '/media/a/film.mp4'))).toBeNull();
 	});
 
 	it('reports a 404 for an optional path as unavailable, not as a failure', async () => {

@@ -28,7 +28,7 @@ The storage format shared with `cache-infoportal` is described in [`src/keys.ts`
 
 ## Not done yet
 
-- Umbraco media (`/media/...`) is not captured. It will get a shared `media/` mirror.
+- Umbraco media is only captured when a page, CSS or JavaScript file links to it (stored per snapshot, original size).
 - Serving in fallback mode is in this worker's `fetch()` ([`src/fallback.ts`](./src/fallback.ts)), switched on by `cache-infoportal`.
   See [`FALLBACK.md`](./FALLBACK.md). Only at22 so far.
 - Environments `at23`, `tt02` and `prod`.

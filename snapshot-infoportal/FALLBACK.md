@@ -37,7 +37,8 @@ What does not work in fallback mode:
 - Contact forms. They post to `/api/contactform/send`, which goes to origin also in fallback mode (all of `/api/`
   does). If Umbraco is down, the form shows its usual error message. Other posts outside `/api/` get 503.
 - Search results and other dynamic data (`/sok/?q=...`, `/inforportalapi/...`). The empty search page is shown.
-- Media (`/media/...`) until the media bucket is bound (`MEDIA`, see below). Until then images and PDFs give 404.
+- Media (`/media/...`) that no captured page, CSS or JavaScript links to. Images and documents that pages link to are
+  in the snapshot, in original size (the `?width=...` resizing is ignored). Files over 50 MB are skipped.
 - Old URLs that only exist in Umbraco's redirect tables and were not seen by the snapshot job.
 
 ## Turn on / off
@@ -114,6 +115,6 @@ cd ../cache-infoportal && pnpm wrangler deploy --env at22
 | cache-infoportal | `SNAPSHOT_INFOPORTAL` | Service binding to `snapshot-infoportal-{env}` | at22 |
 | cache-infoportal | `FALLBACK_KV` | KV namespace `infoportal-fallback-{env}`, for `fallback:mode` | at22 |
 | snapshot-infoportal | `SNAPSHOTS`, `FALLBACK_KV` | The snapshot bucket and the same KV namespace | at22 |
-| snapshot-infoportal | `MEDIA` | R2 bucket with the Umbraco media mirror (`media/...`), written by backup-infoportal | not yet |
+| snapshot-infoportal | `MEDIA` | Optional extra source for media the snapshot lacks (`media/...`), for example a later Umbraco media mirror | not yet |
 
 Without `SNAPSHOT_INFOPORTAL` and `FALLBACK_KV`, `cache-infoportal` never turns on fallback mode and behaves as before.

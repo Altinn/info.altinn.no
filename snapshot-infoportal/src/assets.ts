@@ -1,9 +1,13 @@
+import { mediaPath } from './keys';
+
 /**
  * Finds same-origin static files (CSS, JS, images, fonts, favicons ...) referenced by an HTML page, a CSS file
  * or a JavaScript module, so they can be stored in the snapshot next to the pages.
  *
  * Page links (no file extension) are ignored: pages come from the sitemap.
- * /media/ is ignored: Umbraco media gets its own shared mirror in a later step of the PoC.
+ * Umbraco media (/media/...) is included, so images and documents work in fallback mode. Media keeps its image
+ * parameters (?width=698&height=488 for ImageSharp, see mediaPath), so the snapshot stores the same resized file
+ * the page shows. Other files are stored by pathname only.
  */
 // component-url, renderer-url and before-hydration-url are how Astro islands load their JavaScript
 // (<astro-island component-url="/SiteLayout.js" renderer-url="/client.js">). Without them no React component runs.
@@ -19,7 +23,7 @@ const SCRIPT_IMPORT_PATTERN = /\b(?:from|import)\s*\(?\s*["'`]([^"'`\s]+\.m?js)[
 // Absolute paths to static files written as strings in JavaScript ("/assets/img/x.svg").
 const SCRIPT_ASSET_PATTERN = /["'`](\/[A-Za-z0-9_.\/-]+\.(?:png|svg|jpe?g|webp|avif|gif|ico|woff2?|css|m?js|json))["'`]/g;
 
-const EXCLUDED_PREFIXES = ['/media/', '/api/'];
+const EXCLUDED_PREFIXES = ['/api/'];
 
 /** Finds the modules and static files a JavaScript file loads. */
 export function extractScriptAssetPaths(body: string, scriptUrl: string, siteOrigin: string): string[] {
@@ -51,7 +55,8 @@ function toSameOriginFiles(candidates: string[], baseUrl: string, siteOrigin: st
 
 		let url: URL;
 		try {
-			url = new URL(candidate, baseUrl);
+			// Attribute values in HTML escape & as &amp; (src="/media/a.png??rmode=max&amp;width=698").
+			url = new URL(candidate.replace(/&amp;/gi, '&'), baseUrl);
 		} catch {
 			continue;
 		}
@@ -60,7 +65,7 @@ function toSameOriginFiles(candidates: string[], baseUrl: string, siteOrigin: st
 		if (EXCLUDED_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))) continue;
 		if (!hasFileExtension(url.pathname)) continue;
 
-		paths.add(url.pathname);
+		paths.add(url.pathname.startsWith('/media/') ? mediaPath(url) : url.pathname);
 	}
 
 	return [...paths];
