@@ -88,7 +88,7 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
             context.HandleResponse();
 
             if (context.Failure is OpenIdConnectProtocolException protocolException &&
-                protocolException.Data["error"] as string == "access_denied")
+                protocolException.Data[OpenIdConnectParameterNames.Error] as string == AccessDeniedError)
             {
                 // Redirecting to /umbraco would send the user straight back to Entra.
                 logger.LogInformation("Entra ID login cancelled: {Reason}", message);
@@ -143,14 +143,19 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
     // Set in the authentication properties (protected into the OIDC state) when a stale attempt is retried.
     private const string RetryMarker = "Infoportal.EntraLoginRetry";
 
+    // OAuth 2.0 error codes (RFC 6749), as the handler puts them in OpenIdConnectProtocolException.Data.
+    private const string AccessDeniedError = "access_denied";
+    private const string InvalidGrantError = "invalid_grant";
+
     // Entra's answer when an authorization code is redeemed a second time. Only this code is
     // retried: other invalid_grant errors (e.g. a PKCE mismatch) can be persistent and must be seen.
     private const string CodeAlreadyRedeemedError = "AADSTS54005";
 
     private static bool IsCodeAlreadyRedeemed(Exception? failure) =>
         failure is OpenIdConnectProtocolException exception &&
-        exception.Data["error"] as string == "invalid_grant" &&
-        (exception.Data["error_description"] as string)?.StartsWith(CodeAlreadyRedeemedError, StringComparison.Ordinal) == true;
+        exception.Data[OpenIdConnectParameterNames.Error] as string == InvalidGrantError &&
+        exception.Data[OpenIdConnectParameterNames.ErrorDescription] is string description &&
+        description.StartsWith(CodeAlreadyRedeemedError, StringComparison.Ordinal);
 
     public void Configure(string? name, OpenIdConnectOptions options)
     {
