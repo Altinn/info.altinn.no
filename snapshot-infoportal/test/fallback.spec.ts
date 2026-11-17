@@ -1,4 +1,4 @@
-import { env } from 'cloudflare:test';
+import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it } from 'vitest';
 import worker from '../src/index';
 import { findRedirect, localeOf, redirectLocation, resetFallbackMemo, SNAPSHOT_HEADER } from '../src/fallback';

@@ -1,4 +1,4 @@
-import { env } from 'cloudflare:test';
+import { env } from 'cloudflare:workers';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { extractAssetPaths, extractScriptAssetPaths } from '../src/assets';
 import { CURRENT_POINTER_KEY, createSnapshotId, storagePath, notFoundKey, objectKey, unlistedKey, type SnapshotManifest } from '../src/keys';

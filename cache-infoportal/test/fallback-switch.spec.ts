@@ -1,4 +1,5 @@
-import { createExecutionContext, env as testEnv, waitOnExecutionContext } from "cloudflare:test";
+import { createExecutionContext, waitOnExecutionContext } from "cloudflare:test";
+import { env as testEnv } from "cloudflare:workers";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import worker from "../src/index";
 import { resetFallbackSwitch } from "../src/fallback-switch";
