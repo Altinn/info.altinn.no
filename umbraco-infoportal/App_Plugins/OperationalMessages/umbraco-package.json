@@ -1,0 +1,22 @@
+{
+  "$schema": "../../umbraco-package-schema.json",
+  "name": "Altinn.OperationalMessages",
+  "version": "0.1.0",
+  "extensions": [
+    {
+      "type": "dashboard",
+      "alias": "Altinn.Dashboard.NewOperationalMessage",
+      "name": "New Operational Message",
+      "element": "/App_Plugins/OperationalMessages/dashboard.js",
+      "elementName": "altinn-new-operational-message",
+      "weight": 21,
+      "meta": {
+        "label": "Ny driftsmelding",
+        "pathname": "new-operational-message"
+      },
+      "conditions": [
+        { "alias": "Umb.Condition.SectionAlias", "match": "Umb.Section.Content" }
+      ]
+    }
+  ]
+}
