@@ -9,7 +9,7 @@
       "name": "Article Export",
       "element": "/App_Plugins/ArticleExport/dashboard.js",
       "elementName": "altinn-article-export",
-      "weight": 20,
+      "weight": 18,
       "meta": {
         "label": "Artikkel eksport",
         "pathname": "article-export"

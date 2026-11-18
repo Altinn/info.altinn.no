@@ -9,7 +9,7 @@
       "name": "New Operational Message",
       "element": "/App_Plugins/OperationalMessages/dashboard.js",
       "elementName": "altinn-new-operational-message",
-      "weight": 21,
+      "weight": 19,
       "meta": {
         "label": "Ny driftsmelding",
         "pathname": "new-operational-message"
