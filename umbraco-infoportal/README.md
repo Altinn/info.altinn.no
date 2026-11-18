@@ -42,6 +42,7 @@ The code is organised by **functional area**: one folder per feature, holding ev
 | `ArticleExport/`       | Backoffice export of articles to Word                                        |
 | `FormChanges/`         | Backoffice dashboard of changes in the form catalogue                        |
 | `MetaImport/`          | Import of form metadata                                                      |
+| `OperationalMessages/` | Backoffice dashboard "Ny driftsmelding": creates, publishes and puts a driftsmelding on the start page |
 
 Inside an area, classes are sorted by **what kind of class** they are:
 
