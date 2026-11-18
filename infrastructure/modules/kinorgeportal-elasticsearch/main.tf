@@ -67,10 +67,11 @@ resource "azurerm_key_vault_secret" "es_endpoint" {
 }
 
 resource "azurerm_key_vault_secret" "es_api_key" {
-  name         = "elasticsearch-api-key"
-  value        = var.elasticsearch_api_key
-  key_vault_id = azurerm_key_vault.elasticsearch.id
-  tags         = var.tags
+  name             = "elasticsearch-api-key"
+  value_wo         = var.elasticsearch_api_key
+  value_wo_version = var.elasticsearch_api_key_version
+  key_vault_id     = azurerm_key_vault.elasticsearch.id
+  tags             = var.tags
 
   depends_on = [azurerm_role_assignment.terraform_keyvault_officer]
 }
