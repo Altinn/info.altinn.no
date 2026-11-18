@@ -180,18 +180,8 @@ class AltinnNewOperationalMessageElement extends UmbElementMixin(LitElement) {
           Startsiden er publisert på nytt (${r.startPageCultures.join(", ")}).
         </p>
         <p class="note">
-          Det kan ta noen minutter før meldingen vises på altinn.no. Oversettelse, endring av tekst og fjerning fra
-          forsiden gjør du som før, i innholdstreet.
+          Oversettelse, endring av tekst og fjerning fra forsiden gjøres i innholdstreet. Se <a href="https://digdir.atlassian.net/wiki/spaces/BF1/pages/4316626948/Driftsmelding+p+altinn.no">guide</a>.
         </p>
-        <div class="actions">
-          <uui-button look="primary" href=${`/umbraco/section/content/workspace/document/edit/${r.key}`}>
-            Åpne driftsmeldingen
-          </uui-button>
-          <uui-button look="secondary" href=${`/umbraco/section/content/workspace/document/edit/${r.startPageKey}`}>
-            Åpne startsiden
-          </uui-button>
-          <uui-button look="outline" @click=${() => this.#newMessage()}>Ny driftsmelding</uui-button>
-        </div>
       </uui-box>
     `;
   }
@@ -201,13 +191,11 @@ class AltinnNewOperationalMessageElement extends UmbElementMixin(LitElement) {
     return html`
       <uui-box headline="Ny driftsmelding">
         <p>
-          Oppretter en driftsmelding på bokmål, publiserer den og legger den øverst i «Driftsmelding- og
-          varselsområde» på startsiden. Startsiden publiseres deretter på nytt for alle språk.
+          Oppretter en driftsmelding på bokmål og publiserer den øverst på startsiden.
         </p>
         <p class="note">
-          Oversettelse, endring av tekst og fjerning fra forsiden gjør du som før, i innholdstreet.
+          Oversettelse, endring av tekst og fjerning fra forsiden gjøres i innholdstreet. Se <a href="https://digdir.atlassian.net/wiki/spaces/BF1/pages/4316626948/Driftsmelding+p+altinn.no">guide</a>.
         </p>
-
         <div class="form">
           <div class="field">
             <label for="title">Tittel <span class="required">*</span></label>
