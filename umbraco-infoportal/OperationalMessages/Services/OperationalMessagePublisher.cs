@@ -141,9 +141,10 @@ public partial class OperationalMessagePublisher
 
         scope.Complete();
 
+        // The title is editor input, so it stays out of the log; the key identifies the message.
         _logger.LogInformation(
-            "Driftsmelding {Key} \"{Title}\" published and added to the start page by user {UserId}",
-            message.Key, title, userId);
+            "Driftsmelding {Key} published and added to the start page by user {UserId}",
+            message.Key, userId);
 
         return (new PublishedOperationalMessage(message.Key, title, startPage.Key, startPageCultures), null);
     }
