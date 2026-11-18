@@ -1,3 +1,4 @@
+import { stripInlineScripts } from './html';
 import { hasFileExtension } from './paths';
 
 /**
@@ -7,7 +8,6 @@ import { hasFileExtension } from './paths';
  * so they can be reported in the manifest as "unlisted". Static files are handled by assets.ts.
  */
 const ANCHOR_HREF_PATTERN = /<a\b[^>]*?\bhref\s*=\s*["']([^"']+)["']/gi;
-const INLINE_SCRIPT_PATTERN = /(<script\b[^>]*>)[\s\S]*?<\/script>/gi;
 
 const EXCLUDED_PREFIXES = ['/media/', '/api/', '/umbraco/', '/inforportalapi/'];
 
@@ -19,7 +19,7 @@ const EXCLUDED_PREFIXES = ['/media/', '/api/', '/umbraco/', '/inforportalapi/'];
 export function extractPageLinks(html: string, pageUrl: string, siteOrigin: string): string[] {
 	const origin = new URL(siteOrigin).origin;
 	const links = new Set<string>();
-	html = html.replace(INLINE_SCRIPT_PATTERN, '$1</script>');
+	html = stripInlineScripts(html);
 
 	for (const match of html.matchAll(ANCHOR_HREF_PATTERN)) {
 		const href = decodeHtmlEntities(match[1].trim());
@@ -45,5 +45,6 @@ export function extractPageLinks(html: string, pageUrl: string, siteOrigin: stri
 
 
 function decodeHtmlEntities(value: string): string {
-	return value.replaceAll('&amp;', '&').replaceAll('&#x2F;', '/').replaceAll('&#47;', '/');
+	// &amp; last, so '&amp;#47;' becomes '&#47;' and not '/'.
+	return value.replaceAll('&#x2F;', '/').replaceAll('&#47;', '/').replaceAll('&amp;', '&');
 }

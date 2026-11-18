@@ -1,4 +1,5 @@
 import { SNAPSHOT_API_PREFIXES, storagePath } from './keys';
+import { stripInlineScripts } from './html';
 import { hasFileExtension } from './paths';
 
 /**
@@ -19,8 +20,6 @@ const ATTRIBUTE_PATTERN = /\b(?:src|href|component-url|renderer-url|before-hydra
 const SRCSET_PATTERN = /\bsrcset\s*=\s*["']([^"']+)["']/gi;
 // Case-sensitive on purpose: CSS uses url(...), while JavaScript has `new URL(...)`, which is not a file reference.
 const CSS_URL_PATTERN = /\burl\(\s*["']?([^"')]+)["']?\s*\)/g;
-// Inline scripts contain code, not markup. Keep the opening tag (it may have src=...), drop the body.
-const INLINE_SCRIPT_PATTERN = /(<script\b[^>]*>)[\s\S]*?<\/script>/gi;
 
 // JavaScript modules: static and dynamic imports (from"./vendor.js", import("./chunk.js"), import"./x.js").
 const SCRIPT_IMPORT_PATTERN = /\b(?:from|import)\s*\(?\s*["'`]([^"'`\s]+\.m?js)["'`]/g;
@@ -43,7 +42,7 @@ export function extractScriptAssetPaths(body: string, scriptUrl: string, siteOri
 
 export function extractAssetPaths(body: string, pageUrl: string, siteOrigin: string): string[] {
 	const candidates: string[] = [];
-	body = body.replace(INLINE_SCRIPT_PATTERN, '$1</script>');
+	body = stripInlineScripts(body);
 
 	for (const match of body.matchAll(ATTRIBUTE_PATTERN)) candidates.push(match[1]);
 	for (const match of body.matchAll(SRCSET_PATTERN)) {

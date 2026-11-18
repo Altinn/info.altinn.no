@@ -166,6 +166,13 @@ describe('extractPageLinks', () => {
 
 		expect(extractPageLinks(html, `${SITE}/`, SITE)).toEqual([]);
 	});
+
+	it('ignores links in inline scripts also when the end tag has a space, and decodes entities once', () => {
+		const html = `<script>const a = '<a href="/fra-script/">';</script >
+			<a href="/hjelp&#47;kontakt/">kodet</a> <a href="/side/?a=1&amp;#47;">dobbel</a>`;
+
+		expect(extractPageLinks(html, `${SITE}/`, SITE).sort()).toEqual(['/hjelp/kontakt/', '/side/'].sort());
+	});
 });
 
 describe('extractScriptAssetPaths', () => {
