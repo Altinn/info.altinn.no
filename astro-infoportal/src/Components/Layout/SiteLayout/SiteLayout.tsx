@@ -110,7 +110,11 @@ const SiteLayout = ({
   const hasSidebar = !!sidebarConfig;
 
   const contentColor: "company" = "company";
-  const shouldShowCookieBanner = hydrated && !isAnswered;
+  // /preview is shown in an iframe in the Umbraco backoffice. Editors want to
+  // see the page itself there, so the cookie banner and the site-wide notice
+  // banner are left out.
+  const isPreview = !!headerViewModel?.isPreview;
+  const shouldShowCookieBanner = !isPreview && hydrated && !isAnswered;
 
   // Client-only: the page is edge-cached per URL, so visibility must never be
   // decided at SSR. Show only when a (re)decision is needed.
@@ -170,7 +174,7 @@ const SiteLayout = ({
               consent decision. Renders nothing, so SSR output is unchanged and
               the edge-cached HTML stays identical for every visitor. */}
           <SkyraSurvey consent={consent.statistics} />
-          {headerViewModel?.banner && (
+          {!isPreview && headerViewModel?.banner && (
             <BannerBlock {...headerViewModel.banner} />
           )}
           <Layout
