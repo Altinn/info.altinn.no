@@ -58,7 +58,7 @@ export default {
 				// Snapshot responses are cached like responses from Astro, so repeat requests are served from the
 				// edge cache. When fallback mode is turned off, the cache must be purged (see snapshot-infoportal/FALLBACK.md).
 				const fallback = await env.SNAPSHOT_INFOPORTAL!.fetch(request);
-				if (request.method === "GET" && fallback.status < 500) {
+				if (fallback.status < 500) {
 					ctx.waitUntil(cache.put(cacheKey, fallback.clone()));
 				}
 				return fallback;

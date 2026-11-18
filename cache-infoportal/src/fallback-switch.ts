@@ -1,11 +1,6 @@
 /**
- * Decides per request whether fallback mode is active (issue #905, option B). The fallback itself is served by
- * snapshot-infoportal (src/fallback.ts there), reached through the SNAPSHOT_INFOPORTAL service binding.
- * Runbook: snapshot-infoportal/FALLBACK.md.
- *
- * Kept small on purpose:
- * - only called when the edge cache cannot answer, and reads KV at most every 15 seconds per isolate
- * - environments without SNAPSHOT_INFOPORTAL and FALLBACK_KV return false at once
+ * Whether fallback mode is on (issue #905, see snapshot-infoportal/FALLBACK.md). Reads KV at most every
+ * 15 seconds per isolate. Environments without SNAPSHOT_INFOPORTAL and FALLBACK_KV are never in fallback mode.
  */
 export type FallbackSwitchEnv = {
 	SNAPSHOT_INFOPORTAL?: Fetcher;
@@ -22,7 +17,7 @@ export function resetFallbackSwitch(): void {
 	memo = undefined;
 }
 
-/** True when fallback:mode is "on" in KV (fallback for everyone). */
+/** True when fallback:mode is "on" in KV. */
 export async function isFallbackOn(env: FallbackSwitchEnv, now = Date.now()): Promise<boolean> {
 	if (!env.SNAPSHOT_INFOPORTAL || !env.FALLBACK_KV) return false;
 

@@ -1,4 +1,5 @@
 import { SNAPSHOT_API_PREFIXES, storagePath } from './keys';
+import { hasFileExtension } from './paths';
 
 /**
  * Finds same-origin static files (CSS, JS, images, fonts, favicons ...) referenced by an HTML page, a CSS file
@@ -94,7 +95,3 @@ function toSameOriginUrl(reference: string, baseUrl: string, siteOrigin: string)
 	}
 }
 
-function hasFileExtension(pathname: string): boolean {
-	const lastSegment = pathname.split('/').pop() ?? '';
-	return /\.[a-z0-9]{1,8}$/i.test(lastSegment);
-}

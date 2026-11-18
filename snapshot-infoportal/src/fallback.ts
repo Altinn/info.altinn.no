@@ -1,22 +1,16 @@
 /**
- * Serving side of fallback mode (option B in issue #905): answers requests from the current snapshot in R2.
- *
- * Only reached through the SNAPSHOT_INFOPORTAL service binding in cache-infoportal, which decides per request
- * whether fallback mode is active (KV flag fallback:mode). This worker has no public route.
- * Never calls Astro/Umbraco. See FALLBACK.md.
+ * Fallback mode (issue #905): answers requests from the current snapshot in R2, without calling Astro or Umbraco.
+ * Only reached through the SNAPSHOT_INFOPORTAL binding in cache-infoportal, which checks fallback:mode.
+ * See FALLBACK.md.
  */
 import { CURRENT_POINTER_KEY, notFoundKey, objectKey, redirectsKey, storagePath, type SnapshotPointer } from './keys';
+import { hasFileExtension } from './paths';
 
 export type FallbackLocale = 'nb' | 'nn' | 'en';
 
 export type FallbackEnv = {
 	SNAPSHOTS: R2Bucket;
 	FALLBACK_KV: KVNamespace;
-	/**
-	 * Optional extra source for Umbraco media (keys media/...), for files the snapshot does not have.
-	 * Not bound yet; meant for a later mirror of all Umbraco media.
-	 */
-	MEDIA?: R2Bucket;
 };
 
 /** Set on every fallback response, with the snapshot id, so it is easy to see where a page came from. */
@@ -56,11 +50,6 @@ export function localeOf(pathname: string): FallbackLocale {
 	return 'nb';
 }
 
-function hasFileExtension(pathname: string): boolean {
-	const lastSegment = pathname.split('/').pop() ?? '';
-	return /\.[a-z0-9]{1,8}$/i.test(lastSegment);
-}
-
 /**
  * Finds the redirect for a path, trying the forms the snapshot may have stored it in
  * ('/a/b/', '/a/b', and with repeated slashes collapsed).
@@ -96,6 +85,8 @@ export function redirectLocation(target: string, requestUrl: URL): string {
  * after fallback mode is turned off and the edge cache is purged (see FALLBACK.md).
  */
 const FALLBACK_CACHE_CONTROL = 'public, max-age=60, s-maxage=86400';
+/** Static files (JS, CSS, images) may stay a bit longer in the browser than pages. */
+const STATIC_CACHE_CONTROL = 'public, max-age=300, s-maxage=86400';
 
 function fallbackHeaders(snapshotId: string, extra: Record<string, string> = {}): Headers {
 	return new Headers({ 'cache-control': FALLBACK_CACHE_CONTROL, [SNAPSHOT_HEADER]: snapshotId, ...extra });
@@ -116,8 +107,7 @@ async function serveObject(bucket: R2Bucket, key: string, request: Request, snap
 	const headers = fallbackHeaders(snapshotId);
 	object.writeHttpMetadata(headers);
 	headers.set('etag', object.httpEtag);
-	// Static files (JS, CSS, images) may stay a bit longer in the browser than pages.
-	if (!(headers.get('content-type') ?? '').includes('text/html')) headers.set('cache-control', 'public, max-age=300, s-maxage=86400');
+	if (!(headers.get('content-type') ?? '').includes('text/html')) headers.set('cache-control', STATIC_CACHE_CONTROL);
 
 	const body = 'body' in object ? (object as R2ObjectBody).body : null;
 	return new Response(request.method === 'HEAD' ? null : body, { status, headers });
@@ -126,23 +116,20 @@ async function serveObject(bucket: R2Bucket, key: string, request: Request, snap
 /**
  * Serves /media/... from the snapshot: first the exact image size the URL asks for (see storagePath), then the
  * original file, then any stored size of the same file (for example when the URL has no or other image
- * parameters). Last, the optional MEDIA bucket. Returns null when nothing is found.
+ * parameters). Returns null when nothing is found.
  */
-async function serveMedia(env: FallbackEnv, url: URL, request: Request, id: string): Promise<Response | null> {
+async function serveMedia(bucket: R2Bucket, url: URL, request: Request, id: string): Promise<Response | null> {
 	const exact = storagePath(url);
 	const found =
-		(await serveObject(env.SNAPSHOTS, objectKey(id, exact), request, id)) ??
-		(exact !== url.pathname ? await serveObject(env.SNAPSHOTS, objectKey(id, url.pathname), request, id) : null);
+		(await serveObject(bucket, objectKey(id, exact), request, id)) ??
+		(exact !== url.pathname ? await serveObject(bucket, objectKey(id, url.pathname), request, id) : null);
 	if (found) return found;
 
-	const variants = await env.SNAPSHOTS.list({ prefix: `${objectKey(id, url.pathname)}?`, limit: 1 });
-	const variant = variants.objects[0] ? await serveObject(env.SNAPSHOTS, variants.objects[0].key, request, id) : null;
-	if (variant) return variant;
-
-	return env.MEDIA ? serveObject(env.MEDIA, url.pathname.slice(1), request, id) : null;
+	const variants = await bucket.list({ prefix: `${objectKey(id, url.pathname)}?`, limit: 1 });
+	return variants.objects[0] ? serveObject(bucket, variants.objects[0].key, request, id) : null;
 }
 
-/** Serves a request from the current snapshot. Never calls Astro/Umbraco. */
+/** Serves a request from the current snapshot. */
 export async function serveFallback(request: Request, env: FallbackEnv): Promise<Response> {
 	const pointer = await readPointer(env.FALLBACK_KV);
 	if (!pointer) return unavailable('none', 'Tjenesten er midlertidig utilgjengelig. / The service is temporarily unavailable.');
@@ -162,7 +149,7 @@ export async function serveFallback(request: Request, env: FallbackEnv): Promise
 	}
 
 	if (pathname.startsWith('/media/')) {
-		const media = await serveMedia(env, url, request, id);
+		const media = await serveMedia(env.SNAPSHOTS, url, request, id);
 		if (media) return media;
 	} else {
 		// Pages and files by pathname; static API data with its query (see storagePath).

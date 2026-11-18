@@ -16,12 +16,11 @@
  *
  * KV (namespace infoportal-fallback-{env}):
  *   snapshot:current                  JSON SnapshotPointer. Written only after a snapshot passes validation.
- *   fallback:mode                     "on" | "off". Set manually by a developer (option B). Read by cache-infoportal.
+ *   fallback:mode                     "on" | "off". Set manually (see FALLBACK.md). Read by cache-infoportal.
  */
 
 export const SNAPSHOT_PREFIX = 'snapshots/';
 export const CURRENT_POINTER_KEY = 'snapshot:current';
-export const FALLBACK_MODE_KEY = 'fallback:mode';
 /** Test runs (a few pages) get ids like test-2026-11-10T09-15-00-000Z. They are never promoted or cleaned up automatically. */
 export const TEST_SNAPSHOT_ID_PREFIX = 'test-';
 
@@ -47,11 +46,11 @@ export type SnapshotManifest = {
 	/** Pages and files stored, out of sitemapUrls + extraPaths - unavailable. */
 	pages: number;
 	/**
-	 * Pages found by following internal links that are not in the page list (one round, see LINKED_PAGES_LIMIT).
+	 * Pages found by following internal links that are not in the page list (see LINKED_PAGES_LIMIT).
 	 * Not part of validation: they are a bonus on top of the listed pages.
 	 */
 	linked?: {
-		/** Rounds used (at most 3: links on linked pages are followed too). */
+		/** Rounds used (links on linked pages are followed too, see MAX_LINK_ROUNDS). */
 		rounds: number;
 		/** Links fetched or left out, over all rounds. Not in the page list and not a known redirect. */
 		candidates: number;
@@ -90,10 +89,10 @@ export function snapshotRoot(id: string): string {
 	return `${SNAPSHOT_PREFIX}${id}/`;
 }
 
-/** Key for a page or asset. Uses URL.pathname as-is (already percent-encoded), and ignores the query string. */
-export function objectKey(id: string, pathname: string): string {
-	const path = pathname.startsWith('/') ? pathname : `/${pathname}`;
-	const file = path.endsWith('/') ? `${path}index.html` : path;
+/** Key for a page or file. `path` is URL.pathname as-is (already percent-encoded), or a storagePath() with query. */
+export function objectKey(id: string, path: string): string {
+	const absolute = path.startsWith('/') ? path : `/${path}`;
+	const file = absolute.endsWith('/') ? `${absolute}index.html` : absolute;
 	return `${snapshotRoot(id)}p${file}`;
 }
 
@@ -130,7 +129,6 @@ export function storagePath(url: URL): string {
 	const allowed = STORED_QUERY_PARAMS.find(([prefix]) => url.pathname.startsWith(prefix))?.[1];
 	if (!allowed) return url.pathname;
 
-	// Strip all leading "?": Astro writes "??rmode=max&...".
 	const params = new URLSearchParams(url.search.replace(/^\?+/, ''));
 	const kept = new URLSearchParams([...params].filter(([name]) => allowed.has(name.toLowerCase())));
 	kept.sort();

@@ -4,12 +4,12 @@ Cloudflare Worker that takes a full snapshot of info.altinn.no and stores it in 
 snapshot when fallback mode is on (switched on by `cache-infoportal`), so the site stays up if Azure/Umbraco is down.
 Background and design: GitHub issue #905 and `docs/reservelosning/`.
 
-**Status:** proof of concept, set up for `at22` only. Fallback is switched on manually (option B).
+**Status:** set up for `at22` only. Fallback mode is switched on manually (see FALLBACK.md).
 
 ## How it works
 
 ```
-cron 02:00 UTC / manual trigger
+cron 02:00 UTC (prod, not at22) / manual trigger
         │
         ▼
 SnapshotWorkflow (Cloudflare Workflows, one step per batch, retried on failure)
@@ -28,10 +28,14 @@ The storage format shared with `cache-infoportal` is described in [`src/keys.ts`
 
 ## Not done yet
 
-- Umbraco media is only captured when a page, CSS or JavaScript file links to it (stored per snapshot, original size).
-- Serving in fallback mode is in this worker's `fetch()` ([`src/fallback.ts`](./src/fallback.ts)), switched on by `cache-infoportal`.
-  See [`FALLBACK.md`](./FALLBACK.md). Only at22 so far.
-- Environments `at23`, `tt02` and `prod`.
+- Environments `at23`, `tt02` and `prod`. Production should take a nightly snapshot (cron `0 2 * * *`, see `wrangler.jsonc`).
+- Alerting when `snapshot:current` gets old (for example after several failed nightly runs).
+- Search pages with a query, contact forms and login need the live site (see [`FALLBACK.md`](./FALLBACK.md)).
+- Old URLs that only exist in Umbraco's redirect tables are not in the snapshot.
+- Umbraco media is only captured when a page, CSS or JavaScript file links to it (in the size the page asks for).
+
+Serving in fallback mode is in this worker's `fetch()` ([`src/fallback.ts`](./src/fallback.ts)), switched on by
+`cache-infoportal`. See [`FALLBACK.md`](./FALLBACK.md).
 
 ## One-time setup per environment (example: at22)
 

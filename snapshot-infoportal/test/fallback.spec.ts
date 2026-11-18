@@ -6,7 +6,6 @@ import { CURRENT_POINTER_KEY, notFoundKey, objectKey, redirectsKey } from '../sr
 
 const SITE = 'https://info.altinn.no';
 const ID = '2026-11-11T08-07-50-218Z';
-const MEDIA = (env as unknown as { MEDIA: R2Bucket }).MEDIA;
 
 async function call(path: string, init: RequestInit = {}): Promise<Response> {
 	return worker.fetch(new Request(`${SITE}${path}`, init) as never, env);
@@ -20,7 +19,6 @@ async function clearBucket(bucket: R2Bucket) {
 beforeEach(async () => {
 	resetFallbackMemo();
 	await clearBucket(env.SNAPSHOTS);
-	await clearBucket(MEDIA);
 	await env.FALLBACK_KV.put(CURRENT_POINTER_KEY, JSON.stringify({ id: ID, createdAt: '' }));
 
 	const html = { httpMetadata: { contentType: 'text/html; charset=utf-8' } };
@@ -45,7 +43,6 @@ beforeEach(async () => {
 	const json = { httpMetadata: { contentType: 'application/json' } };
 	await env.SNAPSHOTS.put(objectKey(ID, '/api/subsidies/nb'), '{"subsidiesList":[]}', json);
 	await env.SNAPSHOTS.put(objectKey(ID, '/api/schema/municipalities?locale=nb&path=%2Fskjema%2Fx%2F'), '{"items":["x"]}', json);
-	await MEDIA.put('media/def/eldre.png', 'eldre', { httpMetadata: { contentType: 'image/png' } });
 });
 
 describe('serving from the snapshot', () => {
@@ -121,12 +118,6 @@ describe('serving from the snapshot', () => {
 		const other = await call('/media/abc/bilde.png?width=50');
 		expect(other.status).toBe(200);
 		expect(['png 698', 'png 300']).toContain(await other.text());
-	});
-
-	it('falls back to the media bucket for media the snapshot does not have', async () => {
-		const response = await call('/media/def/eldre.png');
-		expect(response.status).toBe(200);
-		expect(new TextDecoder().decode(await response.arrayBuffer())).toBe('eldre');
 	});
 
 	it('answers missing media with the 404 page', async () => {

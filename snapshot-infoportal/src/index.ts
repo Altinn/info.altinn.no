@@ -1,4 +1,4 @@
-import { serveFallback, type FallbackEnv } from './fallback';
+import { serveFallback } from './fallback';
 
 export { SnapshotWorkflow } from './workflow';
 
@@ -6,10 +6,10 @@ export { SnapshotWorkflow } from './workflow';
  * snapshot-infoportal
  *
  * Takes a full snapshot of info.altinn.no into R2 so cache-infoportal can serve the site
- * if Azure/Umbraco is unavailable. See docs/reservelosning/ and README.md.
+ * if Azure/Umbraco is unavailable. See README.md.
  *
  * Starts a SnapshotWorkflow instance:
- *   - nightly via the cron trigger in wrangler.jsonc
+ *   - on a schedule via the cron trigger in wrangler.jsonc (none in at22)
  *   - manually: pnpm wrangler workflows trigger snapshot-infoportal-<env> '{"trigger":"manual"}'
  *
  * fetch() serves the site from the current snapshot (fallback mode, see FALLBACK.md and src/fallback.ts).
@@ -26,7 +26,6 @@ export default {
 	},
 
 	async fetch(request, env) {
-		// MEDIA is only bound once the backup job writes the media mirror to R2.
-		return serveFallback(request, env as Env & FallbackEnv);
+		return serveFallback(request, env);
 	},
 } satisfies ExportedHandler<Env>;

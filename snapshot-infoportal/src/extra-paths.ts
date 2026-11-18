@@ -26,7 +26,7 @@ export const EXTRA_PATHS = [
 
 /**
  * The 404 page is captured by requesting a path that does not exist, once per language.
- * cache-infoportal serves it (with status 404) for paths that are not in the snapshot.
+ * Served with status 404 for paths that are not in the snapshot (src/fallback.ts).
  */
 export const NOT_FOUND_PROBES = [
 	{ locale: 'nb', path: '/__snapshot-404__/' },

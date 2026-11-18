@@ -2,6 +2,7 @@ import { WorkflowEntrypoint, type WorkflowEvent, type WorkflowStep } from 'cloud
 import { NonRetryableError } from 'cloudflare:workflows';
 import { EXTRA_PATHS } from './extra-paths';
 import { createSnapshotId, TEST_SNAPSHOT_ID_PREFIX, type SnapshotManifest } from './keys';
+import { hasFileExtension } from './paths';
 import {
 	captureNotFoundPages,
 	capturePaths,
@@ -39,7 +40,16 @@ const MAX_ASSET_ROUNDS = 5;
 const MAX_LINK_ROUNDS = 3;
 
 /**
- * Nightly snapshot of the whole site into R2.
+ * The page a redirect target points at, in the form pages are listed and stored: no query string, and a trailing
+ * slash unless it is a file. Astro sometimes redirects to "/om-altinn/personvern" and then on to ".../personvern/".
+ */
+function toPagePath(target: string): string {
+	const path = target.split(/[?#]/)[0];
+	return path.endsWith('/') || hasFileExtension(path) ? path : `${path}/`;
+}
+
+/**
+ * Snapshot of the whole site into R2.
  *
  * Every step.do() result is persisted by Workflows, so a failed or restarted instance resumes where it stopped.
  * Code outside step.do() runs again on every resume and must therefore be deterministic.
@@ -47,16 +57,6 @@ const MAX_LINK_ROUNDS = 3;
  * snapshot:current is only moved after the snapshot passes validation, so a bad run (for example while
  * Umbraco is down) never replaces the last good snapshot.
  */
-/**
- * The page a redirect target points at, in the form pages are listed and stored: no query string, and a trailing
- * slash unless it is a file. Astro sometimes redirects to "/om-altinn/personvern" and then on to ".../personvern/".
- */
-function toPagePath(target: string): string {
-	const path = target.split(/[?#]/)[0];
-	const lastSegment = path.split('/').pop() ?? '';
-	return path.endsWith('/') || /\.[a-z0-9]{1,8}$/i.test(lastSegment) ? path : `${path}/`;
-}
-
 export class SnapshotWorkflow extends WorkflowEntrypoint<Env, SnapshotParams> {
 	async run(event: WorkflowEvent<SnapshotParams>, step: WorkflowStep) {
 		if (!this.env.ASTRO_INFOPORTAL) {

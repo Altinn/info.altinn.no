@@ -7,6 +7,7 @@ import {
 	objectKey,
 	redirectsKey,
 	SNAPSHOT_PREFIX,
+	snapshotRoot,
 	TEST_SNAPSHOT_ID_PREFIX,
 	type SnapshotManifest,
 	type SnapshotPointer,
@@ -14,6 +15,7 @@ import {
 	unlistedKey,
 } from './keys';
 import { extractPageLinks } from './links';
+import { fileExtension } from './paths';
 import { parseSitemapPaths } from './sitemap';
 
 /** The parts of the environment the snapshot logic needs. Kept small so tests can pass fakes. */
@@ -155,7 +157,7 @@ export async function capturePaths(
 			});
 			result.stored++;
 		} catch (error) {
-			result.failed.push({ path, status: error instanceof Error ? error.message : String(error) });
+			result.failed.push({ path, status: errorMessage(error) });
 		}
 	});
 
@@ -189,7 +191,7 @@ export async function captureNotFoundPages(deps: SnapshotDeps, snapshotId: strin
 			});
 			result.stored++;
 		} catch (error) {
-			result.failed.push({ path: probe.path, status: error instanceof Error ? error.message : String(error) });
+			result.failed.push({ path: probe.path, status: errorMessage(error) });
 		}
 	}
 
@@ -222,15 +224,10 @@ export async function writeManifest(
 	redirects: Record<string, string>,
 	unlisted: UnlistedLink[] = [],
 ): Promise<void> {
-	await deps.bucket.put(redirectsKey(manifest.id), JSON.stringify(redirects), {
-		httpMetadata: { contentType: 'application/json' },
-	});
-	await deps.bucket.put(unlistedKey(manifest.id), JSON.stringify(unlisted, null, 1), {
-		httpMetadata: { contentType: 'application/json' },
-	});
-	await deps.bucket.put(manifestKey(manifest.id), JSON.stringify(manifest, null, 2), {
-		httpMetadata: { contentType: 'application/json' },
-	});
+	const json = { httpMetadata: { contentType: 'application/json' } };
+	await deps.bucket.put(redirectsKey(manifest.id), JSON.stringify(redirects), json);
+	await deps.bucket.put(unlistedKey(manifest.id), JSON.stringify(unlisted, null, 1), json);
+	await deps.bucket.put(manifestKey(manifest.id), JSON.stringify(manifest, null, 2), json);
 }
 
 /** Returns a reason the snapshot must not be promoted, or null when it is good enough. */
@@ -267,7 +264,7 @@ export async function cleanupSnapshots(deps: SnapshotDeps, keep: number): Promis
 	const toDelete = newestFirst.slice(keep).filter((id) => id !== current?.id);
 
 	for (const id of toDelete) {
-		await deletePrefix(deps.bucket, `${SNAPSHOT_PREFIX}${id}/`);
+		await deletePrefix(deps.bucket, snapshotRoot(id));
 	}
 	return toDelete;
 }
@@ -348,7 +345,7 @@ const CONTENT_TYPES: Record<string, string> = {
  */
 export function contentTypeFor(path: string, header: string | null): string {
 	if (header && !header.toLowerCase().startsWith('application/octet-stream')) return header;
-	const extension = /\.([a-z0-9]{1,8})$/i.exec(path.split('?')[0].split('/').pop() ?? '')?.[1]?.toLowerCase();
+	const extension = fileExtension(path);
 	return (extension && CONTENT_TYPES[extension]) || header || 'application/octet-stream';
 }
 
@@ -388,6 +385,10 @@ async function forEachWithLimit<T>(items: T[], limit: number, task: (item: T) =>
 		}
 	});
 	await Promise.all(workers);
+}
+
+function errorMessage(error: unknown): string {
+	return error instanceof Error ? error.message : String(error);
 }
 
 export function chunk<T>(items: T[], size: number): T[][] {

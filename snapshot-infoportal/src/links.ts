@@ -1,3 +1,5 @@
+import { hasFileExtension } from './paths';
+
 /**
  * Finds internal page links (<a href>) in captured HTML.
  *
@@ -7,7 +9,6 @@
 const ANCHOR_HREF_PATTERN = /<a\b[^>]*?\bhref\s*=\s*["']([^"']+)["']/gi;
 const INLINE_SCRIPT_PATTERN = /(<script\b[^>]*>)[\s\S]*?<\/script>/gi;
 
-/** Not pages: media and APIs are served by Umbraco/Astro handlers, not rendered pages. */
 const EXCLUDED_PREFIXES = ['/media/', '/api/', '/umbraco/', '/inforportalapi/'];
 
 /**
@@ -42,10 +43,6 @@ export function extractPageLinks(html: string, pageUrl: string, siteOrigin: stri
 	return [...links];
 }
 
-function hasFileExtension(pathname: string): boolean {
-	const lastSegment = pathname.split('/').pop() ?? '';
-	return /\.[a-z0-9]{1,8}$/i.test(lastSegment);
-}
 
 function decodeHtmlEntities(value: string): string {
 	return value.replaceAll('&amp;', '&').replaceAll('&#x2F;', '/').replaceAll('&#47;', '/');

@@ -1,7 +1,7 @@
 # Fallback mode (runbook)
 
 When Azure/Umbraco is down, info.altinn.no can be served from the latest snapshot in R2 instead of from
-Astro/Umbraco (issue #905, option B).
+Astro/Umbraco (issue #905).
 
 Only set up in **at22** for now.
 
@@ -118,6 +118,5 @@ cd ../cache-infoportal && pnpm wrangler deploy --env at22
 | cache-infoportal | `SNAPSHOT_INFOPORTAL` | Service binding to `snapshot-infoportal-{env}` | at22 |
 | cache-infoportal | `FALLBACK_KV` | KV namespace `infoportal-fallback-{env}`, for `fallback:mode` | at22 |
 | snapshot-infoportal | `SNAPSHOTS`, `FALLBACK_KV` | The snapshot bucket and the same KV namespace | at22 |
-| snapshot-infoportal | `MEDIA` | Optional extra source for media the snapshot lacks (`media/...`), for example a later Umbraco media mirror | not yet |
 
 Without `SNAPSHOT_INFOPORTAL` and `FALLBACK_KV`, `cache-infoportal` never turns on fallback mode and behaves as before.
