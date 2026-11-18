@@ -40,6 +40,8 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
         options.RequireHttpsMetadata = false;
 
         options.ResponseType = "code";
+        // The default, but IsOpenedWithoutEntra relies on it.
+        options.ResponseMode = OpenIdConnectResponseMode.FormPost;
 
         options.Scope.Clear();
         options.Scope.Add("openid");
@@ -75,8 +77,11 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
         // The backoffice login auto-redirects to Entra, and with an active Entra session Entra
         // answers without user interaction. Redirecting every failure back to the login would
         // therefore loop forever on persistent failures (e.g. an expired client secret). Only stale
-        // attempts (correlation cookie expired after RemoteAuthenticationTimeout, or the user pressed
-        // back into Entra's /authorize URL, replaying an old state) are retried, and only once.
+        // attempts are retried, and only once:
+        // - the correlation cookie expired after RemoteAuthenticationTimeout, or the user pressed
+        //   back into Entra's /authorize URL, replaying an old state;
+        // - the same callback reached us twice (reload or double submit while the first one was
+        //   still running), so Entra had already redeemed the code (AADSTS54005).
         options.Events.OnRemoteFailure = async context =>
         {
             var logger = context.HttpContext.RequestServices
@@ -84,8 +89,16 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
             var message = context.Failure?.Message ?? string.Empty;
             context.HandleResponse();
 
+            if (IsOpenedWithoutEntra(context.Request))
+            {
+                // The browser opened the callback URL itself (e.g. Enter in the address bar on the error page).
+                logger.LogInformation("Entra ID callback URL opened without a login in progress: {Reason}", message);
+                context.Response.Redirect(BackOfficePath);
+                return;
+            }
+
             if (context.Failure is OpenIdConnectProtocolException protocolException &&
-                protocolException.Data["error"] as string == "access_denied")
+                protocolException.Data[OpenIdConnectParameterNames.Error] as string == AccessDeniedError)
             {
                 // Redirecting to /umbraco would send the user straight back to Entra.
                 logger.LogInformation("Entra ID login cancelled: {Reason}", message);
@@ -97,7 +110,8 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
             // drops the correlation cookie on Entra's cross-site callback would drop a retry cookie
             // too, and every callback would look like a first attempt.
             var properties = context.Properties;
-            var isStaleAttempt = message == CorrelationFailedMessage && properties is not null;
+            var isStaleAttempt = (message == CorrelationFailedMessage || IsCodeAlreadyRedeemed(context.Failure))
+                && properties is not null;
             if (isStaleAttempt && !properties!.Items.ContainsKey(RetryMarker))
             {
                 // Same properties as the original challenge, so Umbraco's callback and return URL
@@ -116,8 +130,9 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
             // TraceId matches the error reference shown on the page.
             if (isStaleAttempt)
             {
-                // The retry failed as well. Can be a single user (back pressed twice, browser
-                // dropping cookies), so log as a warning: errors trigger alerts.
+                // The retry failed as well. Can be a single user (back pressed twice, reloading
+                // the callback twice, browser dropping cookies), so log as a warning: errors
+                // trigger alerts.
                 logger.LogWarning("Entra ID login failed again after retry: {Reason} (TraceId {TraceId})",
                     message, context.HttpContext.TraceIdentifier);
             }
@@ -137,6 +152,28 @@ public class ConfigureMicrosoftEntraIdAuthenticationOptions : IConfigureNamedOpt
 
     // Set in the authentication properties (protected into the OIDC state) when a stale attempt is retried.
     private const string RetryMarker = "Infoportal.EntraLoginRetry";
+
+    private const string AccessDeniedError = "access_denied";
+    private const string InvalidGrantError = "invalid_grant";
+
+    // Entra's answer when an authorization code is redeemed a second time. Only this code is
+    // retried: other invalid_grant errors (e.g. a PKCE mismatch) can be persistent and must be seen.
+    private const string CodeAlreadyRedeemedError = "AADSTS54005";
+
+    private const string BackOfficePath = "/umbraco";
+
+    // Entra always answers with a form post, so a GET without a state is not a callback, and
+    // redirecting it to a new login cannot loop. A POST without a state is left as an error:
+    // it comes from Entra or a proxy, where a redirect could loop.
+    private static bool IsOpenedWithoutEntra(HttpRequest request) =>
+        HttpMethods.IsGet(request.Method) &&
+        string.IsNullOrEmpty(request.Query[OpenIdConnectParameterNames.State]);
+
+    private static bool IsCodeAlreadyRedeemed(Exception? failure) =>
+        failure is OpenIdConnectProtocolException exception &&
+        exception.Data[OpenIdConnectParameterNames.Error] as string == InvalidGrantError &&
+        exception.Data[OpenIdConnectParameterNames.ErrorDescription] is string description &&
+        description.StartsWith(CodeAlreadyRedeemedError, StringComparison.Ordinal);
 
     public void Configure(string? name, OpenIdConnectOptions options)
     {
