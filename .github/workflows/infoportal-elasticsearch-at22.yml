@@ -57,6 +57,17 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
+      - name: Hash the Elasticsearch API key
+        # Terraform does not store the key, so the hash tells it when the key has changed.
+        shell: bash
+        run: |
+          if [ -z "$TF_VAR_elasticsearch_api_key" ]; then
+            echo "::error::Set the ELASTICSEARCH_API_KEY_INFOPORTAL_AT22 secret."
+            exit 1
+          fi
+          hash=$(printf '%s' "$TF_VAR_elasticsearch_api_key" | sha256sum | cut -c1-12)
+          echo "TF_VAR_elasticsearch_api_key_version=$((16#$hash))" >> "$GITHUB_ENV"
+
       - name: Terraform Plan
         uses: Altinn/altinn-platform/actions/terraform/plan@e3d55565a6da4ea3d64cbcc4489fe363226c8567 # main
         with:
