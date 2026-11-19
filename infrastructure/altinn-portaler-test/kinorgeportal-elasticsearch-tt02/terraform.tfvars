@@ -30,6 +30,5 @@ allowed_cidr_blocks = [
 
   # VPN exit nodes
   "4.235.99.236/32", # ts-exit-test
-  "20.100.192.19/32", # ts-exit-prod
 
 ]
