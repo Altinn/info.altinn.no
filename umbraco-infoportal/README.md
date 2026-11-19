@@ -35,13 +35,14 @@ The code is organised by **functional area**: one folder per feature, holding ev
 | `CachePurge/`          | Purges Cloudflare cache for affected URLs when content changes               |
 | `PropertyConversions/` | Turns stored property values (rich text, block lists) into the JSON Astro gets |
 | `ContentFilters/`      | Delivery API filters, e.g. `?filter=industry:...`                            |
-| `Preview/`             | Preview URLs pointing at the Astro frontend                                  |
+| `Preview/`             | Preview URLs to the Astro frontend, shown in an iframe in the backoffice     |
 | `Redirects/`           | `/api/redirect`, used by Astro to resolve redirects and moved pages          |
 | `ContactForm/`         | `/api/contactform`, sends contact forms by email, rate limited               |
 | `MaintenanceBanner/`   | Maintenance message shown in the backoffice header                           |
 | `ArticleExport/`       | Backoffice export of articles to Word                                        |
 | `FormChanges/`         | Backoffice dashboard of changes in the form catalogue                        |
 | `MetaImport/`          | Import of form metadata                                                      |
+| `OperationalMessages/` | Backoffice dashboard "Ny driftsmelding": creates, publishes and puts a driftsmelding on the start page |
 
 Inside an area, classes are sorted by **what kind of class** they are:
 

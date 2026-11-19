@@ -1,5 +1,6 @@
 variable "elastic_cloud_api_key" {
-  description = "Elastic Cloud API key for authenticating the elastic/ec provider"
+  description = "Elastic Cloud API key for authenticating the elastic/ec provider. Ephemeral, so saved plans do not store it."
   type        = string
   sensitive   = true
+  ephemeral   = true
 }

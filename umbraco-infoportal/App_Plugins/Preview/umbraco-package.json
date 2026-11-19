@@ -1,18 +1,45 @@
 {
-  "name": "PreviewUrlProvider",
-  "alias": "PreviewUrlProvider",
+  "$schema": "../../umbraco-package-schema.json",
+  "name": "Infoportal.Preview",
+  "alias": "Infoportal.Preview",
+  "version": "1.0.0",
   "extensions": [
     {
-      "type": "workspaceActionMenuItem",
-      "kind": "previewOption",
-      "alias": "PortalPreviewOption",
-      "name": "Custom preview",
-      "forWorkspaceActions": "Umb.WorkspaceAction.Document.SaveAndPreview",
-      "weight": 101,
+      "type": "backofficeEntryPoint",
+      "alias": "Infoportal.Preview.EntryPoint",
+      "name": "Infoportal preview entry point",
+      "js": "/App_Plugins/Preview/preview-entrypoint.js"
+    },
+    {
+      "type": "workspaceView",
+      "alias": "Infoportal.Preview.WorkspaceView",
+      "name": "Infoportal preview workspace view",
+      "element": "/App_Plugins/Preview/preview-workspace-view.js",
+      "weight": 10,
       "meta": {
-        "label": "Lagre og forhåndsvis",
-        "urlProviderAlias": "PreviewUrlProvider"
-      }
+        "label": "Forhåndsvisning",
+        "pathname": "preview",
+        "icon": "icon-eye"
+      },
+      "conditions": [
+        { "alias": "Umb.Condition.WorkspaceAlias", "match": "Umb.Workspace.Document" },
+        { "alias": "Umb.Condition.EntityIsNotTrashed" }
+      ]
+    },
+    {
+      "type": "workspaceAction",
+      "kind": "default",
+      "alias": "Infoportal.Preview.WorkspaceAction.SaveAndPreview",
+      "name": "Infoportal save and preview",
+      "api": "/App_Plugins/Preview/save-and-preview.action.js",
+      "weight": 90,
+      "meta": {
+        "label": "Lagre og forhåndsvis"
+      },
+      "conditions": [
+        { "alias": "Umb.Condition.WorkspaceAlias", "match": "Umb.Workspace.Document" },
+        { "alias": "Umb.Condition.EntityIsNotTrashed" }
+      ]
     }
   ]
 }

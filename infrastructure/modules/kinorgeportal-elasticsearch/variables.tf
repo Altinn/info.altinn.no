@@ -40,15 +40,15 @@ variable "sku_name" {
 }
 
 variable "elasticsearch_api_key" {
-  description = "Encoded Elasticsearch API key (base64 id:api_key) for application access, created once in the Elastic Cloud console"
+  description = "Encoded Elasticsearch API key (base64 id:api_key) for application access, created once in the Elastic Cloud console. Ephemeral, so saved plans and state do not store it."
   type        = string
   sensitive   = true
+  ephemeral   = true
 }
 
-variable "elastic_cloud_api_key" {
-  description = "Elastic Cloud API key for authenticating the elastic/ec provider"
-  type        = string
-  sensitive   = true
+variable "elasticsearch_api_key_version" {
+  description = "Number from the SHA-256 of elasticsearch_api_key, set by the workflow. It changes with the key, so Terraform writes the new key to Key Vault."
+  type        = number
 }
 
 variable "allowed_cidr_blocks" {
