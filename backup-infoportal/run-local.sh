@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
-# Runs the backup image on your machine against a real environment, writing to a local folder,
-# or with --to-r2 to the environment's R2 backup bucket. Used to test the image before it runs as a
-# CronJob in AKS.
-#
-# Needs the same access as scripts/db (VPN, az login, DIS AzSQL Admin Dev IP), plus a role on the
-# media storage account that allows a user delegation SAS (as scripts/blobs uses).
+# Runs the backup image locally against a real environment, writing to a local folder or R2 (--to-r2).
+# Needs the same access as scripts/db and scripts/blobs.
 
 set -Eeuo pipefail
 
@@ -84,7 +80,7 @@ fi
 mkdir -p "$OUT_DIR"
 chmod 700 "$OUT_DIR"
 
-# Values are passed to docker by name (-e NAME), so tokens never appear on a command line.
+# Passed to docker by name (-e NAME), so tokens never appear on a command line.
 export SQL_ACCESS_TOKEN="" MEDIA_SAS_URL=""
 if [ "$SKIP_DB" != true ]; then
 	log "getting an Entra token for the database"
@@ -99,7 +95,7 @@ if [ "$SKIP_MEDIA" != true ]; then
 	MEDIA_SAS_URL="https://${MEDIA_ACCOUNT}.blob.core.windows.net/umbraco?${SAS}"
 fi
 
-# Looks up an A record directly with a given DNS server, without dig or nslookup. Prints the first address.
+# Looks up an A record with a given DNS server, without dig or nslookup.
 resolve_a() {
 	python3 - "$1" "$2" <<'EOF'
 import random, socket, struct, sys
@@ -152,7 +148,7 @@ if [ -n "$DNS_SERVER" ] && [ "$SKIP_DB" != true ]; then
 	HOST_ARGS=(--add-host "$SQL_SERVER:$SQL_IP")
 fi
 
-# --network host by default: the database is a Private Link address reached through the VPN on the host.
+# Host network by default: the database is reached through the VPN on the host.
 NETWORK_ARGS=(--network host)
 if [ -n "$MTU" ]; then
 	case "$MTU" in '' | *[!0-9]*) die "--mtu must be a number" ;; esac
@@ -164,7 +160,6 @@ if [ -n "$MTU" ]; then
 	NETWORK_ARGS=(--network "$NETWORK")
 fi
 
-# Targets. R2 credentials go to docker as an env file, so they never appear on a command line.
 TARGET_ARGS=(-e DB_TARGET=/out/db -e MEDIA_TARGET=/out/media -e MEDIA_DELETED_TARGET=/out/media-deleted)
 if $TO_R2; then
 	R2_ENV="${R2_ENV:-$OUT_DIR/r2.env}"
@@ -182,9 +177,7 @@ if $TO_R2; then
 	)
 fi
 
-# The files written to the mounted folder must belong to you. With rootless Docker, container root
-# is mapped to your own user (and any other container uid to an unrelated subuid), so run as root
-# there. With normal Docker, run as your own uid.
+# Files in the mounted folder must belong to you. In rootless Docker, container root is your user.
 if docker info --format '{{.SecurityOptions}}' 2>/dev/null | grep -q rootless; then
 	CONTAINER_USER="0:0"
 else
@@ -192,10 +185,15 @@ else
 fi
 
 log "running backup for $ENV_NAME -> $($TO_R2 && echo "$BUCKET" || echo "$OUT_DIR")"
+# Same restrictions as the CronJob.
 docker run --rm \
 	"${NETWORK_ARGS[@]}" \
 	"${HOST_ARGS[@]}" \
 	--user "$CONTAINER_USER" \
+	--read-only \
+	--tmpfs /tmp:rw,exec,size=2g \
+	--cap-drop ALL \
+	--security-opt no-new-privileges \
 	-e HOME=/tmp \
 	-e ENV_NAME="$ENV_NAME" \
 	-e SQL_SERVER="$SQL_SERVER" \

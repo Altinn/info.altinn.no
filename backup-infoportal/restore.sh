@@ -1,11 +1,6 @@
 #!/usr/bin/env bash
-# Restores a database backup from R2 on your machine:
-#
-#   1. Read latest.json (or use --object) from r2:infoportal-backup-<env>/db
-#   2. Download the backup and check its sha256 against latest.json
-#   3. With --import: import it into the local SQL Server with scripts/db/import-bacpac.sh
-#
-# rclone runs in the backup image, so nothing needs to be installed except Docker.
+# Downloads a database backup from R2, checks it against latest.json, and optionally imports it locally.
+# Only Docker is needed: rclone runs in the backup image.
 
 set -Eeuo pipefail
 
@@ -82,7 +77,6 @@ else
 	CONTAINER_USER="$(id -u):$(id -g)"
 fi
 
-# Runs a command in the backup image with R2 configured and the restore folder mounted at /work.
 in_image() {
 	docker run --rm -i \
 		--user "$CONTAINER_USER" \
@@ -97,7 +91,6 @@ in_image() {
 		"$IMAGE" "${@:2}"
 }
 
-# jq from the image, reading stdin.
 jq() { docker run --rm -i --entrypoint jq "$IMAGE" "$@"; }
 
 if $LIST; then

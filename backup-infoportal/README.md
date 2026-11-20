@@ -1,10 +1,10 @@
 # backup-infoportal
 
-Nightly backup of the Umbraco database and media to Cloudflare R2, so info.altinn.no can be restored
-outside Azure (plan C in `docs/reservelosning/`). Runs as a Kubernetes CronJob next to Umbraco in AKS.
+Nightly backup of the Umbraco database and media to Cloudflare R2, so Umbraco can be restored even if
+the data in Azure is lost. Runs as a Kubernetes CronJob next to Umbraco in AKS, at 02:00 UTC.
 
-**Status:** image, backup script and restore script are done and tested from a local machine against at22
-and the R2 bucket `infoportal-backup-at22`. Not done yet: CronJob in `syncroot/` and the image publish workflow.
+**Status:** tested from a local machine against at22 and the R2 bucket `infoportal-backup-at22`. The CronJob
+is set up for at22 only (`syncroot/base/backup/`, included from `syncroot/at22/`).
 
 ## What it does
 
@@ -82,27 +82,60 @@ The SQL server must be reached on its private address. Two things can go wrong, 
 
 `--tailscale` does both.
 
-## Configuration in the cluster
+## Running in the cluster
 
-Set on the CronJob (see the header of `backup.sh` for all variables):
+| File | Purpose |
+| --- | --- |
+| `.github/workflows/backup-image-publish.yaml` | Builds this folder's image and publishes it as `ghcr.io/altinn/infoportal-backup:<tag>`. |
+| `syncroot/base/backup/cronjob.yaml` | The CronJob. Runs as the `umbraco` service account (workload identity), which already has access to the database and the media container. |
+| `syncroot/base/backup/r2-secrets.yaml` | ExternalSecret that reads the R2 token and endpoint from the Umbraco DIS Key Vault. |
+| `syncroot/<env>/kustomization.yaml` | Opts the environment in (`../base/backup`), sets the image tag and the environment's bucket and media account. |
 
-| Variable | Example (at22) | Source |
+The CronJob gets these variables (see the header of `backup.sh` for all of them):
+
+| Variable | at22 | Set in |
 | --- | --- | --- |
 | `ENV_NAME` | `at22` | overlay |
-| `SQL_SERVER` | `${UMBRACO_SQL_CONN_FQDN}` | Flux substitution, as for Umbraco |
+| `SQL_SERVER` | `${UMBRACO_SQL_CONN_FQDN}` | base. Flux substitution, as for Umbraco. |
 | `MEDIA_ACCOUNT` | `infoportalmediaat224w17` | overlay |
 | `DB_TARGET` | `r2:infoportal-backup-at22/db` | overlay |
 | `MEDIA_TARGET` | `r2:infoportal-backup-at22/media` | overlay |
 | `MEDIA_DELETED_TARGET` | `r2:infoportal-backup-at22/media-deleted` | overlay |
-| `RCLONE_CONFIG_R2_TYPE` | `s3` | base |
-| `RCLONE_CONFIG_R2_PROVIDER` | `Cloudflare` | base |
-| `RCLONE_CONFIG_R2_ENDPOINT` | `https://<account-id>.eu.r2.cloudflarestorage.com` | overlay |
-| `RCLONE_CONFIG_R2_NO_CHECK_BUCKET` | `true` | base (the token cannot create buckets) |
+| `RCLONE_CONFIG_R2_TYPE`, `_PROVIDER` | `s3`, `Cloudflare` | base |
+| `RCLONE_CONFIG_R2_NO_CHECK_BUCKET` | `true` | base. The token cannot create buckets. |
 | `RCLONE_CONFIG_R2_STORAGE_CLASS` | `STANDARD` | base. Without it, rclone passes the Azure tier (`Hot`) on as storage class and R2 rejects every upload. |
-| `RCLONE_CONFIG_R2_ACCESS_KEY_ID` / `..._SECRET_ACCESS_KEY` | | Key Vault → ExternalSecret. Put the value in Key Vault by hand or with `az`, not with Terraform: plan files would contain it. |
+| `RCLONE_CONFIG_R2_ACCESS_KEY_ID`, `_SECRET_ACCESS_KEY`, `_ENDPOINT` | | Key Vault → ExternalSecret `r2-backup` |
 
-The pod must run **without the Linkerd sidecar** (`linkerd.io/inject: disabled`). Otherwise the sidecar keeps
-running after the script exits and the Job never completes.
+The pod runs **without the Linkerd sidecar** (`linkerd.io/inject: disabled`). Otherwise the sidecar keeps
+running after the script exits and the Job never completes. It also runs with a read-only root filesystem;
+`run-local.sh` runs the container the same way.
+
+### Setting up an environment
+
+1. **R2:** create the bucket `infoportal-backup-<env>` (EU jurisdiction), a lifecycle rule that deletes `db/`
+   and `media-deleted/` after 30 days, and an API token with Object Read & Write on that bucket only.
+   Do not enable the public `r2.dev` URL or a custom domain: the backups are not encrypted.
+2. **Key Vault:** put these secrets in the Umbraco DIS Key Vault for the environment (the one in the
+   `umbraco-dis-vault` ConfigMap), in the portal or with `az keyvault secret set`. Not with Terraform: plan files
+   would contain them.
+
+   | Secret | Value |
+   | --- | --- |
+   | `R2Backup--AccessKeyId` | the token's Access Key ID |
+   | `R2Backup--SecretAccessKey` | the token's Secret Access Key |
+   | `R2Backup--Endpoint` | `https://<account-id>.eu.r2.cloudflarestorage.com` |
+
+3. **Overlay:** add `../base/backup` and the `infoportal-backup` image to `syncroot/<env>/kustomization.yaml`,
+   with a CronJob patch for the variables above (copy `syncroot/at22`).
+4. **Image:** run the "Backup image build and publish" workflow with the tag from the overlay. The first time,
+   check that the `infoportal-backup` package on GHCR is public, as `umbraco` is: the cluster pulls it through
+   `altinncr.azurecr.io/ghcr.io/...`.
+5. **Deploy:** run "Publish Syncroot artifacts" for the environment, with the Umbraco image tag that already
+   runs there (otherwise Umbraco is redeployed too) and `AzureSQL`.
+6. **Check:** the next morning, `backup-infoportal/restore.sh <env> --list` should show a new `.bacpac`, and
+   `restore.sh <env> --import` should import it.
+
+A new image version needs a new tag: publish it, then change `newTag` in the overlay and publish the syncroot.
 
 ## Updating tool versions
 
