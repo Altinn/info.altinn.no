@@ -20,8 +20,10 @@ I have disbaled the push trigger for the pipeline so it shouldn't publish an dep
     - `network-policies.yaml`: Linkerd policy: Traefik may reach the pods, and the kubelet may reach the health probe paths.
     - `serviceaccount.yaml`: Dedicated service account for the Umbraco pod.
     - `kustomization.yaml`: Orchestrates the resources and applies common labels.
+  - **backup/**: Nightly CronJob that backs up the Umbraco database and media to Cloudflare R2. Not included by
+    `base/kustomization.yaml`: an environment opts in from its own overlay. See `backup-infoportal/README.md`.
 - **at22/**: Kustomize overlay for the AT22 environment.
-  - `kustomization.yaml`: Applies environment-specific patches (e.g., hostnames, image tags).
+  - `kustomization.yaml`: Applies environment-specific patches (e.g., hostnames, image tags). Includes the backup CronJob.
 - **tt02/**: Kustomize overlay for the TT02 environment.
 - **prod/**: Kustomize overlay for the Production environment.
 

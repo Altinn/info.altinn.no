@@ -1,0 +1,77 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: infoportal-backup
+spec:
+  schedule: "0 2 * * *"
+  timeZone: Etc/UTC
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      # No retries: the next night's run is the retry.
+      backoffLimit: 0
+      activeDeadlineSeconds: 3600
+      template:
+        metadata:
+          labels:
+            azure.workload.identity/use: "true"
+          annotations:
+            # With a Linkerd sidecar the Job never completes: the proxy keeps running after the script exits.
+            linkerd.io/inject: disabled
+            cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+        spec:
+          restartPolicy: Never
+          # Umbraco's identity, which already has access to the database and media.
+          serviceAccountName: umbraco
+          nodeSelector:
+            kubernetes.io/arch: amd64
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1654 # "app" in the .NET image
+            runAsGroup: 1654
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: backup
+              image: infoportal-backup:1
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: ["ALL"]
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 512Mi
+                  ephemeral-storage: 1Gi
+                limits:
+                  memory: 1536Mi
+                  ephemeral-storage: 2Gi
+              env:
+                # The overlay adds ENV_NAME, MEDIA_ACCOUNT and the targets.
+                - name: SQL_SERVER
+                  value: ${UMBRACO_SQL_CONN_FQDN}
+                - name: HOME
+                  value: /tmp
+                - name: RCLONE_CONFIG_R2_TYPE
+                  value: s3
+                - name: RCLONE_CONFIG_R2_PROVIDER
+                  value: Cloudflare
+                - name: RCLONE_CONFIG_R2_NO_CHECK_BUCKET
+                  value: "true"
+                # Otherwise rclone passes on the Azure tier ("Hot"), and R2 rejects the upload.
+                - name: RCLONE_CONFIG_R2_STORAGE_CLASS
+                  value: STANDARD
+              envFrom:
+                - secretRef:
+                    name: r2-backup
+              volumeMounts:
+                - name: tmp
+                  mountPath: /tmp
+          volumes:
+            - name: tmp
+              emptyDir:
+                sizeLimit: 2Gi

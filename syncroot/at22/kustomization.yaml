@@ -5,11 +5,16 @@ resources:
   - ../base
   - elasticsearch-secretstore.yaml
   - elasticsearch-secrets.yaml
+  - ../base/backup
 
 images:
   - name: umbraco
     newName: altinncr.azurecr.io/ghcr.io/altinn/umbraco
     newTag: will-be-replaced
+  # Set by hand (Publish Syncroot only updates umbraco). Publish the image with this tag first.
+  - name: infoportal-backup
+    newName: altinncr.azurecr.io/ghcr.io/altinn/infoportal-backup
+    newTag: 0.1.0
 
 patches:
   - target:
@@ -68,3 +73,32 @@ patches:
         value:
           - cms.at22.altinn.no
           - infoportal.at22.dis-core.altinn.cloud
+  - target:
+      kind: CronJob
+      name: infoportal-backup
+    patch: |-
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
+        value:
+          name: ENV_NAME
+          value: at22
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
+        value:
+          name: MEDIA_ACCOUNT
+          value: infoportalmediaat224w17
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
+        value:
+          name: DB_TARGET
+          value: r2:infoportal-backup-at22/db
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
+        value:
+          name: MEDIA_TARGET
+          value: r2:infoportal-backup-at22/media
+      - op: add
+        path: /spec/jobTemplate/spec/template/spec/containers/0/env/-
+        value:
+          name: MEDIA_DELETED_TARGET
+          value: r2:infoportal-backup-at22/media-deleted
