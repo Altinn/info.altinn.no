@@ -2,10 +2,12 @@
 # Nightly backup of info.altinn.no's Umbraco to storage outside Azure (Cloudflare R2).
 #
 #   1. Export the Azure SQL database to a .bacpac (sqlpackage, Entra token)
-#   2. Encrypt it with age (public key only: this job can encrypt, never decrypt)
-#   3. Upload it, plus a latest.json receipt, to DB_TARGET
-#   4. Mirror the media container to MEDIA_TARGET (rclone sync, incremental). Files that are deleted or
+#   2. Upload it, plus a latest.json receipt with its size and sha256, to DB_TARGET
+#   3. Mirror the media container to MEDIA_TARGET (rclone sync, incremental). Files that are deleted or
 #      changed in Umbraco are moved to MEDIA_DELETED_TARGET/<time>/ instead of being lost.
+#
+# The backup is not encrypted: the database holds almost only public content (plus editors' names and
+# e-mail addresses). The bucket must stay private, and the R2 token must only give access to this bucket.
 #
 # Targets are rclone paths, so the same script writes to R2 in the cluster and to a local folder
 # when testing. Every failure makes the script exit non-zero, so the Kubernetes Job fails visibly.
@@ -14,7 +16,6 @@
 #   ENV_NAME            at22 | at23 | tt02 | prod                                   (required)
 #   SQL_SERVER          Azure SQL host, e.g. infop-at22-....database.windows.net     (required unless SKIP_DB=true)
 #   SQL_DATABASE        default: umbraco
-#   AGE_RECIPIENT       age public key (age1...) the backup is encrypted to          (required unless SKIP_DB=true)
 #   DB_TARGET           rclone path for database backups, e.g. r2:infoportal-backup-at22/db
 #   MEDIA_ACCOUNT       storage account with Umbraco media                          (required unless SKIP_MEDIA=true)
 #   MEDIA_CONTAINER     default: umbraco
@@ -94,14 +95,12 @@ configure_media_remote() {
 
 backup_database() {
 	: "${SQL_SERVER:?SQL_SERVER is required}"
-	: "${AGE_RECIPIENT:?AGE_RECIPIENT is required}"
 	: "${DB_TARGET:?DB_TARGET is required}"
 
-	local started stamp bacpac encrypted token
+	local started stamp bacpac token
 	started=$(date +%s)
 	stamp=$(date -u +%Y-%m-%dT%H-%M-%SZ)
 	bacpac="${WORK_DIR}/${SQL_DATABASE}-${ENV_NAME}-${stamp}.bacpac"
-	encrypted="${bacpac}.age"
 
 	# sqlpackage retries an unreachable server for over 10 minutes. Fail fast instead.
 	timeout 15 bash -c "</dev/tcp/${SQL_SERVER}/1433" 2>/dev/null || die "cannot reach ${SQL_SERVER}:1433 (DNS, Private Link or firewall)"
@@ -123,23 +122,14 @@ backup_database() {
 		/Quiet:True >&2 || die "sqlpackage export failed or timed out (exit $?)"
 	unset token
 
-	local plain_sha plain_size
-	plain_sha=$(sha256sum "$bacpac" | cut -d' ' -f1)
-	plain_size=$(stat -c %s "$bacpac")
+	local sha size object
+	sha=$(sha256sum "$bacpac" | cut -d' ' -f1)
+	size=$(stat -c %s "$bacpac")
+	object="$(basename "$bacpac")"
 
-	log "encrypting ($(numfmt --to=iec "$plain_size"))"
-	age --encrypt --recipient "$AGE_RECIPIENT" --output "$encrypted" "$bacpac" || die "age encryption failed"
-	# The unencrypted copy never leaves the pod, and does not stay on disk longer than needed.
+	log "uploading ${object} ($(numfmt --to=iec "$size")) to ${DB_TARGET}"
+	rclone copyto "$bacpac" "${DB_TARGET%/}/${object}" "${RCLONE_FLAGS[@]}" || die "upload of database backup failed"
 	rm -f "$bacpac"
-
-	local encrypted_sha encrypted_size object
-	encrypted_sha=$(sha256sum "$encrypted" | cut -d' ' -f1)
-	encrypted_size=$(stat -c %s "$encrypted")
-	object="$(basename "$encrypted")"
-
-	log "uploading ${object} to ${DB_TARGET}"
-	rclone copyto "$encrypted" "${DB_TARGET%/}/${object}" "${RCLONE_FLAGS[@]}" || die "upload of database backup failed"
-	rm -f "$encrypted"
 
 	jq -n \
 		--arg env "$ENV_NAME" \
@@ -147,15 +137,11 @@ backup_database() {
 		--arg createdAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
 		--arg database "$SQL_DATABASE" \
 		--arg server "$SQL_SERVER" \
-		--arg plainSha "$plain_sha" \
-		--arg encryptedSha "$encrypted_sha" \
-		--argjson plainSize "$plain_size" \
-		--argjson encryptedSize "$encrypted_size" \
+		--arg sha "$sha" \
+		--argjson size "$size" \
 		--argjson seconds "$(($(date +%s) - started))" \
 		'{env: $env, object: $object, createdAt: $createdAt, database: $database, server: $server,
-		  bacpac: {bytes: $plainSize, sha256: $plainSha},
-		  encrypted: {bytes: $encryptedSize, sha256: $encryptedSha},
-		  durationSeconds: $seconds}' |
+		  bytes: $size, sha256: $sha, durationSeconds: $seconds}' |
 		rclone rcat "${DB_TARGET%/}/latest.json" || die "could not write latest.json"
 
 	log "database backup done: ${object}"
