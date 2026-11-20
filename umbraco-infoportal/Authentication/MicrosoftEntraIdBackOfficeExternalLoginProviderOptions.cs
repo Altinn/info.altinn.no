@@ -76,8 +76,15 @@ public class MicrosoftEntraIdBackOfficeExternalLoginProviderOptions : IConfigure
                         };
 
                         mappedGroups.Add(umbracoUserGroup);
+
+                        // While testing out AI features, allow editors to configure AI features
+                        if ("editor".Equals(umbracoUserGroup))
+                        {
+                            mappedGroups.Add("aiadmin");
+                        }
                     }
-                }             
+                }
+
 
                 // Deny om ingen andre er roller er spesifisert
                 if (!mappedGroups.Any())
