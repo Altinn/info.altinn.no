@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using System.Text.Json;
 using Umbraco.Cms.Core;
 using Umbraco.Cms.Core.Models.PublishedContent;
+using Umbraco.Cms.Core.Routing;
 using Umbraco.Cms.Core.PublishedCache;
 using uSync.Core.Extensions;
 using Umbraco.Cms.Core.Models;
@@ -15,13 +16,25 @@ public class MarkupFilter
     private readonly IPublishedContentCache _publishedContentCache;
     private readonly IMediaService _mediaService;
 
-    private readonly IVariationContextAccessor _variationContextAccessor;    
+    private readonly IVariationContextAccessor _variationContextAccessor;
+    private readonly IDocumentUrlService _documentUrlService;
+    private readonly IIdKeyMap _idKeyMap;
+    private readonly IPublishedUrlProvider _publishedUrlProvider;
 
-    public MarkupFilter(IPublishedContentCache publishedContentCache, IMediaService mediaService, IVariationContextAccessor variationContextAccessor)
+    public MarkupFilter(
+        IPublishedContentCache publishedContentCache,
+        IMediaService mediaService,
+        IVariationContextAccessor variationContextAccessor,
+        IDocumentUrlService documentUrlService,
+        IIdKeyMap idKeyMap,
+        IPublishedUrlProvider publishedUrlProvider)
     {
         _publishedContentCache = publishedContentCache;
         _mediaService = mediaService;
         _variationContextAccessor = variationContextAccessor;
+        _documentUrlService = documentUrlService;
+        _idKeyMap = idKeyMap;
+        _publishedUrlProvider = publishedUrlProvider;
     }
 
     public string? FilterMarkup(string markup)
@@ -203,15 +216,38 @@ public class MarkupFilter
 
     private string? GetContentUrl(Guid guid)
     {
-        IPublishedContent content = _publishedContentCache.GetById(guid);
+        string? culture = _variationContextAccessor.VariationContext?.Culture;
+        IPublishedContent? content = _publishedContentCache.GetById(guid);
 
-        if (content is null)
+        if (content is not null)
+        {
+            return content.Url(culture);
+        }
+
+        return GetUnpublishedContentUrl(guid, culture);
+    }
+
+    // Fallback for links to content that has been unpublished (but not deleted/trashed):
+    // build the URL from the draft URL segments, so the link points to the page's former
+    // path instead of leaving a raw "/{localLink:...}" in the markup.
+    private string? GetUnpublishedContentUrl(Guid guid, string? culture)
+    {
+        string route = _documentUrlService.GetLegacyRouteFormat(guid, culture, isDraft: true);
+
+        if (route == "#")
         {
             return null;
         }
 
-        string culture = _variationContextAccessor.VariationContext?.Culture;
-        return content.Url(culture);
+        Attempt<int> idAttempt = _idKeyMap.GetIdForKey(guid, UmbracoObjectTypes.Document);
+
+        if (!idAttempt.Success)
+        {
+            return null;
+        }
+
+        string url = _publishedUrlProvider.GetUrlFromRoute(idAttempt.Result, route, culture);
+        return url == "#" ? null : url;
     }
 }
 
