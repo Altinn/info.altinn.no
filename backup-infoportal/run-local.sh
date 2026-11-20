@@ -20,7 +20,7 @@ Usage: $(basename "$0") <env> [options]
 
 Options:
   --out DIR       where backups go (default: ~/infoportal-backup-test/<env>). Kept outside the repo
-                  on purpose: it holds real data and the local test decryption key.
+                  on purpose: it holds real data.
   --skip-db       only mirror media
   --skip-media    only back up the database
   --to-r2         write to r2:infoportal-backup-<env> instead of the local folder. R2 credentials are
@@ -36,9 +36,6 @@ Options:
   --tailscale     same as --dns 100.100.100.100 --mtu 1200 (Tailscale in WSL)
   --no-build      reuse the existing $IMAGE image
   -h, --help      show this help
-
-The database backup is encrypted to a local test key, created on first run in <out>/age-key.txt.
-Decrypt with:  age --decrypt -i <out>/age-key.txt -o umbraco.bacpac <file>.bacpac.age
 EOF
 }
 
@@ -86,12 +83,6 @@ fi
 
 mkdir -p "$OUT_DIR"
 chmod 700 "$OUT_DIR"
-if [ ! -f "$OUT_DIR/age-key.txt" ]; then
-	log "creating local test key $OUT_DIR/age-key.txt"
-	docker run --rm --entrypoint age-keygen "$IMAGE" >"$OUT_DIR/age-key.txt" 2>/dev/null
-	chmod 600 "$OUT_DIR/age-key.txt"
-fi
-AGE_RECIPIENT="$(grep -o 'age1[0-9a-z]*' "$OUT_DIR/age-key.txt" | head -n1)"
 
 # Values are passed to docker by name (-e NAME), so tokens never appear on a command line.
 export SQL_ACCESS_TOKEN="" MEDIA_SAS_URL=""
@@ -208,7 +199,6 @@ docker run --rm \
 	-e HOME=/tmp \
 	-e ENV_NAME="$ENV_NAME" \
 	-e SQL_SERVER="$SQL_SERVER" \
-	-e AGE_RECIPIENT="$AGE_RECIPIENT" \
 	-e MEDIA_ACCOUNT="$MEDIA_ACCOUNT" \
 	"${TARGET_ARGS[@]}" \
 	-e SKIP_DB="$SKIP_DB" \

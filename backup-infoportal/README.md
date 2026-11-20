@@ -10,15 +10,21 @@ and the R2 bucket `infoportal-backup-at22`. Not done yet: CronJob in `syncroot/`
 
 ```
 CronJob (AKS, product-infoportal, workload identity)
-  ├─ sqlpackage export ── Azure SQL (Private Link) ──► umbraco.bacpac
-  │      └─ age encrypt (public key) ──► r2:infoportal-backup-{env}/db/umbraco-{env}-{time}.bacpac.age
-  │                                     r2:infoportal-backup-{env}/db/latest.json
+  ├─ sqlpackage export ── Azure SQL (Private Link) ──► r2:infoportal-backup-{env}/db/umbraco-{env}-{time}.bacpac
+  │                                                    r2:infoportal-backup-{env}/db/latest.json
   └─ rclone sync ── Azure Blob (media) ──► r2:infoportal-backup-{env}/media/
                                            (deleted/changed files ──► r2:infoportal-backup-{env}/media-deleted/{time}/)
 ```
 
-- **Database:** the backup is encrypted to an age public key. The job can encrypt but cannot decrypt.
-  Keep the private key outside Azure, for example in the team's password manager.
+- **Database:** the `.bacpac` is uploaded **unencrypted**. The database holds almost only public content, plus
+  editors' names and e-mail addresses, and we accept that trade-off for now. That makes access to the bucket
+  the only protection, so:
+  - the bucket must stay private: no public `r2.dev` URL and no custom domain,
+  - the R2 token must only give access to this bucket,
+  - everyone with access to the Cloudflare account can read the backups.
+
+  `latest.json` records the object name, size and sha256 of the newest backup. Adding encryption later
+  needs a code change.
 - **Retention:** handled by R2 lifecycle rules on the bucket (for example delete `db/` and `media-deleted/`
   after 30 days), not by the script.
 - **Media:** the originals are mirrored to the backup bucket. (The snapshot only holds the image sizes pages use,
@@ -31,10 +37,10 @@ CronJob (AKS, product-infoportal, workload identity)
 
 | File | Purpose |
 | --- | --- |
-| `Dockerfile` | .NET 10 runtime + sqlpackage, rclone, age, jq, curl (pinned versions, checksums verified) |
+| `Dockerfile` | .NET 10 runtime + sqlpackage, rclone, jq, curl (pinned versions, checksums verified) |
 | `backup.sh` | The job. All configuration is documented at the top of the file. |
 | `run-local.sh` | Runs the image on your machine against a real environment, writing to a local folder or R2 (`--to-r2`). |
-| `restore.sh` | Downloads a database backup from R2, checks it against `latest.json`, decrypts it, and optionally imports it locally. |
+| `restore.sh` | Downloads a database backup from R2, checks it against `latest.json`, and optionally imports it locally. |
 
 ## Test locally
 
@@ -46,15 +52,8 @@ backup-infoportal/run-local.sh at22               # database + media
 backup-infoportal/run-local.sh at22 --skip-media  # database only
 ```
 
-Output goes to `~/infoportal-backup-test/at22/` (outside the repo: it contains real data and a test key).
-Check that the backup can be decrypted and imported:
-
-```bash
-age --decrypt -i ~/infoportal-backup-test/at22/age-key.txt \
-  -o /tmp/umbraco.bacpac ~/infoportal-backup-test/at22/db/umbraco-at22-*.bacpac.age
-```
-
-then `scripts/db/import-bacpac.sh` as usual.
+Output goes to `~/infoportal-backup-test/at22/` (outside the repo: it contains real data, so delete it when
+done). Import the `.bacpac` from `db/` with `scripts/db/import-bacpac.sh` as usual.
 
 ### Against R2
 
@@ -69,7 +68,7 @@ RCLONE_CONFIG_R2_ENDPOINT=https://<account-id>.eu.r2.cloudflarestorage.com
 
 ```bash
 backup-infoportal/run-local.sh at22 --to-r2      # back up to r2:infoportal-backup-at22 (add --tailscale in WSL)
-backup-infoportal/restore.sh at22                # download latest, verify, decrypt
+backup-infoportal/restore.sh at22                # download latest and verify the checksum
 backup-infoportal/restore.sh at22 --import       # ... and import into the local SQL Server
 backup-infoportal/restore.sh at22 --list         # list database backups
 ```
@@ -92,7 +91,6 @@ Set on the CronJob (see the header of `backup.sh` for all variables):
 | `ENV_NAME` | `at22` | overlay |
 | `SQL_SERVER` | `${UMBRACO_SQL_CONN_FQDN}` | Flux substitution, as for Umbraco |
 | `MEDIA_ACCOUNT` | `infoportalmediaat224w17` | overlay |
-| `AGE_RECIPIENT` | `age1...` | overlay (public, not a secret) |
 | `DB_TARGET` | `r2:infoportal-backup-at22/db` | overlay |
 | `MEDIA_TARGET` | `r2:infoportal-backup-at22/media` | overlay |
 | `MEDIA_DELETED_TARGET` | `r2:infoportal-backup-at22/media-deleted` | overlay |
@@ -109,4 +107,3 @@ running after the script exits and the Job never completes.
 ## Updating tool versions
 
 Change the `ARG`s in the `Dockerfile`. For rclone, take the checksum from the release's `SHA256SUMS`.
-For age, download the release tarball and run `sha256sum` (age publishes `.proof` files, not a checksum list).
