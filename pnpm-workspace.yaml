@@ -2,6 +2,7 @@ packages:
   - astro-infoportal
   - cache-infoportal
   - cms-infoportal
+  - snapshot-infoportal
 
 # Each project is built separately on Cloudflare, so each needs its own lockfile
 sharedWorkspaceLockfile: false
