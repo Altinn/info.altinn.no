@@ -7,6 +7,12 @@ FROM ghcr.io/digdir/agentctl-base:ubuntu-26.04-v0.1.0-preview.15@sha256:dd96a841
 # The base ends as the unprivileged agent user; installing packages needs root again.
 USER root
 
+# An Ubuntu mirror for this stage's packages, restored at its end. CI passes Azure's mirror for amd64, where
+# archive.ubuntu.com and security.ubuntu.com are often slow from GitHub's runners. Empty by default, so local builds
+# use Ubuntu's own sources. The script is mounted, not copied, so it is not in the image.
+ARG APT_MIRROR=
+RUN --mount=type=bind,source=common/apt-mirror.sh,target=/tmp/apt-mirror.sh sh /tmp/apt-mirror.sh use "${APT_MIRROR}"
+
 # The .NET SDK the Umbraco projects target (net10.0), from Ubuntu, whose security updates keep it patched. The
 # repository pins no SDK patch version, and its Dockerfile builds on mcr.microsoft.com/dotnet/sdk:10.0.
 RUN apt-get update \
@@ -41,6 +47,9 @@ COPY --from=ghcr.io/digdir/agentctl:v0.1.0-preview.15@sha256:1bc767955b6740c4b65
 # the clone service unable to read the list.
 COPY --chmod=0644 common/workspace.list /etc/agent-workspace.d/info-altinn-no.list
 
+# Back to Ubuntu's own sources, so the image does not depend on the build's mirror.
+RUN --mount=type=bind,source=common/apt-mirror.sh,target=/tmp/apt-mirror.sh sh /tmp/apt-mirror.sh restore
+
 RUN agentctl --version && agent-image-check
 
 USER agent
@@ -50,7 +59,14 @@ FROM minimal AS desktop
 
 USER root
 
+# The same mirror as in minimal (see there).
+ARG APT_MIRROR=
+RUN --mount=type=bind,source=common/apt-mirror.sh,target=/tmp/apt-mirror.sh sh /tmp/apt-mirror.sh use "${APT_MIRROR}"
+
 RUN agent-feature install desktop
+
+# Back to Ubuntu's own sources, so the image does not depend on the build's mirror.
+RUN --mount=type=bind,source=common/apt-mirror.sh,target=/tmp/apt-mirror.sh sh /tmp/apt-mirror.sh restore
 
 # What `agent-feature env desktop` prints.
 ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright

@@ -43,12 +43,17 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # archive.ubuntu.com and security.ubuntu.com are often slow from GitHub's runners, so amd64 installs from
+          # Azure's mirror (see APT_MIRROR in the Dockerfile; the images keep Ubuntu's own sources). arm64 uses
+          # ports.ubuntu.com, which is fast.
           - arch: amd64
             runner: ubuntu-24.04
+            apt_mirror: http://azure.archive.ubuntu.com/ubuntu
           - arch: arm64
             runner: ubuntu-24.04-arm
+            apt_mirror: ""
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 60
+    timeout-minutes: 30
     permissions:
       contents: read
       packages: write
@@ -71,6 +76,7 @@ jobs:
       - name: Build images
         env:
           ARCH: ${{ matrix.arch }}
+          APT_MIRROR: ${{ matrix.apt_mirror }}
         run: |
           set -euo pipefail
           mkdir -p "${RUNNER_TEMP}/digests"
@@ -78,6 +84,7 @@ jobs:
             args=(
               --platform "linux/${ARCH}"
               --target "${target}"
+              --build-arg "APT_MIRROR=${APT_MIRROR}"
               --provenance=false
               --sbom=false
               --label "org.opencontainers.image.source=https://github.com/${GITHUB_REPOSITORY}"

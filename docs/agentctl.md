@@ -125,17 +125,42 @@ For tasks that need Cloudflare's logs, such as finding requests that fail often 
 the agent can get a **read-only** Cloudflare API token. The manifest asks for it as the optional secret
 `cloudflare-readonly`, so the agent starts without it.
 
-1. In the Cloudflare dashboard: **My Profile → API Tokens → Create Token → Custom token**.
-2. **Permissions:** read only. For Workers logs: _Account → Workers Observability → Read_. For traffic that does not
-   reach a Worker: _Zone → Analytics → Read_. Never _Edit_ permissions. (Exact permission names not verified yet.)
-3. **Account and zone resources:** only the Altinn account and the zones the task needs.
-4. **TTL:** short, such as 30 days.
-5. Store it on your machine:
+1. In the Cloudflare dashboard, open your profile (top right) → **My Profile** → **API Tokens** → **Create Token**.
+2. At the bottom, under **Custom token**, choose **Get started**.
+3. **Token name:** for example `agentctl cloudflare-readonly (<your machine name>)`.
+4. **Permissions** (one row each, with **+ Add more**):
+   - _Account_ → **Account Analytics** → **Read**: traffic analytics through the GraphQL Analytics API. Confirmed in
+     Cloudflare's docs.
+   - _Account_ → **Workers Observability** → **Read**, if the dashboard offers Read: Workers Logs. Cloudflare's API
+     reference only lists _Workers Observability Write_ for the endpoint that queries Workers Logs, so Read may not be
+     enough. Try Read first (see the test below).
+   - _Zone_ → **Analytics** → **Read**: zone traffic analytics. Likely needed, not confirmed.
+   - Nothing with **Edit**, and none of _Workers Scripts_, _Workers Routes_, _DNS_, _Zone Settings_ or _Cache Purge_.
+5. **Account Resources:** _Include_ → the Altinn account only.
+6. **Zone Resources:** _Include_ → _Specific zone_ → only the zones the task needs, such as `altinn.no`. If the zone
+   list is not offered, there is no Zone permission in the token.
+7. **Client IP Address Filtering:** leave empty. Requests leave from your machine's IP address, which changes.
+8. **TTL:** a start date of today and an end date about 30 days ahead.
+9. **Continue to summary** → check that every line says Read → **Create Token**.
+10. Copy the token. Cloudflare only shows it once.
+11. Store it on your machine, and paste the token when asked:
 
-   ```sh
-   agentctl secret set cloudflare-readonly --hosts api.cloudflare.com
-   agentctl secret list
-   ```
+    ```sh
+    agentctl secret set cloudflare-readonly --hosts api.cloudflare.com
+    agentctl secret list
+    ```
+
+12. Test it on your machine, without saving the token in your shell history:
+
+    ```sh
+    read -rs CF_TOKEN; echo
+    curl -s -H "Authorization: Bearer $CF_TOKEN" https://api.cloudflare.com/client/v4/user/tokens/verify
+    ```
+
+    `"status": "active"` means the token works. Whether it can read Workers Logs is first shown when the agent
+    queries them. If it gets an authentication error, decide whether to allow _Workers Observability_ at the _Edit_
+    level. As far as we know it does not cover deploying Workers or changing zones, but it is no longer strictly
+    read-only.
 
 The sandbox sees a placeholder in `CLOUDFLARE_API_TOKEN`, and the real token is only put into requests to
 `api.cloudflare.com`. wrangler in the agent reads `CLOUDFLARE_API_TOKEN`.
@@ -385,3 +410,12 @@ curl -so /dev/null -m 15 -w "%{speed_download} B/s\n" "https://speed.cloudflare.
 ```
 
 If only the Ubuntu servers are slow, there is nothing to fix on your machine: let agentd keep retrying, or try later.
+
+### The CI image build is slow on amd64
+
+The same slow Ubuntu servers made the `Build (amd64)` job in `fullstack-dev-agent-images.yml` take more than
+25 minutes, while `Build (arm64)` took 2 (arm64 uses `ports.ubuntu.com`, which is fast). The workflow therefore passes
+`APT_MIRROR=http://azure.archive.ubuntu.com/ubuntu` for amd64. The Dockerfile points apt at that mirror at the start
+of each stage and back to Ubuntu's own sources at the end (`common/apt-mirror.sh`), so the published images and
+local builds are unchanged. Locally, with `--build-arg APT_MIRROR=http://no.archive.ubuntu.com/ubuntu`, the
+`minimal` stage built in 44 seconds.
