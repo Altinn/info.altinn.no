@@ -33,7 +33,9 @@ agentctl tui
 
 `agentctl github login default` signs in as a GitHub user made for the agent, or takes a fine-grained token with
 `Contents` and `Pull requests` read and write on `Altinn/info.altinn.no`. Without it the agent still starts, but cannot
-push. It needs no other secrets. `agentctl vnc --web` shows the `desktop` agent's desktop in your browser.
+push. An optional read-only Cloudflare token, `cloudflare-readonly`, lets it read Workers logs and analytics.
+`agentctl vnc --web` shows the `desktop` agent's desktop in your browser. [`docs/agentctl.md`](../../docs/agentctl.md)
+walks through the setup on Windows with WSL, both tokens and troubleshooting.
 
 ## What it can and cannot do
 
