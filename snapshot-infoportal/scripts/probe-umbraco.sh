@@ -5,7 +5,7 @@
 # and prints one line per call. Start it a few minutes before the run to get a baseline, and stop it with Ctrl+C
 # a few minutes after. A summary (median, p95, max, errors) is printed on exit.
 #
-#   ./scripts/probe-umbraco.sh                       # at22, every 5 seconds
+#   ./scripts/probe-umbraco.sh                       # at22 (default), every 5 seconds
 #   ./scripts/probe-umbraco.sh https://<host> 10     # other host, every 10 seconds
 #   ./scripts/probe-umbraco.sh | tee probe.log       # also keep the output
 set -uo pipefail

@@ -28,7 +28,7 @@
 			// fallback:mode is read from here.
 			"kv_namespaces": [
 				{
-					// infoportal-fallback-at22 (same namespace as snapshot-infoportal-at22)
+					// infoportal-fallback-at22 (same namespace as in snapshot-infoportal)
 					"binding": "FALLBACK_KV",
 					"id": "0edfe96c8cad4d7f8b4408d7f4120667"
 				}

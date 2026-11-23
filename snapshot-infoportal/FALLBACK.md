@@ -3,7 +3,14 @@
 When Azure/Umbraco is down, info.altinn.no can be served from the latest snapshot in R2 instead of from
 Astro/Umbraco (issue #905).
 
-Only set up in **at22** for now.
+The commands below work for any environment that has fallback set up (see the bindings table at the end).
+Set these first:
+
+```bash
+ENV=at22                    # or prod
+HOST=info.at22.altinn.cloud # prod: info.altinn.no
+KV_ID=<id>                  # infoportal-fallback-$ENV: kv_namespaces in env.$ENV in wrangler.jsonc
+```
 
 ## How it works
 
@@ -48,30 +55,28 @@ What does not work in fallback mode:
 
 ```bash
 # on
-pnpm wrangler kv key put fallback:mode on --namespace-id 0edfe96c8cad4d7f8b4408d7f4120667 --remote
+pnpm wrangler kv key put fallback:mode on --namespace-id $KV_ID --remote
 
 # off (then purge the edge cache, see below)
-pnpm wrangler kv key put fallback:mode off --namespace-id 0edfe96c8cad4d7f8b4408d7f4120667 --remote
+pnpm wrangler kv key put fallback:mode off --namespace-id $KV_ID --remote
 
 # current state, and which snapshot is served
-pnpm wrangler kv key get fallback:mode --namespace-id 0edfe96c8cad4d7f8b4408d7f4120667 --remote
-pnpm wrangler kv key get snapshot:current --namespace-id 0edfe96c8cad4d7f8b4408d7f4120667 --remote
+pnpm wrangler kv key get fallback:mode --namespace-id $KV_ID --remote
+pnpm wrangler kv key get snapshot:current --namespace-id $KV_ID --remote
 ```
-
-The namespace id is for at22 (`infoportal-fallback-at22`).
 
 ### Purge the edge cache after turning off
 
 Wait about a minute after setting `off` (so no new snapshot responses are cached), then purge the site's cache in
 the Cloudflare dashboard: the zone that contains the hostname → **Caching** → **Configuration** → **Purge Cache**.
 
-- Prefer **Custom Purge** by hostname or prefix (`info.at22.altinn.cloud/`), so only this site is purged.
+- Prefer **Custom Purge** by hostname or prefix (`$HOST/`), so only this site is purged.
 - **Purge Everything** purges the whole zone. Only use it if the zone contains nothing but this site.
 
 Afterwards, pages without a query string should no longer have `x-infoportal-snapshot`:
 
 ```bash
-curl -s -o /dev/null -D - "https://info.at22.altinn.cloud/hjelp/" | grep -i x-infoportal-snapshot   # expect no output
+curl -s -o /dev/null -D - "https://$HOST/hjelp/" | grep -i x-infoportal-snapshot   # expect no output
 ```
 
 The first requests after the purge go to Astro/Umbraco again, so expect some extra load on Umbraco for a while.
@@ -87,19 +92,20 @@ has not been used before: the edge cache treats it as a new page (a miss), while
 string. The second request for the same URL comes from the edge cache, still with the header.
 
 ```bash
-curl -s -o /dev/null -D - "https://info.at22.altinn.cloud/hjelp/?t=$RANDOM" | grep -i x-infoportal-snapshot
+curl -s -o /dev/null -D - "https://$HOST/hjelp/?t=$RANDOM" | grep -i x-infoportal-snapshot
 ```
 
 Use GET as above, not `curl -I`: HEAD requests never use the edge cache in `cache-infoportal` (all non-GET
 requests skip it), so they would always go to the snapshot or to Astro and give a misleading result.
 
 To test purging without purging the whole site, purge a single URL (Custom Purge → URL) with the exact query
-string you used, for example `https://info.at22.altinn.cloud/hjelp/?t=12345`.
+string you used, for example `https://$HOST/hjelp/?t=12345`.
 
 In a browser, open pages with `?t=<something>` added and look for `x-infoportal-snapshot` in the developer tools
 (Network tab, response headers).
 
-Testing in at22 means turning fallback mode on for everyone in at22 for a while, so tell the team first.
+Testing means turning fallback mode on for everyone in that environment for a while, so tell the team first.
+In production, do this only in a planned window, or rely on tests in at22.
 After turning off and purging: the same URL (same query string) should no longer show the header.
 
 ## Deploy
@@ -107,16 +113,18 @@ After turning off and purging: the same URL (same query string) should no longer
 Deploy `snapshot-infoportal` first (it has the fetch handler), then `cache-infoportal` (it binds to it):
 
 ```bash
-cd snapshot-infoportal && pnpm wrangler deploy --env at22
-cd ../cache-infoportal && pnpm wrangler deploy --env at22
+cd snapshot-infoportal && pnpm wrangler deploy --env $ENV
+cd ../cache-infoportal && pnpm wrangler deploy --env $ENV
 ```
 
 ## Bindings
 
-| Worker | Binding | What | Environments |
-|---|---|---|---|
-| cache-infoportal | `SNAPSHOT_INFOPORTAL` | Service binding to `snapshot-infoportal-{env}` | at22 |
-| cache-infoportal | `FALLBACK_KV` | KV namespace `infoportal-fallback-{env}`, for `fallback:mode` | at22 |
-| snapshot-infoportal | `SNAPSHOTS`, `FALLBACK_KV` | The snapshot bucket and the same KV namespace | at22 |
+| Worker | Binding | What |
+|---|---|---|
+| cache-infoportal | `SNAPSHOT_INFOPORTAL` | Service binding to `snapshot-infoportal-{env}` |
+| cache-infoportal | `FALLBACK_KV` | KV namespace `infoportal-fallback-{env}`, for `fallback:mode` |
+| snapshot-infoportal | `SNAPSHOTS`, `FALLBACK_KV` | The snapshot bucket and the same KV namespace |
+
+Which environments have fallback set up is defined by `wrangler.jsonc` in both workers.
 
 Without `SNAPSHOT_INFOPORTAL` and `FALLBACK_KV`, `cache-infoportal` never turns on fallback mode and behaves as before.

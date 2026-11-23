@@ -2,14 +2,19 @@
 
 Cloudflare Worker that takes a full snapshot of info.altinn.no and stores it in R2, and serves the site from that
 snapshot when fallback mode is on (switched on by `cache-infoportal`), so the site stays up if Azure/Umbraco is down.
-Background and design: GitHub issue #905 and `docs/reservelosning/`.
+Background: GitHub issue #905. Fallback mode is switched on manually (see [`FALLBACK.md`](./FALLBACK.md)).
 
-**Status:** set up for `at22` only. Fallback mode is switched on manually (see FALLBACK.md).
+Environments are defined in `wrangler.jsonc` (`env.<name>`). Commands below use the environment name, for example
+`at22` (test, snapshots taken manually) or `prod` (nightly snapshot):
+
+```bash
+ENV=at22
+```
 
 ## How it works
 
 ```
-cron 02:00 UTC (prod, not at22) / manual trigger
+cron (environments with a trigger) / manual trigger
         │
         ▼
 SnapshotWorkflow (Cloudflare Workflows, one step per batch, retried on failure)
@@ -26,10 +31,9 @@ If Umbraco is down while the job runs, validation fails and the previous snapsho
 
 The storage format shared with `cache-infoportal` is described in [`src/keys.ts`](./src/keys.ts).
 
-## Not done yet
+## Limitations
 
-- Environments `at23`, `tt02` and `prod`. Production should take a nightly snapshot (cron `0 2 * * *`, see `wrangler.jsonc`).
-- Alerting when `snapshot:current` gets old (for example after several failed nightly runs).
+- No alerting when `snapshot:current` gets old (for example after several failed nightly runs).
 - Search pages with a query, contact forms and login need the live site (see [`FALLBACK.md`](./FALLBACK.md)).
 - Old URLs that only exist in Umbraco's redirect tables are not in the snapshot.
 - Umbraco media is only captured when a page, CSS or JavaScript file links to it (in the size the page asks for).
@@ -37,15 +41,17 @@ The storage format shared with `cache-infoportal` is described in [`src/keys.ts`
 Serving in fallback mode is in this worker's `fetch()` ([`src/fallback.ts`](./src/fallback.ts)), switched on by
 `cache-infoportal`. See [`FALLBACK.md`](./FALLBACK.md).
 
-## One-time setup per environment (example: at22)
+## One-time setup per environment
 
 ```bash
-pnpm wrangler r2 bucket create infoportal-snapshots-at22 --jurisdiction eu
-pnpm wrangler kv namespace create infoportal-fallback-at22
+pnpm wrangler r2 bucket create infoportal-snapshots-$ENV --jurisdiction eu
+pnpm wrangler kv namespace create infoportal-fallback-$ENV
 ```
 
-Then put the KV namespace id and the public hostname (`SITE_ORIGIN`) into `wrangler.jsonc`.
-The same bucket and KV namespace must also be bound in `cache-infoportal-at22`.
+Then add `env.$ENV` to `wrangler.jsonc` (copy an existing environment): the KV namespace id, the public hostname
+(`SITE_ORIGIN`), the service `astro-infoportal-$ENV` and, for a nightly run, a cron trigger.
+`cache-infoportal-$ENV` must bind the same KV namespace and `snapshot-infoportal-$ENV` (see the bindings table in
+[`FALLBACK.md`](./FALLBACK.md)).
 
 ## Develop and test
 
@@ -59,10 +65,10 @@ pnpm cf-typegen    # after changing bindings in wrangler.jsonc
 ## Deploy and run
 
 ```bash
-pnpm wrangler deploy --env at22
-pnpm wrangler workflows trigger snapshot-infoportal-at22 '{"trigger":"manual"}'
-pnpm wrangler workflows instances list snapshot-infoportal-at22
-pnpm wrangler workflows instances describe snapshot-infoportal-at22 latest
+pnpm wrangler deploy --env $ENV
+pnpm wrangler workflows trigger snapshot-infoportal-$ENV '{"trigger":"manual"}'
+pnpm wrangler workflows instances list snapshot-infoportal-$ENV
+pnpm wrangler workflows instances describe snapshot-infoportal-$ENV latest
 ```
 
 ### Test runs
@@ -71,8 +77,8 @@ A test run takes only some pages. It is stored like a normal snapshot (id `test-
 becomes `snapshot:current` and never deletes other snapshots. Remove test snapshots by hand in the dashboard.
 
 ```bash
-pnpm wrangler workflows trigger snapshot-infoportal-at22 '{"trigger":"manual","limit":10}'
-pnpm wrangler workflows trigger snapshot-infoportal-at22 '{"trigger":"manual","paths":["/","/hjelp/"]}'
+pnpm wrangler workflows trigger snapshot-infoportal-$ENV '{"trigger":"manual","limit":10}'
+pnpm wrangler workflows trigger snapshot-infoportal-$ENV '{"trigger":"manual","paths":["/","/hjelp/"]}'
 ```
 
 `limit` takes the first N URLs from the sitemap. `paths` takes exactly those paths. At most 500 pages.
@@ -99,8 +105,9 @@ Validation (`MIN_SUCCESS_RATIO`) only counts the sitemap and extra paths. Linked
 ### Watching Umbraco during a run
 
 `scripts/probe-umbraco.sh` calls the Delivery API directly every 5 seconds and prints the response time, with a
-summary (median, p95, max) on Ctrl+C. Start it a few minutes before a run for a baseline. If response times grow a
-lot, lower `CONCURRENCY` or stop the run: `pnpm wrangler workflows instances terminate snapshot-infoportal-at22 <id>`.
+summary (median, p95, max) on Ctrl+C. It defaults to at22; pass the Umbraco host for other environments. Start it a
+few minutes before a run for a baseline. If response times grow a lot, lower `CONCURRENCY` or stop the run:
+`pnpm wrangler workflows instances terminate snapshot-infoportal-$ENV <id>`.
 
 ### Unlisted links
 

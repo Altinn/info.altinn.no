@@ -5,7 +5,7 @@ export default defineConfig({
 	plugins: [
 		cloudflareTest({
 			wrangler: { configPath: "./wrangler.jsonc" },
-			// Fallback bindings for tests only. In deployed environments they come from wrangler.jsonc (at22).
+			// Fallback bindings for tests only. In deployed environments they come from wrangler.jsonc.
 			miniflare: {
 				kvNamespaces: ["FALLBACK_KV"],
 			},

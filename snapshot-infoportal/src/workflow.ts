@@ -60,7 +60,7 @@ function toPagePath(target: string): string {
 export class SnapshotWorkflow extends WorkflowEntrypoint<Env, SnapshotParams> {
 	async run(event: WorkflowEvent<SnapshotParams>, step: WorkflowStep) {
 		if (!this.env.ASTRO_INFOPORTAL) {
-			// Only bound in the named environments (at22, ...). Locally, run astro-infoportal with wrangler dev to connect it.
+			// Bound per environment in wrangler.jsonc. Locally, run astro-infoportal with wrangler dev to connect it.
 			throw new NonRetryableError('ASTRO_INFOPORTAL service binding is not configured');
 		}
 

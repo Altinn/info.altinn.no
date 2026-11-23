@@ -9,7 +9,7 @@ export { SnapshotWorkflow } from './workflow';
  * if Azure/Umbraco is unavailable. See README.md.
  *
  * Starts a SnapshotWorkflow instance:
- *   - on a schedule via the cron trigger in wrangler.jsonc (none in at22)
+ *   - on a schedule, in environments that have a cron trigger in wrangler.jsonc
  *   - manually: pnpm wrangler workflows trigger snapshot-infoportal-<env> '{"trigger":"manual"}'
  *
  * fetch() serves the site from the current snapshot (fallback mode, see FALLBACK.md and src/fallback.ts).

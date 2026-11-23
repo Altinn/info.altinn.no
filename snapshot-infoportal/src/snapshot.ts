@@ -297,7 +297,7 @@ async function deletePrefix(bucket: R2Bucket, prefix: string): Promise<void> {
 }
 
 /**
- * Astro answers with an absolute Location (https://info.at22.altinn.cloud/ny/). Same-site targets are stored as a
+ * Astro answers with an absolute Location (https://info.altinn.no/ny/). Same-site targets are stored as a
  * path, so redirects.json does not depend on the hostname the snapshot was taken from. Other sites are kept as-is.
  */
 export function toRedirectTarget(location: string, fromPath: string, siteOrigin: string): string {
