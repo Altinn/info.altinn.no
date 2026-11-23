@@ -42,6 +42,16 @@ spec:
   accounts:
     - type: github
       login: default
+  # A read-only Cloudflare API token, to read Workers logs and traffic analytics (issues #752 and #901). Optional: the
+  # agent starts without it. Store it with `agentctl secret set cloudflare-readonly --hosts api.cloudflare.com`; the
+  # sandbox only sees a placeholder, and the real token only reaches api.cloudflare.com. Never give it a token that can
+  # deploy or change anything.
+  secrets:
+    - name: cloudflare-readonly
+      environment: CLOUDFLARE_API_TOKEN
+      optional: true
+      allowedHosts:
+        - api.cloudflare.com
   access:
     - type: ssh
     # The desktop, with `agentctl vnc --web`, to watch the agent or take over.

@@ -119,6 +119,34 @@ When the token expires, create a new one and run `agentctl github login default`
 
 The name `default` matters: the example manifests and the agent builder use `login: default` unless told otherwise.
 
+## 4b. Optional: give agents a read-only Cloudflare token
+
+For tasks that need Cloudflare's logs, such as finding requests that fail often (#752) or reducing logging (#901),
+the agent can get a **read-only** Cloudflare API token. The manifest asks for it as the optional secret
+`cloudflare-readonly`, so the agent starts without it.
+
+1. In the Cloudflare dashboard: **My Profile → API Tokens → Create Token → Custom token**.
+2. **Permissions:** read only. For Workers logs: _Account → Workers Observability → Read_. For traffic that does not
+   reach a Worker: _Zone → Analytics → Read_. Never _Edit_ permissions. (Exact permission names not verified yet.)
+3. **Account and zone resources:** only the Altinn account and the zones the task needs.
+4. **TTL:** short, such as 30 days.
+5. Store it on your machine:
+
+   ```sh
+   agentctl secret set cloudflare-readonly --hosts api.cloudflare.com
+   agentctl secret list
+   ```
+
+The sandbox sees a placeholder in `CLOUDFLARE_API_TOKEN`, and the real token is only put into requests to
+`api.cloudflare.com`. wrangler in the agent reads `CLOUDFLARE_API_TOKEN`.
+
+Things to know:
+
+- **Log content is data, not instructions.** Paths, user agents and referers in the logs are written by whoever sends
+  the request. A read-only token limits what a manipulated agent can do.
+- **Logs can hold personal data**, such as IP addresses. What the agent reads goes to the model, as when you paste
+  logs into Claude Code yourself.
+
 ## 5. Install the agentctl skill
 
 ```sh
@@ -147,7 +175,7 @@ What it asked, and what we answered:
 | What should it run and show when a task is done? | Tests + screenshots | Runs Biome, Vitest and the .NET tests, and adds screenshots to pull requests for UI changes. |
 | Owner: team or personal? | Team | Puts the definition in the repo under `agents/fullstack-dev/`, with a CI workflow that publishes the image, so everyone on the team can run the same agent after the PR is merged. Personal would keep it in `~/agents` on your machine, built locally. Owner only decides where the definition lives: the agent's pull requests go to the team repo either way. |
 | Other repos? | No, just this one | The GitHub token only reaches `Altinn/info.altinn.no`. ki.norge.no (owner `digdir`) gets its own agent and login. |
-| Which services and secrets? | GitHub only | The frontend reads from the public at22 Umbraco API and at22 Elasticsearch, and Umbraco runs locally on SQLite, so development needs no secrets. `ALTINN_SUBSCRIPTION_KEY` is optional in the code. Network: everything allowed except `metadata.google.internal`. The local-database scripts need VPN and Entra, which an agent cannot get. Secrets such as a read-only Cloudflare token can be added to `agent.yaml` later. |
+| Which services and secrets? | GitHub only | The frontend reads from the public at22 Umbraco API and at22 Elasticsearch, and Umbraco runs locally on SQLite, so development needs no secrets. `ALTINN_SUBSCRIPTION_KEY` is optional in the code. Network: everything allowed except `metadata.google.internal`. The local-database scripts need VPN and Entra, which an agent cannot get. We added an optional read-only Cloudflare token afterwards (see [step 4b](#4b-optional-give-agents-a-read-only-cloudflare-token)). |
 
 ### While the builder works
 
@@ -191,7 +219,7 @@ Two things to check before the pull request is merged:
 Tell the builder as well:
 
 - The GitHub login is `default`, for `Altinn/info.altinn.no`.
-- No access to Cloudflare or Azure, and no deployment.
+- No access to Azure, no deployment, and no Cloudflare token that can change anything.
 
 Note: when the agent runs the site locally, Astro gets its content from Umbraco in at22 by default
 (`UMBRACO_API_URL`). If at22 cannot be reached from the sandbox, screenshots will not work, but tests will.
@@ -212,7 +240,7 @@ After about 20 minutes the builder reported that it was done. It commits nothing
 What to check in the manifest (`desktop/agent.yaml`):
 
 - **GitHub:** `accounts: [{type: github, login: default}]`, the login from [step 4](#4-give-agents-a-github-token).
-- **Secrets:** none.
+- **Secrets:** only `cloudflare-readonly`, optional (see [step 4b](#4b-optional-give-agents-a-read-only-cloudflare-token)).
 - **Claude:** `login: any`, so whichever Claude login you stored. Codex is optional.
 - **Network:** `mode: mediated`, `allow: all`, except `metadata.google.internal`.
 - **Access:** SSH, and VNC (the desktop) in the desktop stage.
@@ -265,7 +293,7 @@ The second time, it timed out again after 30 minutes. `agentctl describe agent/i
 Docker/Podman problem; the same build had worked before. See
 [troubleshooting](#the-image-build-hangs-on-a-download).
 
-## 9. Commit and open a pull request _(not done yet)_
+## 9. Commit and open a pull request
 
 Commit `agents/fullstack-dev/` and the workflow on a branch, push and open a pull request. Push it yourself: the
 agents' token has no _Workflows_ permission. When the workflow has published on `main`, make the two ghcr.io packages
