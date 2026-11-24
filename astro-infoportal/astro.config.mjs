@@ -46,7 +46,6 @@ export default defineConfig({
           {pattern: '/@react-refresh'},
           {pattern: '/node_modules/*'},
           {pattern: '/src/*'},
-          {pattern: '/favicon.ico'},
           {pattern: '/_astro/*'},
         ],
       },

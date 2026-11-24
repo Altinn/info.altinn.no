@@ -18,21 +18,12 @@ const isNorwegianStartRoot = /^\/(no|nb)\/?$/.test(path);
 
 // Ignore internal Vite/framework paths
 if (
-  path === '/favicon.ico' ||
   path.startsWith('/@vite/') ||
   path.startsWith('/@react-refresh') ||
   path.startsWith('/@id/') ||
   path.startsWith('/@fs/')
 ) {
   return new Response(null, { status: 404 });
-}
-
-// Apple devices ask for this. The body stops Astro from rendering 404.astro, which calls Umbraco.
-if (path === '/.well-known/passkey-endpoints') {
-  return new Response('Not found', {
-    status: 404,
-    headers: { 'Content-Type': 'text/plain', 'Cache-Control': pageCacheControl(Astro.url.hostname) },
-  });
 }
 
 /* Temporary fix as some links starting with /EPiServer/CMS/Content were not converted correctly during import */
@@ -60,8 +51,13 @@ if (path.startsWith("/%7BlocalLink:")) {
   return Astro.redirect(Astro.url.origin + resolveLocalLinkRedirect(path), 302);
 }
 
-if (path.startsWith('/api/') || path.match(/\.[a-zA-Z0-9]+$/)) {
-  return new Response(null, { status: 404 });
+// Browsers, apps and password managers probe these paths on their own. A body stops Astro from
+// rendering 404.astro, which calls Umbraco.
+if (path.startsWith('/api/') || path.startsWith('/.well-known/') || path.match(/\.[a-zA-Z0-9]+$/)) {
+  return new Response('Not found', {
+    status: 404,
+    headers: { 'Content-Type': 'text/plain', 'Cache-Control': pageCacheControl(Astro.url.hostname) },
+  });
 }
 
 const redirectTarget = await fetchUmbracoRedirect(path);
