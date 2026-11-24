@@ -81,7 +81,14 @@ The first start pulls the image, which takes a while. Other ways in: `agentctl t
 `agentctl ssh info-fullstack-dev` (a shell), `agentctl vnc info-fullstack-dev --web` (the desktop in a browser).
 
 The code is the agent's own clone in `~/code/info.altinn.no`, not your checkout. Its changes reach you as branches and
-pull requests.
+pull requests. To get a file the agent wrote, such as notes it keeps outside the repository, copy it to WSL and open it
+there (`code` opens it in VS Code):
+
+```sh
+agentctl ssh-config install    # once: lets ssh and scp reach agents as agentctl-<agent name>
+scp agentctl-info-fullstack-dev:notes/analysis.md ~/notes/
+code ~/notes/analysis.md
+```
 
 To try a change to the image before CI publishes it, use the `nested-build` variant, which builds it on your machine:
 
