@@ -29,6 +29,13 @@ Two things in the repository as it is:
 
 To run Umbraco itself, use the `local-umbraco` skill. Its README's SQLite default no longer holds.
 
+## Code comments
+
+Comment only what the code cannot say: a reason that is not obvious, a constraint or a workaround, in a line or two.
+Don't describe what the code does, and don't refer to issues or pull requests in code or tests; that belongs in the
+commit message and the pull request. Make an exception only in rare cases, such as a workaround that should go once an
+issue is fixed.
+
 ## What this agent cannot do
 
 Say so, rather than work around it, when a task needs one of these:
