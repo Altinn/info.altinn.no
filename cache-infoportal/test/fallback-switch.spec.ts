@@ -87,7 +87,7 @@ describe("fallback switch", () => {
 		expect(astro).not.toHaveBeenCalled();
 	});
 
-	it("fills the cache from the snapshot without passing conditional headers (issue #752)", async () => {
+	it("fills the cache from the snapshot without passing conditional headers", async () => {
 		await bindings.FALLBACK_KV.put("fallback:mode", "on");
 		const { snapshot, env } = createEnv();
 		const url = uniqueUrl();

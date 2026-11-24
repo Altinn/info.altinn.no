@@ -96,8 +96,7 @@ describe("cache-infoportal worker", () => {
 		expect(fetch).toHaveBeenCalledTimes(2);
 	});
 
-	describe("conditional requests (issue #752)", () => {
-		// The headers a browser sends when it already has a copy, or wants part of a file.
+	describe("conditional requests", () => {
 		const conditionalHeaders = {
 			"If-None-Match": '"v1"',
 			"If-Modified-Since": "Mon, 23 Nov 2026 08:00:00 GMT",
@@ -107,7 +106,6 @@ describe("cache-infoportal worker", () => {
 			Range: "bytes=0-1",
 		};
 
-		// Like Astro's static assets: answers 304 or 206 when the request allows it, otherwise the full file.
 		function createConditionalOrigin() {
 			const fetch = vi.fn(async (request: Request) => {
 				const headers = { "Cache-Control": "public, max-age=60", ETag: '"v1"' };
@@ -135,7 +133,6 @@ describe("cache-infoportal worker", () => {
 				expect(sent.has(name), name).toBe(false);
 			}
 
-			// The repeat request is a cache hit, and the cache answers the conditional request itself.
 			const second = await callWorker(new IncomingRequest(url, { headers: { "If-None-Match": '"v1"' } }), origin.env);
 			expect(second.status).toBe(304);
 			expect(origin.fetch).toHaveBeenCalledTimes(1);

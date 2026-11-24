@@ -11,10 +11,7 @@ const excludedPathNames = ["/api/", "/ui/", "/health"];
 // fallback mode (the snapshot stores them). Keep in sync with SNAPSHOT_API_PREFIXES in snapshot-infoportal/src/keys.ts.
 const cachedApiPathNames = ["/api/subsidies/", "/api/schema/municipalities"];
 
-// Headers that let origin answer 304 Not Modified or 206 Partial Content instead of the full response. The Cache API
-// cannot store either (a 304 is ignored with a warning, a 206 is rejected), so a miss sent on with them fills nothing
-// (issue #752). They are removed when filling the cache. Repeat requests are cache hits, and cache.match() answers
-// conditional and range requests itself.
+// With these, origin may answer 304 or 206, which the Cache API cannot store.
 const conditionalHeaderNames = ["if-none-match", "if-modified-since", "if-match", "if-unmodified-since", "if-range", "range"];
 
 function withoutConditionalHeaders(request: Request): Request {
@@ -25,8 +22,6 @@ function withoutConditionalHeaders(request: Request): Request {
 	return new Request(request, { headers });
 }
 
-// 304 and 206 cannot be cached (see above). Server errors are not cached, so a short outage does not leave error
-// pages in the cache after origin has recovered.
 function isCacheable(response: Response): boolean {
 	return response.status < 500 && response.status !== 304 && response.status !== 206;
 }
