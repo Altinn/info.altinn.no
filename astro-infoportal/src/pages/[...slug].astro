@@ -27,6 +27,14 @@ if (
   return new Response(null, { status: 404 });
 }
 
+// Apple devices ask for this. The body stops Astro from rendering 404.astro, which calls Umbraco.
+if (path === '/.well-known/passkey-endpoints') {
+  return new Response('Not found', {
+    status: 404,
+    headers: { 'Content-Type': 'text/plain', 'Cache-Control': pageCacheControl(Astro.url.hostname) },
+  });
+}
+
 /* Temporary fix as some links starting with /EPiServer/CMS/Content were not converted correctly during import */
 const legacyInternalUrlPrefix = "/EPiServer/CMS/Content";
 if (path.startsWith(legacyInternalUrlPrefix)) {
