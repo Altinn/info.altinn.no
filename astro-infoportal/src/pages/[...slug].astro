@@ -19,10 +19,12 @@ const isNorwegianStartRoot = /^\/(no|nb)\/?$/.test(path);
 // Browsers and apps ask for these on their own, so they get a plain 404. Its body stops Astro from
 // rendering 404.astro, which calls Umbraco. Links people follow, such as documents, keep that page.
 const isMachineRequestedFile = /\.(png|jpe?g|gif|webp|avif|svg|ico|xml|json|webmanifest|map)$/i.test(path);
-const plainNotFound = () =>
+// Checked after Umbraco redirects, whatever the extension, so editors can redirect these paths.
+const isWellKnown = path.startsWith('/.well-known/');
+const plainNotFound = (cacheControl = notFoundCacheControl(Astro.url.hostname)) =>
   new Response('Not found', {
     status: 404,
-    headers: { 'Content-Type': 'text/plain', 'Cache-Control': notFoundCacheControl(Astro.url.hostname) },
+    headers: { 'Content-Type': 'text/plain', 'Cache-Control': cacheControl },
   });
 
 // Ignore internal Vite/framework paths
@@ -32,7 +34,7 @@ if (
   path.startsWith('/@id/') ||
   path.startsWith('/@fs/')
 ) {
-  return plainNotFound();
+  return plainNotFound('no-store');
 }
 
 /* Temporary fix as some links starting with /EPiServer/CMS/Content were not converted correctly during import */
@@ -60,11 +62,11 @@ if (path.startsWith("/%7BlocalLink:")) {
   return Astro.redirect(Astro.url.origin + resolveLocalLinkRedirect(path), 302);
 }
 
-if (isMachineRequestedFile) {
+if (isMachineRequestedFile && !isWellKnown) {
   return plainNotFound();
 }
 
-if (path.startsWith('/api/') || path.match(/\.[a-zA-Z0-9]+$/)) {
+if (path.startsWith('/api/') || (path.match(/\.[a-zA-Z0-9]+$/) && !isWellKnown)) {
   return new Response(null, { status: 404 });
 }
 
@@ -75,7 +77,7 @@ if (redirectTarget && redirectTarget !== path) {
   return Astro.redirect(redirectUrl.toString(), 302);
 }
 
-if (path.startsWith('/.well-known/')) {
+if (isWellKnown) {
   return plainNotFound();
 }
 

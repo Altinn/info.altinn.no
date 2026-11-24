@@ -35,21 +35,29 @@ function viteClientFix() {
 }
 
 // The dev server ignores public/_redirects, which serves the root icons in production.
+// Only exact-path 200 rules are applied here.
 function devRewrites() {
   const rewrites = new Map();
   for (const line of readFileSync(new URL('./public/_redirects', import.meta.url), 'utf8').split('\n')) {
     const [from, to, status] = line.trim().split(/\s+/);
-    if (status === '200' && !from.includes('*')) {
-      rewrites.set(from, to);
+    if (!from || from.startsWith('#') || status !== '200') {
+      continue;
     }
+    if (/[*:]/.test(from)) {
+      console.warn(`[dev-rewrites] ${from} is not applied in dev: only exact paths are supported.`);
+      continue;
+    }
+    rewrites.set(from, to);
   }
   return {
     name: 'dev-rewrites',
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
-        const to = rewrites.get(req.url);
+        const queryStart = req.url.indexOf('?');
+        const pathname = queryStart === -1 ? req.url : req.url.slice(0, queryStart);
+        const to = rewrites.get(pathname);
         if (to) {
-          req.url = to;
+          req.url = to + (queryStart === -1 ? '' : req.url.slice(queryStart));
         }
         next();
       });
