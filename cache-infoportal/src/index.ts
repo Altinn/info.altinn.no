@@ -11,6 +11,23 @@ const excludedPathNames = ["/api/", "/ui/", "/health"];
 // fallback mode (the snapshot stores them). Keep in sync with SNAPSHOT_API_PREFIXES in snapshot-infoportal/src/keys.ts.
 const cachedApiPathNames = ["/api/subsidies/", "/api/schema/municipalities"];
 
+// With these, origin may answer 304 or 206, which the Cache API cannot store, or 412, which would then be cached
+// and served to every client.
+const conditionalHeaderNames = ["if-none-match", "if-modified-since", "if-match", "if-unmodified-since", "if-range", "range"];
+
+function withoutConditionalHeaders(request: Request): Request {
+	const headers = new Headers(request.headers);
+	for (const name of conditionalHeaderNames) {
+		headers.delete(name);
+	}
+	return new Request(request, { headers });
+}
+
+// Server errors are not cached, so a short outage does not leave error pages in the cache after origin has recovered.
+function isCacheable(response: Response): boolean {
+	return response.status < 500 && response.status !== 304 && response.status !== 206;
+}
+
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
 		const url = new URL(request.url);
@@ -57,8 +74,8 @@ export default {
 			if (await isFallbackOn(env)) {
 				// Snapshot responses are cached like responses from Astro, so repeat requests are served from the
 				// edge cache. When fallback mode is turned off, the cache must be purged (see snapshot-infoportal/FALLBACK.md).
-				const fallback = await env.SNAPSHOT_INFOPORTAL!.fetch(request);
-				if (fallback.status < 500) {
+				const fallback = await env.SNAPSHOT_INFOPORTAL!.fetch(withoutConditionalHeaders(request));
+				if (isCacheable(fallback)) {
 					ctx.waitUntil(cache.put(cacheKey, fallback.clone()));
 				}
 				return fallback;
@@ -67,15 +84,13 @@ export default {
 
 		if (!response) {
 			try {
-				response = await env.ASTRO_INFOPORTAL.fetch(request);
+				response = await env.ASTRO_INFOPORTAL.fetch(withoutConditionalHeaders(request));
 			} catch (error) {
 				throw new Error(`Failed to fetch GET-request from origin: ${error}`);
 			}
 
 			try {
-				// Server errors are not cached, so a short outage does not leave error pages in the cache
-				// after origin has recovered.
-				if (response.status < 500) {
+				if (isCacheable(response)) {
 					ctx.waitUntil(cache.put(cacheKey, response.clone()));
 				}
 			} catch (error) {

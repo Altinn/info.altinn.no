@@ -87,6 +87,29 @@ describe("fallback switch", () => {
 		expect(astro).not.toHaveBeenCalled();
 	});
 
+	it("fills the cache from the snapshot without passing conditional headers", async () => {
+		await bindings.FALLBACK_KV.put("fallback:mode", "on");
+		const { snapshot, env } = createEnv();
+		const url = uniqueUrl();
+		const headers = {
+			"If-None-Match": '"v1"',
+			"If-Modified-Since": "Mon, 23 Nov 2026 08:00:00 GMT",
+			"If-Match": '"v1"',
+			"If-Unmodified-Since": "Mon, 23 Nov 2026 08:00:00 GMT",
+			"If-Range": '"v1"',
+			Range: "bytes=0-1",
+		};
+
+		expect(await (await call(url, env, { headers })).text()).toBe("from snapshot");
+		const sent = (snapshot.mock.calls[0] as unknown as [Request])[0].headers;
+		for (const name of Object.keys(headers)) {
+			expect(sent.has(name), name).toBe(false);
+		}
+
+		await call(url, env);
+		expect(snapshot).toHaveBeenCalledTimes(1);
+	});
+
 	it("does not cache snapshot server errors", async () => {
 		await bindings.FALLBACK_KV.put("fallback:mode", "on");
 		const snapshot = vi.fn(async () => new Response("unavailable", { status: 503, headers: { "Cache-Control": "no-store" } }));
