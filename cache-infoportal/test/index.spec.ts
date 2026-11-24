@@ -106,13 +106,13 @@ describe("cache-infoportal worker", () => {
 		};
 
 		await expect(
-			callWorker(new IncomingRequest(uniqueUrl()), env),
-		).rejects.toThrow("Failed to fetch GET-request from origin: Error: connection refused");
+			callWorker(new IncomingRequest("https://info.altinn.no/side"), env),
+		).rejects.toThrow("Failed to fetch GET /side from origin: Error: connection refused");
 		await expect(
-			callWorker(new IncomingRequest(uniqueUrl(), { method: "POST" }), env),
-		).rejects.toThrow("Failed to fetch NON-GET-request from origin");
+			callWorker(new IncomingRequest("https://info.altinn.no/skjema", { method: "POST" }), env),
+		).rejects.toThrow("Failed to fetch POST /skjema from origin");
 		await expect(
-			callWorker(new IncomingRequest(uniqueUrl("/api/x")), env),
-		).rejects.toThrow("Failed to fetch API request from origin");
+			callWorker(new IncomingRequest("https://info.altinn.no/api/x"), env),
+		).rejects.toThrow("Failed to fetch GET /api/x from origin");
 	});
 });
