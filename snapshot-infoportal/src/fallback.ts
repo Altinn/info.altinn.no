@@ -1,5 +1,5 @@
 /**
- * Fallback mode (issue #905): answers requests from the current snapshot in R2, without calling Astro or Umbraco.
+ * Fallback mode: answers requests from the current snapshot in R2, without calling Astro or Umbraco.
  * Only reached through the SNAPSHOT_INFOPORTAL binding in cache-infoportal, which checks fallback:mode.
  * See FALLBACK.md.
  */
