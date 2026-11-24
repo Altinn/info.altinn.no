@@ -2,6 +2,7 @@ import {defineConfig} from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 import react from '@astrojs/react';
 import {createRequire} from 'node:module';
+import {readFileSync} from 'node:fs';
 import path from 'node:path';
 
 // Workaround: Vite 7 does not serve /@vite/client in Astro 6 dev mode,
@@ -26,6 +27,29 @@ function viteClientFix() {
       server.middlewares.use((req, res, next) => {
         if (req.url === '/@vite/client') {
           req.url = `/@fs/${clientEntry}`;
+        }
+        next();
+      });
+    },
+  };
+}
+
+// The dev server ignores public/_redirects, which serves the root icons in production.
+function devRewrites() {
+  const rewrites = new Map();
+  for (const line of readFileSync(new URL('./public/_redirects', import.meta.url), 'utf8').split('\n')) {
+    const [from, to, status] = line.trim().split(/\s+/);
+    if (status === '200' && !from.includes('*')) {
+      rewrites.set(from, to);
+    }
+  }
+  return {
+    name: 'dev-rewrites',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const to = rewrites.get(req.url);
+        if (to) {
+          req.url = to;
         }
         next();
       });
@@ -62,7 +86,7 @@ export default defineConfig({
 
   integrations: [react({experimentalReactChildren: true})],
   vite: {
-    plugins: [viteClientFix()],
+    plugins: [viteClientFix(), devRewrites()],
     build: {
       minify: 'esbuild',
       cssMinify: 'esbuild',

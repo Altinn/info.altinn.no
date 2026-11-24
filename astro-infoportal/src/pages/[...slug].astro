@@ -4,7 +4,7 @@ import { fetchUmbracoContentWithLocaleFallback, fetchUmbracoRedirect, fetchUmbra
 import AstroSiteLayout from '@layouts/AstroSiteLayout.astro';
 import { JSONTransformer } from '@transformers/JSONTransformer';
 import { getGlobalData } from '@constants/globalData';
-import { pageCacheControl } from '@constants/cache';
+import { notFoundCacheControl, pageCacheControl } from '@constants/cache';
 import { buildMetadata } from '@constants/metadata';
 import { resolveEnvironment } from '@api/altinn/environments';
 import type { Locale } from '@i18n/index';
@@ -16,6 +16,15 @@ const locale = (Astro.currentLocale || "nb") as Locale;
 const altinnEndpoints = resolveEnvironment(Astro.url.hostname);
 const isNorwegianStartRoot = /^\/(no|nb)\/?$/.test(path);
 
+// Browsers and apps ask for these on their own, so they get a plain 404. Its body stops Astro from
+// rendering 404.astro, which calls Umbraco. Links people follow, such as documents, keep that page.
+const isMachineRequestedFile = /\.(png|jpe?g|gif|webp|avif|svg|ico|xml|json|webmanifest|map)$/i.test(path);
+const plainNotFound = () =>
+  new Response('Not found', {
+    status: 404,
+    headers: { 'Content-Type': 'text/plain', 'Cache-Control': notFoundCacheControl(Astro.url.hostname) },
+  });
+
 // Ignore internal Vite/framework paths
 if (
   path.startsWith('/@vite/') ||
@@ -23,7 +32,7 @@ if (
   path.startsWith('/@id/') ||
   path.startsWith('/@fs/')
 ) {
-  return new Response(null, { status: 404 });
+  return plainNotFound();
 }
 
 /* Temporary fix as some links starting with /EPiServer/CMS/Content were not converted correctly during import */
@@ -38,7 +47,7 @@ if (path.startsWith(legacyInternalUrlPrefix)) {
 if (path.startsWith("/media/") || path.startsWith("/contentassets/") || path.startsWith("/publicassets/")) {
    const bytes = await fetchUmbracoMedia(path + search);
    if (!bytes) {
-     return new Response(null, { status: 404 });
+     return isMachineRequestedFile ? plainNotFound() : new Response(null, { status: 404 });
    }
    return new Response(bytes);
  }
@@ -51,13 +60,12 @@ if (path.startsWith("/%7BlocalLink:")) {
   return Astro.redirect(Astro.url.origin + resolveLocalLinkRedirect(path), 302);
 }
 
-// Browsers, apps and password managers probe these paths on their own. A body stops Astro from
-// rendering 404.astro, which calls Umbraco.
-if (path.startsWith('/api/') || path.startsWith('/.well-known/') || path.match(/\.[a-zA-Z0-9]+$/)) {
-  return new Response('Not found', {
-    status: 404,
-    headers: { 'Content-Type': 'text/plain', 'Cache-Control': pageCacheControl(Astro.url.hostname) },
-  });
+if (isMachineRequestedFile) {
+  return plainNotFound();
+}
+
+if (path.startsWith('/api/') || path.match(/\.[a-zA-Z0-9]+$/)) {
+  return new Response(null, { status: 404 });
 }
 
 const redirectTarget = await fetchUmbracoRedirect(path);
@@ -65,6 +73,10 @@ if (redirectTarget && redirectTarget !== path) {
   const redirectUrl = new URL(redirectTarget, Astro.url);
   redirectUrl.search = Astro.url.search;
   return Astro.redirect(redirectUrl.toString(), 302);
+}
+
+if (path.startsWith('/.well-known/')) {
+  return plainNotFound();
 }
 
 // On a locale-root URL the requested page IS the startPage — reuse the fetch.

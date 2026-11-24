@@ -1,9 +1,11 @@
+/Static/favicon/apple-touch-icon* /apple-touch-icon:splat 301
+/static/favicon/apple-touch-icon* /apple-touch-icon:splat 301
 /Static/favicon/* /assets/favicon/:splat 301
 /static/favicon/* /assets/favicon/:splat 301
 /favicon.ico /assets/favicon/favicon.ico 200
 /browserconfig.xml /assets/favicon/browserconfig.xml 200
 /apple-touch-icon.png /assets/favicon/apple-touch-icon.png 200
-/apple-touch-icon-precomposed.png /assets/favicon/apple-touch-icon.png 200
+/apple-touch-icon-precomposed.png /assets/favicon/apple-touch-icon-precomposed.png 200
 /apple-touch-icon-57x57.png /assets/favicon/apple-touch-icon-57x57.png 200
 /apple-touch-icon-57x57-precomposed.png /assets/favicon/apple-touch-icon-57x57.png 200
 /apple-touch-icon-60x60.png /assets/favicon/apple-touch-icon-60x60.png 200
