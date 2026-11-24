@@ -1,0 +1,82 @@
+---
+name: local-prod-db
+description: Run the info.altinn.no Umbraco CMS locally on a copy of the prod database, which the person who created you exported on their machine, and point the Astro frontend at it. Use when a task needs real content, such as to reproduce a bug on a page, check how a change renders existing pages, or test the Delivery API against what prod serves.
+---
+
+# Run Umbraco on a copy of prod
+
+You cannot export a database yourself: that needs the VPN and an Entra group you have neither of. The person who
+created you exports it on their machine, and you import the file into SQL Server in a container here. The data is
+static, public content, so it is fine to work with, but the `.bacpac` and the database stay out of commits.
+
+## 1. Find the copy
+
+```sh
+ls -t /home/agent/code/info.altinn.no/.bacpacs/prod-umbraco-*.bacpac
+```
+
+The newest one is used. Its name holds when it was exported, so say how old it is when that matters for the task.
+When there is none, or it is too old, ask them to run this on their machine, where `info-fullstack-dev` is your name:
+
+```sh
+scripts/db/export-bacpac.sh prod --auth token
+ssh agentctl-info-fullstack-dev mkdir -p code/info.altinn.no/.bacpacs
+scp .bacpacs/prod-umbraco-<timestamp>.bacpac agentctl-info-fullstack-dev:code/info.altinn.no/.bacpacs/
+```
+
+On the `worktree` variant the folder is their checkout's, so a new export shows up here without copying.
+
+## 2. Import it
+
+```sh
+cd /home/agent/code/info.altinn.no
+scripts/db/refresh-local-db.sh prod --skip-export --env-out ~/.config/infoportal-db/umbraco.env
+```
+
+It starts SQL Server in a container (`infoportal-mssql`), replaces the database `umbraco` in it with the copy, and
+writes the connection string to `~/.config/infoportal-db/umbraco.env`. It never touches `appsettings.Local.json`. The
+first run pulls the SQL Server image, about 1.5 GB, and the import takes a few minutes.
+
+The container and its database stay across sessions. After you restart, start it again with
+`podman start infoportal-mssql`. Import again only for a newer copy, or to undo what a task changed in the database.
+
+## 3. Run Umbraco
+
+```sh
+cd /home/agent/code/info.altinn.no/umbraco-infoportal
+set -a; . ~/.config/infoportal-db/umbraco.env; set +a
+export ASPNETCORE_ENVIRONMENT=Development
+dotnet run --urls http://localhost:43450 > /tmp/umbraco.log 2>&1 &
+echo $! > /tmp/umbraco.pid
+```
+
+It is ready when `http://localhost:43450/umbraco` answers 200. Stop it with `kill "$(cat /tmp/umbraco.pid)"`, since
+each command may run in a new shell, where `%1` means nothing. `pkill -f` with a pattern that also matches your own
+command line kills that shell too.
+
+- When the branch has a newer Umbraco than prod, the first start upgrades the database. That is expected, and only
+  happens here. Import again to get back to prod's version.
+- The Delivery API and the frontend need no sign-in. The backoffice has prod's users, whose passwords you do not
+  have, and Entra sign-in does not work locally. When a task needs the backoffice, ask the person, or use the
+  `local-umbraco` skill's SQLite database, where you have a user of your own.
+- Images are in prod's Azure storage, which you cannot reach, so they are missing.
+- Search and cache purging reach Elasticsearch and Cloudflare, so expect errors from them in the log.
+
+To have the frontend use it, write `UMBRACO_API_URL=http://localhost:43450/` to `astro-infoportal/.dev.vars`, which
+Git ignores, and restart `pnpm dev`. Remove the file when you are done, so the frontend reads AT22 again.
+
+SQL Server needs about 2 GB of memory on top of Umbraco and the frontend. The `nested` variants, with 3 GiB on
+`minimal` and 4 GiB on `desktop`, are too small for it.
+
+SQL Server exists only for amd64. On an arm64 machine, such as a Mac, it runs under emulation in this sandbox, which
+it does not survive: `start-sqlserver.sh` stops with exit code 139. Check with `uname -m` first, and when it says
+`aarch64`, tell the person that this skill needs an amd64 machine, rather than working around it.
+
+## 4. Clean up
+
+```sh
+podman stop infoportal-mssql
+```
+
+stops the database and keeps it. `scripts/db/start-sqlserver.sh` recreates it empty. Delete old `.bacpac` files you
+no longer need, so the disk does not fill up.

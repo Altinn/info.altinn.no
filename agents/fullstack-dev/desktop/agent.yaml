@@ -27,6 +27,7 @@ spec:
   skills:
     - source: ../skills/pr-evidence
     - source: ../skills/local-umbraco
+    - source: ../skills/local-prod-db
     # The image adds the recording and computer-use skills.
   harnesses:
     - type: claudeCode

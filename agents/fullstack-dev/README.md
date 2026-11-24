@@ -40,8 +40,9 @@ walks through the setup on Windows with WSL, both tokens and troubleshooting.
 ## What it can and cannot do
 
 It runs Biome, Vitest, the Astro build, the Workers' tests, `dotnet build` and `dotnet test`, runs the site
-and Umbraco locally, and takes screenshots on `desktop`. It cannot copy an environment's database, which needs the VPN,
-nor plan or apply the Terraform, deploy, or reach any environment's secrets. Its instructions tell it to say so.
+and Umbraco locally, also on a copy of the prod database that you export and give it, and takes screenshots on
+`desktop`. It cannot export a database itself, which needs the VPN, nor plan or apply the Terraform, deploy, or reach
+any environment's secrets. Its instructions tell it to say so.
 
 ## The definition
 
@@ -49,6 +50,6 @@ nor plan or apply the Terraform, deploy, or reach any environment's secrets. Its
 instructions, with [`worktree.md`](worktree.md) on the `worktree` variant.
 [`skills/pr-evidence`](skills/pr-evidence/SKILL.md) says what its pull requests show, and
 [`skills/local-umbraco`](skills/local-umbraco/SKILL.md) how it runs Umbraco on SQLite, since the README's default no
-longer works. The images are built from the
+longer works, and [`skills/local-prod-db`](skills/local-prod-db/SKILL.md) how it runs it on a copy of prod. The images are built from the
 [`Dockerfile`](Dockerfile) on the agentctl base images and published by
 [`fullstack-dev-agent-images.yml`](../../.github/workflows/fullstack-dev-agent-images.yml) when it changes on `main`.

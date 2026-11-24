@@ -103,6 +103,17 @@ Useful flags:
 | `--skip-export` | reuse the newest `.bacpac` instead of downloading again |
 | `--keep-container` | import into the running container instead of recreating it |
 | `--auth password` | prompt for an Entra password instead of using an `az` token |
+| `--env-out FILE` | write the settings as environment variables to `FILE` instead of `appsettings.Local.json` |
+
+Two environment variables change where the scripts keep their state:
+
+| Variable | Effect |
+|---|---|
+| `INFOPORTAL_DB_ENV_FILE` | where `start-sqlserver.sh` writes the container's password and port (default `scripts/db/.env`) |
+| `INFOPORTAL_PODMAN_NATIVE=1` | use podman as it is, without pinning a podman machine connection, as on Linux |
+
+The agentctl agent (`agents/fullstack-dev`) sets both, and imports a `.bacpac` you give it with `--skip-export` and
+`--env-out`, as its `local-prod-db` skill describes.
 
 The four scripts also run standalone: `export-bacpac.sh`, `start-sqlserver.sh`,
 `import-bacpac.sh`, `refresh-local-db.sh`. Pass `--help` to any of them.

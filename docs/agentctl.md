@@ -103,7 +103,22 @@ To try a change to the image before CI publishes it, use the `nested-build` vari
 agentctl apply --variant nested-build --wait --timeout 30m
 ```
 
-## 6. Check that it works
+## 6. Give it a copy of the prod database (optional)
+
+For tasks that need real content, the agent runs Umbraco on a copy of prod. It cannot export one itself, so you do, on
+your machine, on the VPN, as [`scripts/db/README.md`](../scripts/db/README.md) describes, and copy the file in:
+
+```sh
+cd ~/info.altinn.no
+scripts/db/export-bacpac.sh prod --auth token
+ssh agentctl-info-fullstack-dev mkdir -p code/info.altinn.no/.bacpacs
+scp .bacpacs/prod-umbraco-<timestamp>.bacpac agentctl-info-fullstack-dev:code/info.altinn.no/.bacpacs/
+```
+
+Then ask it to use the copy. It imports the newest one with its `local-prod-db` skill. The `worktree` variant sees
+your `.bacpacs/` already, so it needs no copying. Export again when you want it to have newer content.
+
+## 7. Check that it works
 
 | What | How | Expected |
 |---|---|---|

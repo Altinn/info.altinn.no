@@ -69,5 +69,21 @@ else
   FAIL=$((FAIL+1)); printf 'FAIL tcp_check took %ss\n' "$ELAPSED"
 fi
 
+# The env file defaults to scripts/db/.env and follows INFOPORTAL_DB_ENV_FILE.
+assert_eq "$INFOPORTAL_DB_DIR/.env" "$INFOPORTAL_DB_ENV_FILE" "env file defaults to scripts/db/.env"
+assert_eq "/tmp/elsewhere.env" "$(INFOPORTAL_DB_ENV_FILE=/tmp/elsewhere.env bash -c ". '$TESTS_DIR/../lib.sh'; printf '%s' \"\$INFOPORTAL_DB_ENV_FILE\"")" "env file follows INFOPORTAL_DB_ENV_FILE"
+
+# A stub podman that echoes its arguments, so cre's pinning can be observed.
+STUB="$(mktemp -d)"
+cat >"$STUB/podman" <<'EOF'
+#!/bin/sh
+case "$*" in *--help*) echo '  --connection string' ;; *) echo "podman $*" ;; esac
+EOF
+chmod +x "$STUB/podman"
+assert_eq "podman --connection infoportal-db ps" "$(PATH="$STUB:$PATH" CONTAINER_CLI=podman cre ps)" "cre pins the podman connection"
+assert_eq "podman ps" "$(PATH="$STUB:$PATH" CONTAINER_CLI=podman INFOPORTAL_PODMAN_NATIVE=1 cre ps)" "cre runs native podman unpinned"
+assert_succeeds "PATH='$STUB:$PATH' CONTAINER_CLI=podman INFOPORTAL_PODMAN_NATIVE=1 require_container_connection" "native podman needs no connection"
+rm -rf "$STUB"
+
 printf '\n%d passed, %d failed\n' "$PASS" "$FAIL"
 [ "$FAIL" -eq 0 ]

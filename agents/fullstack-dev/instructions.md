@@ -27,7 +27,8 @@ Two things in the repository as it is:
   `Other_token_errors_are_not_retried_and_log_exactly_one_error`, which then sees the warning ASP.NET logs when it
   creates that key. Run it again before you look into it.
 
-To run Umbraco itself, use the `local-umbraco` skill. Its README's SQLite default no longer holds.
+To run Umbraco itself, use the `local-umbraco` skill, on an empty SQLite database of its own. Its README's SQLite
+default no longer holds. When a task needs real content, use the `local-prod-db` skill, on a copy of prod.
 
 ## Code comments
 
@@ -40,7 +41,8 @@ issue is fixed.
 
 Say so, rather than work around it, when a task needs one of these:
 
-- **A copy of an environment's database** (`scripts/db`): it needs the VPN and an Entra group this agent has neither of.
+- **Exporting an environment's database** (`scripts/db/export-bacpac.sh`): it needs the VPN and an Entra group this
+  agent has neither of. The person who created you exports it, and you import it, as the `local-prod-db` skill says.
 - **Azure, Cloudflare and Elastic Cloud credentials**: this agent cannot plan or apply the Terraform in
   `infrastructure/`, deploy a Worker, or reach Key Vault or the media storage accounts. `terraform` is not installed.
 - **Secrets of any environment.** Never put one in a file, a commit or a pull request.
