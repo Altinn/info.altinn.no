@@ -11,6 +11,18 @@ const excludedPathNames = ["/api/", "/ui/", "/health"];
 // fallback mode (the snapshot stores them). Keep in sync with SNAPSHOT_API_PREFIXES in snapshot-infoportal/src/keys.ts.
 const cachedApiPathNames = ["/api/subsidies/", "/api/schema/municipalities"];
 
+// cache.match() applies these to the stored entry itself and answers 206, 304, 412 or 416, so a lookup with them
+// does not show what is stored.
+const conditionalHeaderNames = ["if-none-match", "if-modified-since", "if-match", "if-unmodified-since", "if-range", "range"];
+
+function withoutConditionalHeaders(request: Request): Request {
+	const headers = new Headers(request.headers);
+	for (const name of conditionalHeaderNames) {
+		headers.delete(name);
+	}
+	return new Request(request, { headers });
+}
+
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
 		const url = new URL(request.url);
@@ -45,14 +57,14 @@ export default {
 		let response;
 
 		try {
-			response = await cache.match(cacheKey);
+			response = await cache.match(withoutConditionalHeaders(cacheKey));
 		} catch (error) {
 			throw new Error(`Failed to check cache match: ${error}`);
 		}
 
 		// Cached pages are served as usual, also in fallback mode: they are at least as fresh as the snapshot.
-		// Only when the cache cannot answer (miss, or a cached 4xx such as a 404 from an Umbraco timeout) does
-		// fallback mode decide where the request goes.
+		// Only on a miss, or a cached 4xx such as a 404 from an Umbraco timeout, does fallback mode decide where
+		// the request goes.
 		if (!response || response.status >= 400) {
 			if (await isFallbackOn(env)) {
 				// Snapshot responses are cached like responses from Astro, so repeat requests are served from the
@@ -62,6 +74,14 @@ export default {
 					ctx.waitUntil(cache.put(cacheKey, fallback.clone()));
 				}
 				return fallback;
+			}
+		}
+
+		if (response && conditionalHeaderNames.some((name) => request.headers.has(name))) {
+			try {
+				response = (await cache.match(cacheKey)) ?? response;
+			} catch (error) {
+				throw new Error(`Failed to check cache match: ${error}`);
 			}
 		}
 

@@ -76,6 +76,57 @@ describe("fallback switch", () => {
 		expect(snapshot).toHaveBeenCalledTimes(1);
 	});
 
+	it("uses the snapshot instead of a cached 404 in fallback mode, also for an unsatisfiable range", async () => {
+		const astro = vi.fn(async () => new Response("not found", { status: 404, headers: { "Cache-Control": "public, max-age=60" } }));
+		const { snapshot, env } = createEnv();
+		const url = uniqueUrl();
+		await call(url, { ...env, ASTRO_INFOPORTAL: { fetch: astro } }); // caches the 404
+
+		await bindings.FALLBACK_KV.put("fallback:mode", "on");
+		resetFallbackSwitch();
+
+		const response = await call(url, env, { headers: { Range: "bytes=999999-" } });
+		expect(await response.text()).toBe("from snapshot");
+		expect(snapshot).toHaveBeenCalledTimes(1);
+	});
+
+	it("lets the cache answer range and conditional requests for a cached page in fallback mode", async () => {
+		const astro = vi.fn(
+			async () => new Response("from astro", { headers: { "Cache-Control": "public, max-age=60", ETag: '"v1"' } }),
+		);
+		const { snapshot, env } = createEnv();
+		const url = uniqueUrl();
+		await call(url, { ...env, ASTRO_INFOPORTAL: { fetch: astro } }); // fills the cache from astro
+
+		await bindings.FALLBACK_KV.put("fallback:mode", "on");
+		resetFallbackSwitch();
+
+		const partial = await call(url, env, { headers: { Range: "bytes=0-3" } });
+		expect(partial.status).toBe(206);
+		expect(await partial.text()).toBe("from");
+
+		const notModified = await call(url, env, { headers: { "If-None-Match": '"v1"' } });
+		expect(notModified.status).toBe(304);
+
+		expect(snapshot).not.toHaveBeenCalled();
+		expect(astro).toHaveBeenCalledTimes(1);
+	});
+
+	it("passes on the cache's 416 for an unsatisfiable range in fallback mode, and keeps the cached page", async () => {
+		const { astro, snapshot, env } = createEnv();
+		const url = uniqueUrl();
+		await call(url, env); // fills the cache from astro
+
+		await bindings.FALLBACK_KV.put("fallback:mode", "on");
+		resetFallbackSwitch();
+
+		const outOfRange = await call(url, env, { headers: { Range: "bytes=999999-" } });
+		expect(outOfRange.status).toBe(416);
+		expect(await (await call(url, env)).text()).toBe("from astro");
+		expect(snapshot).not.toHaveBeenCalled();
+		expect(astro).toHaveBeenCalledTimes(1);
+	});
+
 	it("caches snapshot responses, so repeat requests in fallback mode come from the edge cache", async () => {
 		await bindings.FALLBACK_KV.put("fallback:mode", "on");
 		const { astro, snapshot, env } = createEnv();
