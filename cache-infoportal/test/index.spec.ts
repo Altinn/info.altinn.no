@@ -96,6 +96,103 @@ describe("cache-infoportal worker", () => {
 		expect(fetch).toHaveBeenCalledTimes(2);
 	});
 
+	describe("conditional requests (issue #752)", () => {
+		// The headers a browser sends when it already has a copy, or wants part of a file.
+		const conditionalHeaders = {
+			"If-None-Match": '"v1"',
+			"If-Modified-Since": "Mon, 23 Nov 2026 08:00:00 GMT",
+			"If-Match": '"v1"',
+			"If-Unmodified-Since": "Mon, 23 Nov 2026 08:00:00 GMT",
+			"If-Range": '"v1"',
+			Range: "bytes=0-1",
+		};
+
+		// Like Astro's static assets: answers 304 or 206 when the request allows it, otherwise the full file.
+		function createConditionalOrigin() {
+			const fetch = vi.fn(async (request: Request) => {
+				const headers = { "Cache-Control": "public, max-age=60", ETag: '"v1"' };
+				if (request.headers.get("If-None-Match") === '"v1"') {
+					return new Response(null, { status: 304, headers });
+				}
+				if (request.headers.has("Range")) {
+					return new Response("fr", { status: 206, headers: { ...headers, "Content-Range": "bytes 0-1/11" } });
+				}
+				return new Response("from origin", { headers });
+			});
+			return { fetch, env: { ASTRO_INFOPORTAL: { fetch } } };
+		}
+
+		it("fills the cache on a miss without passing conditional or range headers to origin", async () => {
+			const origin = createConditionalOrigin();
+			const url = uniqueUrl();
+
+			const first = await callWorker(new IncomingRequest(url, { headers: conditionalHeaders }), origin.env);
+			expect(first.status).toBe(200);
+			expect(await first.text()).toBe("from origin");
+
+			const sent = origin.fetch.mock.calls[0][0].headers;
+			for (const name of Object.keys(conditionalHeaders)) {
+				expect(sent.has(name), name).toBe(false);
+			}
+
+			// The repeat request is a cache hit, and the cache answers the conditional request itself.
+			const second = await callWorker(new IncomingRequest(url, { headers: { "If-None-Match": '"v1"' } }), origin.env);
+			expect(second.status).toBe(304);
+			expect(origin.fetch).toHaveBeenCalledTimes(1);
+		});
+
+		it("keeps other request headers when filling the cache", async () => {
+			const origin = createConditionalOrigin();
+
+			await callWorker(
+				new IncomingRequest(uniqueUrl(), { headers: { "If-None-Match": '"v1"', "Accept-Language": "nn" } }),
+				origin.env,
+			);
+
+			expect(origin.fetch.mock.calls[0][0].headers.get("Accept-Language")).toBe("nn");
+		});
+
+		it.each([304, 206])("passes a %i from origin on without caching it", async (status) => {
+			const fetch = vi.fn(
+				async () =>
+					new Response(null, {
+						status,
+						headers: { "Cache-Control": "public, max-age=60", "Content-Range": "bytes 0-1/11" },
+					}),
+			);
+			const env = { ASTRO_INFOPORTAL: { fetch } };
+			const url = uniqueUrl();
+
+			expect((await callWorker(new IncomingRequest(url), env)).status).toBe(status);
+			expect((await callWorker(new IncomingRequest(url), env)).status).toBe(status);
+			expect(fetch).toHaveBeenCalledTimes(2);
+		});
+
+		it("still caches 404s", async () => {
+			const fetch = vi.fn(
+				async () => new Response("not found", { status: 404, headers: { "Cache-Control": "public, max-age=60" } }),
+			);
+			const env = { ASTRO_INFOPORTAL: { fetch } };
+			const url = uniqueUrl("/favicon.ico");
+
+			expect((await callWorker(new IncomingRequest(url), env)).status).toBe(404);
+			expect((await callWorker(new IncomingRequest(url), env)).status).toBe(404);
+			expect(fetch).toHaveBeenCalledTimes(1);
+		});
+
+		it("passes conditional headers on unchanged for paths that are never cached", async () => {
+			const origin = createConditionalOrigin();
+
+			const response = await callWorker(
+				new IncomingRequest(uniqueUrl("/api/search"), { headers: { "If-None-Match": '"v1"' } }),
+				origin.env,
+			);
+
+			expect(response.status).toBe(304);
+			expect(origin.fetch.mock.calls[0][0].headers.get("If-None-Match")).toBe('"v1"');
+		});
+	});
+
 	it("wraps origin failures in a descriptive error", async () => {
 		const env = {
 			ASTRO_INFOPORTAL: {
