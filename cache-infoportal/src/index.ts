@@ -52,8 +52,11 @@ export default {
 
 		// Cached pages are served as usual, also in fallback mode: they are at least as fresh as the snapshot.
 		// Only when the cache cannot answer (miss, or a cached 4xx such as a 404 from an Umbraco timeout) does
-		// fallback mode decide where the request goes.
-		if (!response || response.status >= 400) {
+		// fallback mode decide where the request goes. A 412 or 416 is the cache's answer to the request's
+		// preconditions or range, not a cached error page.
+		const cacheCannotAnswer =
+			!response || (response.status >= 400 && response.status !== 412 && response.status !== 416);
+		if (cacheCannotAnswer) {
 			if (await isFallbackOn(env)) {
 				// Snapshot responses are cached like responses from Astro, so repeat requests are served from the
 				// edge cache. When fallback mode is turned off, the cache must be purged (see snapshot-infoportal/FALLBACK.md).

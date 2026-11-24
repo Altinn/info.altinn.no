@@ -76,6 +76,21 @@ describe("fallback switch", () => {
 		expect(snapshot).toHaveBeenCalledTimes(1);
 	});
 
+	it("passes on the cache's 416 for an unsatisfiable range in fallback mode, and keeps the cached page", async () => {
+		const { astro, snapshot, env } = createEnv();
+		const url = uniqueUrl();
+		await call(url, env); // fills the cache from astro
+
+		await bindings.FALLBACK_KV.put("fallback:mode", "on");
+		resetFallbackSwitch();
+
+		const outOfRange = await call(url, env, { headers: { Range: "bytes=999999-" } });
+		expect(outOfRange.status).toBe(416);
+		expect(await (await call(url, env)).text()).toBe("from astro");
+		expect(snapshot).not.toHaveBeenCalled();
+		expect(astro).toHaveBeenCalledTimes(1);
+	});
+
 	it("caches snapshot responses, so repeat requests in fallback mode come from the edge cache", async () => {
 		await bindings.FALLBACK_KV.put("fallback:mode", "on");
 		const { astro, snapshot, env } = createEnv();
