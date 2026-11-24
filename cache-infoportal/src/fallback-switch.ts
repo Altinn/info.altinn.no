@@ -1,5 +1,5 @@
 /**
- * Whether fallback mode is on (issue #905, see snapshot-infoportal/FALLBACK.md). Reads KV at most every
+ * Whether fallback mode is on (see snapshot-infoportal/FALLBACK.md). Reads KV at most every
  * 15 seconds per isolate. Environments without SNAPSHOT_INFOPORTAL and FALLBACK_KV are never in fallback mode.
  */
 export type FallbackSwitchEnv = {
