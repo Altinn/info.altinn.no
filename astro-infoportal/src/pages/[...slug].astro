@@ -18,7 +18,7 @@ const isNorwegianStartRoot = /^\/(no|nb)\/?$/.test(path);
 
 // Browsers and apps ask for these on their own, so they get a plain 404. Its body stops Astro from
 // rendering 404.astro, which calls Umbraco. Links people follow, such as documents, keep that page.
-const isMachineRequestedFile = /\.(png|jpe?g|gif|webp|avif|svg|ico|xml|json|webmanifest|map)$/i.test(path);
+const isMachineRequestedFile = /\.(png|jpe?g|gif|webp|avif|svg|ico|webmanifest|map)$/i.test(path);
 // Checked after Umbraco redirects, whatever the extension, so editors can redirect these paths.
 const isWellKnown = path.startsWith('/.well-known/');
 const plainNotFound = (cacheControl = notFoundCacheControl(Astro.url.hostname)) =>
@@ -62,12 +62,12 @@ if (path.startsWith("/%7BlocalLink:")) {
   return Astro.redirect(Astro.url.origin + resolveLocalLinkRedirect(path), 302);
 }
 
-if (isMachineRequestedFile && !isWellKnown) {
-  return plainNotFound();
+if (path.startsWith('/api/')) {
+  return new Response(null, { status: 404 });
 }
 
-if (path.startsWith('/api/') || (path.match(/\.[a-zA-Z0-9]+$/) && !isWellKnown)) {
-  return new Response(null, { status: 404 });
+if (!isWellKnown && /\.[a-zA-Z0-9]+$/.test(path)) {
+  return isMachineRequestedFile ? plainNotFound() : new Response(null, { status: 404 });
 }
 
 const redirectTarget = await fetchUmbracoRedirect(path);
