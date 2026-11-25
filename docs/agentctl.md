@@ -22,6 +22,20 @@ Then restart WSL from PowerShell with `wsl --shutdown`, and check in a new WSL t
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/digdir/digdir-agents/main/agentctl/install.sh | sh
+```
+
+It installs to `~/.local/bin`, which Ubuntu only puts on `PATH` in shells started after that folder exists. Open a new
+WSL terminal, and check that `agentctl --version` answers. If it still says `command not found`, your shell does not
+add the folder, so add it yourself:
+
+```sh
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc   # ~/.zshrc for zsh
+exec bash -l
+```
+
+Then log in:
+
+```sh
 agentctl claude login
 agentctl skills install --bundled agentctl --user   # lets Claude Code on your machine drive agents
 ```
