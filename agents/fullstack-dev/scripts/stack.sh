@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
 #
-# Runs Umbraco on the local copy of prod and the Astro frontend against it, inside the agent's sandbox, so both can be
+# Runs Umbraco on a local copy of an environment's database and the Astro frontend against it, inside the agent's sandbox, so both can be
 # opened in a browser outside it through forward.sh. Each step is skipped when it is already done, so `up` can be run
 # again at any time.
 set -euo pipefail
 
 usage() {
   cat >&2 <<EOF
-usage: stack.sh up [--import] | down [--db] | status
+usage: stack.sh up [--env ENV] [--import] | down [--db] | status
 
   up         start the database, Umbraco and the frontend, and wait until each answers
+  --env ENV  the environment whose copy to use, one of: $(list_environments)
+             The default is the one already imported, or prod when there is none.
   --import   import the newest .bacpac again, replacing the database and what was changed in it
   down       stop the frontend and Umbraco, and remove the .dev.vars that up wrote
   --db       also stop the database container, which keeps its data
@@ -23,6 +25,8 @@ CMS="$REPO/umbraco-infoportal"
 WEB="$REPO/astro-infoportal"
 DB_CONTAINER=infoportal-mssql
 UMBRACO_ENV="$HOME/.config/infoportal-db/umbraco.env"
+# Which environment's copy the database holds, and from which file, as "<env> <file>".
+IMPORTED_FILE="$HOME/.config/infoportal-db/imported"
 UMBRACO_PORT=43450
 WEB_PORT=4321
 UMBRACO_LOG=/tmp/umbraco.log
@@ -72,17 +76,34 @@ db_state() {
   podman inspect -f '{{.State.Status}}' "$DB_CONTAINER" 2>/dev/null || echo missing
 }
 
+imported_env() {
+  [ -f "$IMPORTED_FILE" ] && cut -d' ' -f1 "$IMPORTED_FILE" || true
+}
+
 db_up() {
-  local state
+  local state imported env bacpac
   state="$(db_state)"
-  if [ "${IMPORT:-0}" = 1 ] || [ "$state" = missing ] || [ ! -f "$UMBRACO_ENV" ]; then
+  imported="$(imported_env)"
+  if [ "$IMPORT" = 1 ] || [ "$state" = missing ] || [ ! -f "$UMBRACO_ENV" ]; then
+    env="${ENV_NAME:-${imported:-prod}}"
     # shellcheck disable=SC2012
-    ls -t "$REPO/.bacpacs/"prod-umbraco-*.bacpac >/dev/null 2>&1 ||
-      die "no copy of prod in $REPO/.bacpacs. docs/agentctl.md, step 6, says how to give the agent one."
+    bacpac="$(ls -t "$REPO/.bacpacs/$env-umbraco-"*.bacpac 2>/dev/null | head -1 || true)"
+    [ -n "$bacpac" ] ||
+      die "no copy of $env in $REPO/.bacpacs. docs/agentctl.md, step 6, says how to give the agent one."
     umbraco_down
-    log "==> importing the newest copy of prod, which takes a few minutes"
-    "$REPO/scripts/db/refresh-local-db.sh" prod --skip-export --env-out "$UMBRACO_ENV" >/dev/null
-  elif [ "$state" != running ]; then
+    log "==> importing $(basename "$bacpac"), which takes a few minutes"
+    rm -f "$IMPORTED_FILE"
+    "$REPO/scripts/db/refresh-local-db.sh" "$env" --skip-export --env-out "$UMBRACO_ENV" >/dev/null
+    echo "$env $(basename "$bacpac")" >"$IMPORTED_FILE"
+    return
+  fi
+  if [ -n "$ENV_NAME" ] && [ "$ENV_NAME" != "$imported" ]; then
+    if [ -n "$imported" ]; then
+      die "the database is a copy of $imported. Add --import to replace it with the newest copy of $ENV_NAME."
+    fi
+    log "warning: which environment the database is a copy of is not recorded. Add --import to be sure it is $ENV_NAME."
+  fi
+  if [ "$state" != running ]; then
     log "==> starting the database"
     podman start "$DB_CONTAINER" >/dev/null
     # shellcheck source=/dev/null
@@ -193,9 +214,10 @@ web_down() {
 }
 
 status() {
-  local signin=no
+  local signin=no copy="which copy is not recorded"
   umbraco_signin_works && signin=yes
-  printf '%-12s %s\n' database "$(db_state)"
+  [ -f "$IMPORTED_FILE" ] && copy="a copy of $(sed 's/ /, from /' "$IMPORTED_FILE")"
+  printf '%-12s %s, %s\n' database "$(db_state)" "$copy"
   printf '%-12s HTTP %s, sign-in over HTTP: %s\n' Umbraco "$(http_code "http://127.0.0.1:$UMBRACO_PORT/umbraco")" "$signin"
   printf '%-12s HTTP %s\n' frontend "$(http_code "http://127.0.0.1:$WEB_PORT/" 30)"
 }
@@ -205,10 +227,17 @@ command="$1"
 shift
 IMPORT=0
 DB_DOWN=0
+ENV_NAME=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --import) IMPORT=1 ;;
     --db) DB_DOWN=1 ;;
+    --env)
+      [ $# -ge 2 ] || usage
+      ENV_NAME="$2"
+      case " $(list_environments)" in *" $ENV_NAME "*) ;; *) die "unknown environment '$ENV_NAME'. Use one of: $(list_environments)" ;; esac
+      shift
+      ;;
     *) usage ;;
   esac
   shift
@@ -220,11 +249,13 @@ case "$command" in
     umbraco_up
     dev_vars_up
     web_up
+    copy="$(imported_env)"
+    copy="${copy:-an environment that is not recorded}"
     cat <<EOF
 
-Running. From your machine, run agents/fullstack-dev/scripts/forward.sh, and open:
+Running, on a copy of $copy. From your machine, run agents/fullstack-dev/scripts/forward.sh $(hostname), and open:
   frontend   http://localhost:$WEB_PORT
-  Umbraco    http://localhost:$UMBRACO_PORT/umbraco, as a prod backoffice user: scripts/db/README.md names one
+  Umbraco    http://localhost:$UMBRACO_PORT/umbraco, as a backoffice user of $copy: scripts/db/README.md names one for prod
 Logs: $UMBRACO_LOG and $WEB_LOG
 EOF
     ;;

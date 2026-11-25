@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
 #
-# Run on your own machine. Starts Umbraco on the copy of prod and the frontend in an info-fullstack-dev agent, with
-# stack.sh, and forwards both to localhost, so they open in your browser, until Ctrl+C.
+# Run on your own machine. Forwards an agent's frontend and Umbraco to localhost, so they open in your browser, until
+# Ctrl+C. With --up, it first starts them in the agent with stack.sh.
 set -euo pipefail
 
 usage() {
   cat >&2 <<EOF
-usage: forward.sh [AGENT] [--no-up]
+usage: forward.sh [AGENT] [--up] [--env ENV]
 
-  AGENT     the agent, such as info-fullstack-dev-build; the only ready info-fullstack-dev agent when left out
-  --no-up   only forward, without starting anything in the agent
+  AGENT      the agent, such as info-fullstack-dev-build; the only ready info-fullstack-dev agent when left out
+  --up       first start the database, Umbraco and the frontend in the agent, with stack.sh up. Without it, they
+             must already run, as the agent may have started them for a task
+  --env ENV  with --up: the environment whose copy to use, such as at22; see stack.sh
 EOF
   exit 1
 }
@@ -17,10 +19,17 @@ EOF
 die() { printf 'error: %s\n' "$*" >&2; exit 1; }
 
 AGENT=""
-UP=1
+UP=0
+UP_ARGS=()
 while [ $# -gt 0 ]; do
   case "$1" in
-    --no-up) UP=0 ;;
+    --up) UP=1 ;;
+    --env)
+      [ $# -ge 2 ] || usage
+      UP=1
+      UP_ARGS+=(--env "$2")
+      shift
+      ;;
     -h | --help | -*) usage ;;
     *) [ -z "$AGENT" ] || usage; AGENT="$1" ;;
   esac
@@ -30,7 +39,7 @@ done
 if [ -z "$AGENT" ]; then
   ready="$(agentctl get agents | awk 'NR > 1 && $1 ~ /^info-fullstack-dev/ && $2 == "True" { print $1 }')"
   case "$(printf '%s' "$ready" | grep -c .)" in
-    0) die "no info-fullstack-dev agent is ready. Start one as docs/agentctl.md, step 5, says." ;;
+    0) die "no info-fullstack-dev agent is ready. Name the agent, or start one as docs/agentctl.md, step 5, says." ;;
     1) AGENT="$ready" ;;
     *) die "several agents are ready, so name one: $(echo "$ready" | tr '\n' ' ')" ;;
   esac
@@ -40,7 +49,7 @@ fi
 # browser back to its own.
 for port in 4321 43450; do
   if (exec 3<>"/dev/tcp/127.0.0.1/$port") 2>/dev/null; then
-    die "port $port is in use on this machine, perhaps by your own frontend or Umbraco. Stop it first."
+    die "port $port is in use on this machine, perhaps by your own frontend, Umbraco or another forward. Stop it first."
   fi
 done
 
@@ -53,14 +62,24 @@ if [ "$UP" = 1 ]; then
       echo "  agentctl exec '"$AGENT"' -- git -C /home/agent/code/info.altinn.no checkout <branch>" >&2
       exit 1
     fi
-    "$script" up'
+    "$script" up "$@"' stack.sh "${UP_ARGS[@]}"
+else
+  # agentctl port-forward reaches the agent's 127.0.0.1, so that is where they must answer.
+  codes="$(agentctl exec "$AGENT" -- bash -c '
+    for url in http://127.0.0.1:43450/umbraco http://127.0.0.1:4321/; do
+      curl -s -o /dev/null -m 30 -w "%{http_code} " "$url" || true
+    done')"
+  if [ "$codes" != "200 200 " ]; then
+    die "Umbraco and the frontend do not both answer in $AGENT (HTTP $codes). Start them with: forward.sh $AGENT --up"
+  fi
 fi
 
+copy="$(agentctl exec "$AGENT" -- bash -c 'cut -d" " -f1 ~/.config/infoportal-db/imported 2>/dev/null' || true)"
 cat <<EOF
 
-==> forwarding from $AGENT until Ctrl+C. Open:
+==> forwarding from $AGENT, on a copy of ${copy:-an environment that is not recorded}, until Ctrl+C. Open:
   frontend   http://localhost:4321
-  Umbraco    http://localhost:43450/umbraco, as a prod backoffice user: scripts/db/README.md names one
+  Umbraco    http://localhost:43450/umbraco, as a backoffice user of ${copy:-that environment}: scripts/db/README.md names one for prod
 
 EOF
 exec agentctl port-forward "$AGENT" 4321:4321 43450:43450

@@ -104,10 +104,11 @@ runs as `info-fullstack-dev-build`. Use that name wherever this guide says `info
 agentctl apply --variant build --wait --timeout 30m
 ```
 
-## 6. Give it a copy of the prod database (optional)
+## 6. Give it a copy of a database (optional)
 
-For tasks that need real content, the agent runs Umbraco on a copy of prod. It cannot export one itself, so you do, on
-your machine, on the VPN, as [`scripts/db/README.md`](../scripts/db/README.md) describes, and copy the file in:
+For tasks that need real content, the agent runs Umbraco on a copy of an environment's database: `prod`, `at22`,
+`at23` or `tt02`. It cannot export one itself, so you do, on your machine, on the VPN, as
+[`scripts/db/README.md`](../scripts/db/README.md) describes, and copy the file in. For prod:
 
 ```sh
 agentctl ssh-config install    # once: lets ssh and scp reach agents as agentctl-<agent name>
@@ -118,36 +119,43 @@ scp .bacpacs/prod-umbraco-<timestamp>.bacpac agentctl-info-fullstack-dev:code/in
 ```
 
 There is nothing more to do. The newest copy is imported the first time Umbraco starts without a database: when you
-run `forward.sh` in step 7, or when the agent needs real content for a task. On the `worktree` variant the agent sees
+start it in step 7, or when the agent needs real content for a task. On the `worktree` variant the agent sees
 your `.bacpacs/` already, so skip the `ssh` and `scp` lines.
 
-For newer content later, export and copy in again, then import it. That replaces the database, and with it what was
-changed there:
+For newer content later, or another environment, export and copy in again, then import it. That replaces the
+database, and with it what was changed there:
 
 ```sh
-agentctl exec info-fullstack-dev -- bash -c '~/code/info.altinn.no/agents/fullstack-dev/scripts/stack.sh up --import'
+agentctl exec info-fullstack-dev -- bash -c '~/code/info.altinn.no/agents/fullstack-dev/scripts/stack.sh up --env at22 --import'
 ```
+
+Without `--env`, it keeps the environment it has, or uses prod when it has none. To have one agent on prod and
+another on at22 at the same time, start each under its own name, with
+`agentctl apply --name info-prod` and `agentctl apply --name info-at22`. Each is its own machine, with its own
+database.
 
 ## 7. Open it in your own browser (optional)
 
-To look at the agent's frontend and Umbraco yourself, with the copy of prod from step 6, run this from your checkout
-in WSL, and leave it running:
+To look at the agent's frontend and Umbraco yourself, run this from your checkout in WSL, and leave it running:
 
 ```sh
-agents/fullstack-dev/scripts/forward.sh    # or name the agent: forward.sh info-fullstack-dev-build
+agents/fullstack-dev/scripts/forward.sh info-fullstack-dev --up    # the first time: starts them in the agent
+agents/fullstack-dev/scripts/forward.sh info-fullstack-dev         # when they run already
 ```
 
-It starts the database, Umbraco and the frontend in the agent with
-[`stack.sh`](../agents/fullstack-dev/scripts/stack.sh), which takes a few minutes the first time, and forwards them to
-your machine until Ctrl+C. Then open, also in Windows:
+`--up` starts the database, Umbraco and the frontend in the agent with
+[`stack.sh`](../agents/fullstack-dev/scripts/stack.sh), which takes a few minutes the first time, and `--env at22`
+picks the environment as above. Without `--up`, it leaves the agent's servers as they are, since the agent may have
+started them for a task, and only says so when they do not answer. Either way, it forwards them to your machine until
+Ctrl+C, and says which environment's copy they run on. Then open, also in Windows:
 
 - the frontend at http://localhost:4321
-- the backoffice at http://localhost:43450/umbraco, signed in as the prod user that
-  [`scripts/db/README.md`](../scripts/db/README.md) names, with the username and password form. What you publish
-  there shows on the frontend.
+- the backoffice at http://localhost:43450/umbraco, signed in as a backoffice user of that environment, with the
+  username and password form. [`scripts/db/README.md`](../scripts/db/README.md) names one for prod. What you
+  publish there shows on the frontend.
 
-Stop your own frontend or Umbraco first, since the ports are the same as in the agent. The servers keep running in
-the agent after Ctrl+C; stop them with
+The ports are the same as in the agent, so one agent can be forwarded at a time: Ctrl+C, and forward another to switch.
+Stop your own frontend or Umbraco first. The servers keep running in the agent after Ctrl+C; stop them with
 `agentctl exec <agent> -- bash -c '~/code/info.altinn.no/agents/fullstack-dev/scripts/stack.sh down'`.
 The agent's checkout needs a branch that has `stack.sh`.
 

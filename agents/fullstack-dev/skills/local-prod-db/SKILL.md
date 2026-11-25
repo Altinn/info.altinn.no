@@ -12,10 +12,11 @@ static, public content, so it is fine to work with, but the `.bacpac` and the da
 ## 1. Find the copy
 
 ```sh
-ls -t /home/agent/code/info.altinn.no/.bacpacs/prod-umbraco-*.bacpac
+ls -t /home/agent/code/info.altinn.no/.bacpacs/*-umbraco-*.bacpac
 ```
 
-The newest one is used. Its name holds when it was exported, so say how old it is when that matters for the task.
+Each name starts with its environment: `prod`, `at22`, `at23` or `tt02`. Use prod unless the person or the task names
+another. The newest copy of the environment is used. Its name holds when it was exported, so say how old it is when that matters for the task.
 When there is none, or it is too old, ask them to run this on their machine, where `info-fullstack-dev` is your name:
 
 ```sh
@@ -46,11 +47,14 @@ The container and its database stay across sessions. After you restart, start it
 /home/agent/code/info.altinn.no/agents/fullstack-dev/scripts/stack.sh up
 ```
 
-It starts the database, imports the copy when there is no database yet, starts Umbraco on `http://localhost:43450`
-and the frontend on `http://127.0.0.1:4321` against it, and returns when both answer. Running it again restarts only
-what is down. `stack.sh status` shows what runs, and `stack.sh down` stops Umbraco and the frontend. The logs are
-`/tmp/umbraco.log` and `/tmp/astro.log`. Start them with it rather than by hand: it sets what the backoffice sign-in
-needs over plain HTTP, and binds the frontend where the person's `forward.sh` reaches it.
+It starts the database, imports the newest copy of prod when there is no database yet, starts Umbraco on
+`http://localhost:43450` and the frontend on `http://127.0.0.1:4321` against it, and returns when both answer. Running
+it again restarts only what is down. `stack.sh status` shows what runs, and which environment's copy the database holds.
+For another environment, or a newer copy, run `stack.sh up --env at22 --import`, which replaces the database and what
+was changed in it. `up --env` without `--import` refuses when the database holds another environment. `stack.sh down`
+stops Umbraco and the frontend. The logs are `/tmp/umbraco.log` and `/tmp/astro.log`. Start them with it rather than by
+hand: it sets what the backoffice sign-in needs over plain HTTP, and binds the frontend where the person's `forward.sh`
+reaches it.
 
 - When the branch has a newer Umbraco than prod, the first start upgrades the database. That is expected, and only
   happens here. Import again to get back to prod's version.
