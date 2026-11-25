@@ -63,7 +63,9 @@ command line kills that shell too.
 - Search and cache purging reach Elasticsearch and Cloudflare, so expect errors from them in the log.
 
 To have the frontend use it, write `UMBRACO_API_URL=http://localhost:43450/` to `astro-infoportal/.dev.vars`, which
-Git ignores, and restart `pnpm dev`. Remove the file when you are done, so the frontend reads AT22 again.
+Git ignores, and restart `pnpm dev`. Remove the file when you are done, so the frontend reads AT22 again. On the
+`worktree` variant, a `.dev.vars` that is already there is the person's: ask before you change it, and put it back as
+it was when you are done.
 
 SQL Server needs about 2 GB of memory on top of Umbraco and the frontend. The `nested` variants, with 3 GiB on
 `minimal` and 4 GiB on `desktop`, are too small for it.
@@ -79,4 +81,4 @@ podman stop infoportal-mssql
 ```
 
 stops the database and keeps it. `scripts/db/start-sqlserver.sh` recreates it empty. Delete old `.bacpac` files you
-no longer need, so the disk does not fill up.
+no longer need, so the disk does not fill up, except on the `worktree` variant, where `.bacpacs/` is the person's.
