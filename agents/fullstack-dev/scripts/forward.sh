@@ -48,7 +48,11 @@ if [ "$UP" = 1 ]; then
   echo "==> starting the stack in $AGENT, which takes a few minutes the first time"
   agentctl exec "$AGENT" -- bash -c '
     script=~/code/info.altinn.no/agents/fullstack-dev/scripts/stack.sh
-    [ -x "$script" ] || { echo "error: the agent'\''s checkout has no $script. Its branch is older than the script." >&2; exit 1; }
+    if [ ! -x "$script" ]; then
+      echo "error: the agent'\''s checkout has no $script, since its branch, $(git -C ~/code/info.altinn.no branch --show-current), is older than the script. Check out one that has it:" >&2
+      echo "  agentctl exec '"$AGENT"' -- git -C /home/agent/code/info.altinn.no checkout <branch>" >&2
+      exit 1
+    fi
     "$script" up'
 fi
 

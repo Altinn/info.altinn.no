@@ -117,8 +117,16 @@ ssh agentctl-info-fullstack-dev mkdir -p code/info.altinn.no/.bacpacs
 scp .bacpacs/prod-umbraco-<timestamp>.bacpac agentctl-info-fullstack-dev:code/info.altinn.no/.bacpacs/
 ```
 
-Then ask it to use the copy. It imports the newest one with its `local-prod-db` skill. The `worktree` variant sees
-your `.bacpacs/` already, so it needs no copying. Export again when you want it to have newer content.
+There is nothing more to do. The newest copy is imported the first time Umbraco starts without a database: when you
+run `forward.sh` in step 7, or when the agent needs real content for a task. On the `worktree` variant the agent sees
+your `.bacpacs/` already, so skip the `ssh` and `scp` lines.
+
+For newer content later, export and copy in again, then import it. That replaces the database, and with it what was
+changed there:
+
+```sh
+agentctl exec info-fullstack-dev -- bash -c '~/code/info.altinn.no/agents/fullstack-dev/scripts/stack.sh up --import'
+```
 
 ## 7. Open it in your own browser (optional)
 
