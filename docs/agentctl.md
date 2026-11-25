@@ -98,7 +98,7 @@ The code is the agent's own clone in `~/code/info.altinn.no`, not your checkout.
 pull requests.
 
 To try a change to the image before CI publishes it, use the `build` variant, which builds it on your machine and
-runs as `info-fullstack-dev-build`:
+runs as `info-fullstack-dev-build`. Use that name wherever this guide says `info-fullstack-dev`:
 
 ```sh
 agentctl apply --variant build --wait --timeout 30m
