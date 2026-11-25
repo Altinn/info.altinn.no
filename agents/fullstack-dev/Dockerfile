@@ -55,6 +55,7 @@ RUN case "${TARGETARCH}" in \
     && echo "${sha256}  /tmp/sqlcmd.tar.bz2" | sha256sum -c - \
     && tar -xjf /tmp/sqlcmd.tar.bz2 -C /usr/local/bin sqlcmd \
     && rm /tmp/sqlcmd.tar.bz2 \
+    && mkdir /tmp/sqlpackage-home \
     && HOME=/tmp/sqlpackage-home dotnet tool install --tool-path /opt/sqlpackage microsoft.sqlpackage --version "${SQLPACKAGE_VERSION}" \
     && ln -s /opt/sqlpackage/sqlpackage /usr/local/bin/sqlpackage \
     && rm -rf /tmp/sqlpackage-home \
