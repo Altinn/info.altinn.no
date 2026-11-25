@@ -16,13 +16,13 @@ RUN --mount=type=bind,source=common/apt-mirror.sh,target=/tmp/apt-mirror.sh sh /
 # The .NET SDK the Umbraco projects target (net10.0), from Ubuntu, whose security updates keep it patched. The
 # repository pins no SDK patch version, and its Dockerfile builds on mcr.microsoft.com/dotnet/sdk:10.0.
 RUN apt-get update \
-    && apt-get install --yes --no-install-recommends dotnet-sdk-10.0 \
+    && apt-get install --yes --no-install-recommends dotnet-sdk-10.0 bzip2 \
     && rm -rf /var/lib/apt/lists/* \
     && dotnet --version
 
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 ENV DOTNET_NOLOGO=1
-# dotnet tools, such as microsoft.sqlpackage, install here.
+# Where `dotnet tool install --global` puts the tools the agent installs itself.
 ENV PATH=/home/agent/.dotnet/tools:${PATH}
 
 # pnpm at the version and checksum `packageManager` in the repository's package.json pins. The base image's Node.js
@@ -38,6 +38,32 @@ RUN if [ -r /run/agent/tls/ca-bundle.pem ]; then export NODE_EXTRA_CA_CERTS=/run
 
 # Podman, with the `docker` command and Docker Compose, for Elasticsearch, the Umbraco image and docker-compose.yml.
 RUN agent-feature install containers
+
+# sqlcmd and sqlpackage, for scripts/db to import a copy of the prod database that the person who created the agent
+# exported on their machine (the local-prod-db skill). Ubuntu packages neither. sqlcmd is Microsoft's Go build, pinned
+# by checksum per architecture. HOME is /home/agent in this step too, so dotnet's NuGet caches go to a HOME in /tmp,
+# which is removed: left in /home/agent, they would be root's, and the agent's own restores would fail on them.
+ARG TARGETARCH
+ARG SQLCMD_VERSION=1.10.0
+ARG SQLPACKAGE_VERSION=170.5.96
+RUN case "${TARGETARCH}" in \
+        amd64) sha256=92516d98c63d99b0994de5b61350c91f6915f9b76f139a59039fbcb225c2e987 ;; \
+        arm64) sha256=9faaa981f9c374f319ac796dedb4678499b8596c87d5b6c512e9b0e7a3b74f8e ;; \
+        *) echo "no sqlcmd checksum for ${TARGETARCH}" >&2; exit 1 ;; \
+    esac \
+    && curl -fsSL "https://github.com/microsoft/go-sqlcmd/releases/download/v${SQLCMD_VERSION}/sqlcmd-linux-${TARGETARCH}.tar.bz2" -o /tmp/sqlcmd.tar.bz2 \
+    && echo "${sha256}  /tmp/sqlcmd.tar.bz2" | sha256sum -c - \
+    && tar -xjf /tmp/sqlcmd.tar.bz2 -C /usr/local/bin sqlcmd \
+    && rm /tmp/sqlcmd.tar.bz2 \
+    && mkdir /tmp/sqlpackage-home \
+    && HOME=/tmp/sqlpackage-home dotnet tool install --tool-path /opt/sqlpackage microsoft.sqlpackage --version "${SQLPACKAGE_VERSION}" \
+    && ln -s /opt/sqlpackage/sqlpackage /usr/local/bin/sqlpackage \
+    && rm -rf /tmp/sqlpackage-home \
+    && sqlcmd --version && sqlpackage /version
+# Podman here runs without a machine, so scripts/db must not pin a connection. Its container's password goes outside
+# the checkout, which on the worktree variant is its owner's, with their own container's password in scripts/db/.env.
+ENV INFOPORTAL_PODMAN_NATIVE=1
+ENV INFOPORTAL_DB_ENV_FILE=/home/agent/.config/infoportal-db/sqlserver.env
 
 # agentctl and agentd, so the agent can try changes to its own definition in nested agents.
 COPY --from=ghcr.io/digdir/agentctl:v0.1.0-preview.15@sha256:1bc767955b6740c4b65e402332e8099154a0da8a4a80ae8f778182647dcdf40e /agentctl /agentd /usr/local/bin/

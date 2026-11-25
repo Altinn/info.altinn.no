@@ -9,5 +9,9 @@ Its `node_modules`, `bin` and `obj` folders may come from their machine, built f
 a test fails on a native module, such as `esbuild`, `sharp` or `workerd`, run `pnpm install` again in that project,
 and tell them, since it changes those folders for them too.
 
+`umbraco-infoportal/appsettings.Local.json` and `scripts/db/.env` are theirs, with their own local database's
+connection string and password, so leave them alone. The `local-prod-db` skill keeps yours in `~/.config`. Their
+exports of the prod database are in `.bacpacs/`, so a new one shows up here at once.
+
 When Git says it is not a Git repository, the person applied you from a linked worktree, whose metadata is outside the
 mount. Tell them to apply you from a clone instead, rather than working around it.

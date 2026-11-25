@@ -16,6 +16,10 @@ public static class ConfigurationExtensions
         if (builder.Environment.IsDevelopment())
         {
             builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+
+            // Environment variables still win over the file, as they do over the other appsettings files. An agent
+            // that shares a developer's checkout passes its own connection string this way, next to their file.
+            builder.Configuration.AddEnvironmentVariables();
         }
 
         builder.Services.Configure<KeyVaultOptions>(

@@ -13,8 +13,9 @@ A reviewer knows only the pull request and its issue, and should see what change
   Put a failing or skipped check, and why, in the body too.
 - **A screenshot of each page or component the change alters**, before and after when the difference matters. It
   takes the `desktop` agent. On `minimal`, say which screenshots are missing and that the `desktop` agent can take them.
-  - A page: run `pnpm dev` in `astro-infoportal`, which serves `http://localhost:4321` with content from the AT22
-    Umbraco unless `.dev.vars` points it at a local one, as its README says. Before you start it, run
+  - A page: run `pnpm dev --host 127.0.0.1` in `astro-infoportal`, which serves `http://localhost:4321` with content
+    from the AT22 Umbraco unless `.dev.vars` points it at a local one, as its README says. The host lets the person
+    see it too, through `agentctl port-forward`, which reaches IPv4 only. Before you start it, run
     `pnpm exec astro preferences disable devToolbar` there once, which keeps Astro's toolbar off the page. It is saved
     in `.astro/`, which Git ignores. Dismiss the consent banner the page opens with, unless the change is to it.
   - A component: the page that shows it. The repository has a `storybook` script, but no Storybook configuration or

@@ -14,7 +14,18 @@ You need to be a member of the Entra group **`DIS AzSQL Admin Dev IP`**, which i
 admin on the dev SQL servers. Ask the platform team. Prod is a separate grant.
 
 You also need to be **connected to the VPN** — the databases are Private Link addresses and
-do not resolve otherwise.
+do not resolve otherwise. The VPN is Tailscale, against Altinn's own server. On Windows, connect
+from WSL, where the scripts run:
+
+```bash
+sudo tailscale up --login-server=https://headscale.altinn.cloud --accept-routes
+sudo ip link set dev tailscale0 mtu 1200
+getent hosts infop-prod-hxhapc-server.privatelink.database.windows.net   # a 10.x address
+```
+
+`tailscale up` prints a URL to sign in at. `--accept-routes` is what routes the private
+addresses through the VPN. The lower MTU keeps an export from hanging partway, and lasts until
+Tailscale or WSL restarts. If the name resolves to a public address, you are not connected.
 
 ## 2. Install the tools
 
@@ -103,6 +114,17 @@ Useful flags:
 | `--skip-export` | reuse the newest `.bacpac` instead of downloading again |
 | `--keep-container` | import into the running container instead of recreating it |
 | `--auth password` | prompt for an Entra password instead of using an `az` token |
+| `--env-out FILE` | write the settings as environment variables to `FILE` instead of `appsettings.Local.json` |
+
+Two environment variables change where the scripts keep their state:
+
+| Variable | Effect |
+|---|---|
+| `INFOPORTAL_DB_ENV_FILE` | where `start-sqlserver.sh` writes the container's password and port (default `scripts/db/.env`) |
+| `INFOPORTAL_PODMAN_NATIVE=1` | use podman as it is, without pinning a podman machine connection, as on Linux |
+
+The agentctl agent (`agents/fullstack-dev`) sets both, and imports a `.bacpac` you give it with `--skip-export` and
+`--env-out`, as its `local-prod-db` skill describes.
 
 The four scripts also run standalone: `export-bacpac.sh`, `start-sqlserver.sh`,
 `import-bacpac.sh`, `refresh-local-db.sh`. Pass `--help` to any of them.
@@ -131,6 +153,8 @@ localhost.
 | Symptom | Cause and fix |
 |---|---|
 | `cannot resolve <host>` | Not on the VPN. |
+| `tailscale up` asks for all non-default flags | Run it with `--accept-routes`, as above, not `--reset`. |
+| The export starts, then hangs | Lower the MTU, as above. |
 | `Login failed for user '<token-identified principal>'` | You are not in the `DIS AzSQL Admin Dev IP` group. |
 | `AADSTS50126` | Password auth is blocked for your account — use `--auth token`. |
 | `SQL Server segfaulted on startup (exit 139)` | Your runtime emulates with qemu, not Rosetta. Use Colima as above, or set the fallback below. |

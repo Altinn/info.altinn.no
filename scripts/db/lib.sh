@@ -5,6 +5,10 @@
 INFOPORTAL_DB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INFOPORTAL_REPO_ROOT="$(cd "$INFOPORTAL_DB_DIR/../.." && pwd)"
 INFOPORTAL_DEFAULT_CONF="$INFOPORTAL_DB_DIR/environments.conf"
+# The local container's password and port, written by start-sqlserver.sh. Set
+# INFOPORTAL_DB_ENV_FILE to keep it elsewhere, such as in an agent that shares
+# this checkout with its owner, whose own container's password is in .env.
+INFOPORTAL_DB_ENV_FILE="${INFOPORTAL_DB_ENV_FILE:-$INFOPORTAL_DB_DIR/.env}"
 
 log() { printf '%s\n' "$*" >&2; }
 die() { printf 'error: %s\n' "$*" >&2; exit 1; }
@@ -135,6 +139,10 @@ cre() {
 
   if container_is_podman; then
     if command -v podman >/dev/null 2>&1; then cli=podman; fi
+    if [ "${INFOPORTAL_PODMAN_NATIVE:-0}" = 1 ]; then
+      "$cli" "$@"
+      return
+    fi
     "$cli" --connection "${INFOPORTAL_PODMAN_CONNECTION:-infoportal-db}" "$@"
   else
     "$cli" "$@"
@@ -181,8 +189,12 @@ Install one of:
 # discard the message and skip the fallbacks, so the script would abort with no
 # output at all for exactly the misconfigured user this check exists to help.
 # Call this explicitly, early, and unredirected.
+#
+# INFOPORTAL_PODMAN_NATIVE=1 skips the pinning, for Linux machines where podman
+# runs without a machine and has no connections, such as the agentctl agent.
 require_container_connection() {
   container_is_podman || return 0
+  [ "${INFOPORTAL_PODMAN_NATIVE:-0}" = 1 ] && return 0
 
   local cli conn
   cli="$(container_cli)" || die "no container runtime found. Install docker or podman."

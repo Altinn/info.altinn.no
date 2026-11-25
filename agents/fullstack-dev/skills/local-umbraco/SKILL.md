@@ -18,13 +18,17 @@ export ASPNETCORE_ENVIRONMENT=Development \
   Umbraco__CMS__Unattended__UnattendedUserName=Agent \
   Umbraco__CMS__Unattended__UnattendedUserEmail=agent@example.com \
   Umbraco__CMS__Unattended__UnattendedUserPassword=LocalOnly-Agent-1234 \
-  uSync__Settings__ImportOnFirstBoot=true
+  uSync__Settings__ImportOnFirstBoot=true \
+  Umbraco__CMS__Global__UseHttps=false \
+  Umbraco__CMS__Security__BackOfficeHost=http://localhost:43450
 dotnet run --urls http://localhost:43450 > /tmp/umbraco.log 2>&1 &
 ```
 
 - The first start installs the database in `umbraco/Data/` and imports the document types and settings from
   `uSync/v18/`, which takes about a minute. It is ready when `http://localhost:43450/umbraco` answers 200. Later starts
   reuse the database. Delete `umbraco/Data/Umbraco.sqlite.db*` to start over.
+- The last two settings let the backoffice sign in over plain HTTP. Without them it answers `This server only accepts
+  HTTPS requests` and sends the browser to `https://localhost:44391`, which serves nothing here.
 - The database has the schema but no content. Create the content a task needs in the backoffice, at
   `http://localhost:43450/umbraco`, signed in as `agent@example.com`. Entra sign-in does not work locally.
 - uSync reports a few import errors on first boot. They are known, so look for new ones only.
