@@ -142,7 +142,25 @@ the agent after Ctrl+C; stop them with
 `agentctl exec <agent> -- bash -c '~/code/info.altinn.no/agents/fullstack-dev/scripts/stack.sh down'`.
 The agent's checkout needs a branch that has `stack.sh`.
 
-## 8. Check that it works
+## 8. Look at its code in VS Code (optional)
+
+VS Code's Remote-SSH extension opens the agent's checkout as it is, with its changes as it makes them, without copying
+anything out. The agent's SSH host only works from WSL's `ssh`, though, so VS Code on Windows needs a wrapper. Install
+the **Remote - SSH** extension in VS Code on Windows, and run this in WSL:
+
+```sh
+agents/fullstack-dev/scripts/vscode-ssh.sh
+```
+
+It writes `ssh-wsl.bat` to your Windows user folder and prints four settings. Add them to VS Code's user settings
+(Ctrl+Shift+P → _Preferences: Open User Settings (JSON)_). Then run _Remote-SSH: Connect to Host…_, type
+`agentctl-<agent name>`, such as `agentctl-info-fullstack-dev`, and open `/home/agent/code/info.altinn.no`.
+
+Without `remotePlatform`, it waits for an answer to a question that is easy to miss, at the top of the window. Without
+`enableDynamicForwarding: false`, it fails with `ECONNREFUSED`, since it connects before WSL has passed the port on to
+Windows. Read rather than edit while the agent works, or you change the same files at once.
+
+## 9. Check that it works
 
 | What | How | Expected |
 |---|---|---|
