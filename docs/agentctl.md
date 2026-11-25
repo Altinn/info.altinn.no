@@ -95,7 +95,7 @@ The first start pulls the image, which takes a while. Other ways in: `agentctl t
 `agentctl ssh info-fullstack-dev` (a shell), `agentctl vnc info-fullstack-dev --web` (the desktop in a browser).
 
 The code is the agent's own clone in `~/code/info.altinn.no`, not your checkout. Its changes reach you as branches and
-pull requests.
+pull requests. Step 8 shows how to look at it in VS Code.
 
 To try a change to the image before CI publishes it, use the `build` variant, which builds it on your machine and
 runs as `info-fullstack-dev-build`. Use that name wherever this guide says `info-fullstack-dev`:
@@ -110,6 +110,7 @@ For tasks that need real content, the agent runs Umbraco on a copy of prod. It c
 your machine, on the VPN, as [`scripts/db/README.md`](../scripts/db/README.md) describes, and copy the file in:
 
 ```sh
+agentctl ssh-config install    # once: lets ssh and scp reach agents as agentctl-<agent name>
 cd ~/info.altinn.no
 scripts/db/export-bacpac.sh prod --auth token
 ssh agentctl-info-fullstack-dev mkdir -p code/info.altinn.no/.bacpacs
