@@ -40,19 +40,17 @@ first run pulls the SQL Server image, about 1.5 GB, and the import takes a few m
 The container and its database stay across sessions. After you restart, start it again with
 `podman start infoportal-mssql`. Import again only for a newer copy, or to undo what a task changed in the database.
 
-## 3. Run Umbraco
+## 3. Run Umbraco and the frontend
 
 ```sh
-cd /home/agent/code/info.altinn.no/umbraco-infoportal
-set -a; . ~/.config/infoportal-db/umbraco.env; set +a
-export ASPNETCORE_ENVIRONMENT=Development
-dotnet run --urls http://localhost:43450 > /tmp/umbraco.log 2>&1 &
-echo $! > /tmp/umbraco.pid
+/home/agent/code/info.altinn.no/agents/fullstack-dev/scripts/stack.sh up
 ```
 
-It is ready when `http://localhost:43450/umbraco` answers 200. Stop it with `kill "$(cat /tmp/umbraco.pid)"`, since
-each command may run in a new shell, where `%1` means nothing. `pkill -f` with a pattern that also matches your own
-command line kills that shell too.
+It starts the database, imports the copy when there is no database yet, starts Umbraco on `http://localhost:43450`
+and the frontend on `http://127.0.0.1:4321` against it, and returns when both answer. Running it again restarts only
+what is down. `stack.sh status` shows what runs, and `stack.sh down` stops Umbraco and the frontend. The logs are
+`/tmp/umbraco.log` and `/tmp/astro.log`. Start them with it rather than by hand: it sets what the backoffice sign-in
+needs over plain HTTP, and binds the frontend where the person's `forward.sh` reaches it.
 
 - When the branch has a newer Umbraco than prod, the first start upgrades the database. That is expected, and only
   happens here. Import again to get back to prod's version.
@@ -62,10 +60,10 @@ command line kills that shell too.
 - Images are in prod's Azure storage, which you cannot reach, so they are missing.
 - Search and cache purging reach Elasticsearch and Cloudflare, so expect errors from them in the log.
 
-To have the frontend use it, write `UMBRACO_API_URL=http://localhost:43450/` to `astro-infoportal/.dev.vars`, which
-Git ignores, and restart `pnpm dev`. Remove the file when you are done, so the frontend reads AT22 again. On the
-`worktree` variant, a `.dev.vars` that is already there is the person's: ask before you change it, and put it back as
-it was when you are done.
+The frontend reads the local Umbraco through `astro-infoportal/.dev.vars`, which Git ignores. `stack.sh up` writes it
+when there is none and `down` removes it again, so the frontend reads AT22 afterwards. When one is already there and
+points elsewhere, `up` stops and says so. On the `worktree` variant that file is the person's: ask before you change
+it, and put it back as it was when you are done.
 
 SQL Server needs about 2 GB of memory on top of Umbraco and the frontend. The `nested` variants, with 3 GiB on
 `minimal` and 4 GiB on `desktop`, are too small for it.

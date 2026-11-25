@@ -119,7 +119,30 @@ scp .bacpacs/prod-umbraco-<timestamp>.bacpac agentctl-info-fullstack-dev:code/in
 Then ask it to use the copy. It imports the newest one with its `local-prod-db` skill. The `worktree` variant sees
 your `.bacpacs/` already, so it needs no copying. Export again when you want it to have newer content.
 
-## 7. Check that it works
+## 7. Open it in your own browser (optional)
+
+To look at the agent's frontend and Umbraco yourself, with the copy of prod from step 6, run this from your checkout
+in WSL, and leave it running:
+
+```sh
+agents/fullstack-dev/scripts/forward.sh    # or name the agent: forward.sh info-fullstack-dev-build
+```
+
+It starts the database, Umbraco and the frontend in the agent with
+[`stack.sh`](../agents/fullstack-dev/scripts/stack.sh), which takes a few minutes the first time, and forwards them to
+your machine until Ctrl+C. Then open, also in Windows:
+
+- the frontend at http://localhost:4321
+- the backoffice at http://localhost:43450/umbraco, signed in as the prod user that
+  [`scripts/db/README.md`](../scripts/db/README.md) names, with the username and password form. What you publish
+  there shows on the frontend.
+
+Stop your own frontend or Umbraco first, since the ports are the same as in the agent. The servers keep running in
+the agent after Ctrl+C; stop them with
+`agentctl exec <agent> -- bash -c '~/code/info.altinn.no/agents/fullstack-dev/scripts/stack.sh down'`.
+The agent's checkout needs a branch that has `stack.sh`.
+
+## 8. Check that it works
 
 | What | How | Expected |
 |---|---|---|
