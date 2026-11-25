@@ -97,10 +97,11 @@ The first start pulls the image, which takes a while. Other ways in: `agentctl t
 The code is the agent's own clone in `~/code/info.altinn.no`, not your checkout. Its changes reach you as branches and
 pull requests.
 
-To try a change to the image before CI publishes it, use the `nested-build` variant, which builds it on your machine:
+To try a change to the image before CI publishes it, use the `build` variant, which builds it on your machine and
+runs as `info-fullstack-dev-build`:
 
 ```sh
-agentctl apply --variant nested-build --wait --timeout 30m
+agentctl apply --variant build --wait --timeout 30m
 ```
 
 ## 6. Give it a copy of the prod database (optional)
@@ -154,7 +155,7 @@ fast mirror, change the default locally, build, and undo it:
 
 ```sh
 sed -i 's|^ARG APT_MIRROR=$|ARG APT_MIRROR=http://no.archive.ubuntu.com/ubuntu|' ../Dockerfile
-agentctl apply --variant nested-build --wait --timeout 30m
+agentctl apply --variant build --wait --timeout 30m
 git -C ~/info.altinn.no checkout agents/fullstack-dev/Dockerfile
 ```
 

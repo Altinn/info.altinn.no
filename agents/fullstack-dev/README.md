@@ -14,6 +14,7 @@ Both are named `info-fullstack-dev`. Pass `--name` to run both at once. Each has
 | Variant | What it changes |
 | --- | --- |
 | `nested` | Sized to fit inside another agent, as `info-fullstack-dev-nested` |
+| `build` | The image built from this checkout, to try a change to it before CI publishes it, as `info-fullstack-dev-build` |
 | `nested-build` | `nested`, with the image built from this checkout, to try a change to it before CI publishes it |
 | `worktree` | Mounts this checkout in place of a fresh clone, as `info-fullstack-dev-worktree` |
 
