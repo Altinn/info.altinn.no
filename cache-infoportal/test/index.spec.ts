@@ -216,4 +216,88 @@ describe("cache-infoportal failure logging", () => {
 		expect(response.status).toBe(status);
 		expect(consoleError).not.toHaveBeenCalled();
 	});
+
+	function bodyThatFailsAfterOneChunk() {
+		return new ReadableStream<Uint8Array>({
+			start(controller) {
+				controller.enqueue(new TextEncoder().encode("<html>"));
+			},
+			pull(controller) {
+				controller.error(new Error("origin reset the connection"));
+			},
+		});
+	}
+
+	it("logs a response body that fails after the status was sent, and the cache put it breaks", async () => {
+		const env = {
+			ASTRO_INFOPORTAL: {
+				fetch: vi.fn(async () => new Response(bodyThatFailsAfterOneChunk(), { status: 200 })),
+			},
+		};
+		const url = uniqueUrl();
+
+		const response = await callWorker(new IncomingRequest(url), env);
+
+		expect(response.status).toBe(200);
+		await expect(response.text()).rejects.toThrow("origin reset the connection");
+		const failure = { method: "GET", path: new URL(url).pathname, cache: "miss", status: 200, error: "origin reset the connection" };
+		expect(loggedEntries()).toEqual(
+			expect.arrayContaining([
+				{ msg: "response body failed", ...failure },
+				{ msg: "cache put failed", ...failure },
+			]),
+		);
+		expect(consoleError).toHaveBeenCalledTimes(2);
+	});
+
+	it("logs a response body that fails on a path that bypasses the cache", async () => {
+		const env = {
+			ASTRO_INFOPORTAL: {
+				fetch: vi.fn(async () => new Response(bodyThatFailsAfterOneChunk(), { status: 200 })),
+			},
+		};
+
+		const response = await callWorker(new IncomingRequest(uniqueUrl("/api/search")), env);
+
+		await expect(response.text()).rejects.toThrow("origin reset the connection");
+		expect(loggedEntries()).toEqual([
+			expect.objectContaining({ msg: "response body failed", cache: "bypass", status: 200 }),
+		]);
+	});
+
+	it("does not log a client that stops reading the body", async () => {
+		const origin = createOrigin();
+
+		const response = await callWorker(new IncomingRequest(uniqueUrl("/api/x")), origin.env);
+		await response.body?.cancel("client went away");
+
+		expect(consoleError).not.toHaveBeenCalled();
+	});
+
+	it("keeps the body and headers of the origin response", async () => {
+		const origin = createOrigin(200, { "Content-Type": "text/html", "Content-Length": "11" });
+
+		const response = await callWorker(new IncomingRequest(uniqueUrl()), origin.env);
+
+		expect(response.headers.get("Content-Type")).toBe("text/html");
+		expect(response.headers.get("Content-Length")).toBe("11");
+		expect(await response.text()).toBe("from origin");
+	});
+
+	it("logs a failed cache lookup as a lookup, not a miss", async () => {
+		const match = vi.spyOn(caches.default, "match").mockRejectedValue(new Error("cache unavailable"));
+		const origin = createOrigin();
+		const url = uniqueUrl();
+
+		try {
+			await expect(callWorker(new IncomingRequest(url), origin.env)).rejects.toThrow("Failed to check cache match");
+		} finally {
+			match.mockRestore();
+		}
+
+		expect(origin.fetch).not.toHaveBeenCalled();
+		expect(loggedEntries()).toEqual([
+			expect.objectContaining({ msg: "request failed", path: new URL(url).pathname, cache: "lookup" }),
+		]);
+	});
 });

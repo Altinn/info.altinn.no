@@ -2,7 +2,8 @@ interface Env {
 	ASTRO_INFOPORTAL: any
 }
 
-type CacheStatus = "hit" | "miss" | "bypass";
+// "lookup" means the request failed while checking the cache, before it was a hit or a miss.
+type CacheStatus = "hit" | "miss" | "bypass" | "lookup";
 
 const MAX_ERROR_LENGTH = 300;
 
@@ -60,16 +61,15 @@ async function handle(request: Request, env: Env, ctx: ExecutionContext, state: 
 	const cache = caches.default;
 	let response;
 
-	state.cache = "miss";
+	state.cache = "lookup";
 	try {
 		response = await cache.match(cacheKey);
 	} catch (error) {
 		throw new Error(`Failed to check cache match: ${error}`);
 	}
 
-	if (response) {
-		state.cache = "hit";
-	} else {
+	state.cache = response ? "hit" : "miss";
+	if (!response) {
 		try {
 			response = await env.ASTRO_INFOPORTAL.fetch(request);
 		} catch (error) {
@@ -80,7 +80,8 @@ async function handle(request: Request, env: Env, ctx: ExecutionContext, state: 
 		try {
 			ctx.waitUntil(
 				cache.put(cacheKey, response.clone()).catch((error) => {
-					// The Cache API rejects 206 and drops 304; origin sends many 304s, so logging them would flood the logs.
+					// The Cache API rejects 206 by design. workerd resolves 304 puts without storing them, so 304 never gets
+					// here today; it is excluded so the origin's many 304s cannot flood the logs if that changes.
 					if (status !== 206 && status !== 304) {
 						logFailure("cache put failed", request, "miss", { status, error });
 					}
@@ -94,6 +95,37 @@ async function handle(request: Request, env: Env, ctx: ExecutionContext, state: 
 	return response;
 }
 
+// The status is sent before the body, so a body that fails part-way reaches the client as a truncated response and
+// never throws in handle(). Reading the body through this stream is the only way to see that failure.
+function logBodyFailure(response: Response, onError: (error: unknown) => void): Response {
+	if (!response.body) {
+		return response;
+	}
+	const reader = response.body.getReader();
+	const body = new ReadableStream({
+		async pull(controller) {
+			let chunk: ReadableStreamReadResult<Uint8Array>;
+			try {
+				chunk = await reader.read();
+			} catch (error) {
+				onError(error);
+				controller.error(error);
+				return;
+			}
+			if (chunk.done) {
+				controller.close();
+			} else {
+				controller.enqueue(chunk.value);
+			}
+		},
+		// A client that disconnects cancels the stream; that is not a failure, so it is not logged.
+		cancel(reason) {
+			return reader.cancel(reason);
+		},
+	});
+	return new Response(body, response);
+}
+
 export default {
 	async fetch(request, env, ctx): Promise<Response> {
 		const state: { cache: CacheStatus } = { cache: "bypass" };
@@ -104,9 +136,12 @@ export default {
 			logFailure("request failed", request, state.cache, { error });
 			throw error;
 		}
-		if (response.status >= 500) {
-			logFailure("request failed", request, state.cache, { status: response.status });
+		const { status } = response;
+		if (status >= 500) {
+			logFailure("request failed", request, state.cache, { status });
 		}
-		return response;
+		return logBodyFailure(response, (error) => {
+			logFailure("response body failed", request, state.cache, { status, error });
+		});
 	}
 } satisfies ExportedHandler<Env>;
