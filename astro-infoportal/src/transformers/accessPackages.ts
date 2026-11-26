@@ -1,14 +1,22 @@
+import { env } from "cloudflare:workers";
 import { getResource, getRoles, getAccessPackages } from "../api/altinn/client";
 import { type Locale, t } from "@i18n/index";
+
+// Altinn roles stop being used at the turn of 2026/2027. Switch the flag on per
+// environment, then purge the Cloudflare cache: schema pages are cached with the list in them.
+// TODO: Remove the role listing and this flag once it is on in every environment.
+function hideAltinnRoles(): boolean {
+    return env.HIDE_ALTINN_ROLES === "true";
+}
 
 // Translations are reused between threads, only loaded from Altinn after deploy
 const rolesTranslations = new Map<string, string>();
 const accessPackagesTranslations = new Map<string, string>();
 
-async function loadTranslations(hostname:string | undefined, locale:Locale) {
+async function loadTranslations(hostname:string | undefined, locale:Locale, includeRoles:boolean) {
     const [accessPackagesMetadata, rolesMetadata] = await Promise.all([
         getAccessPackages(hostname, locale.toString()),
-        getRoles(hostname, locale.toString())
+        includeRoles ? getRoles(hostname, locale.toString()) : []
     ]);
 
     for (const entry of accessPackagesMetadata) {
@@ -25,11 +33,13 @@ async function loadTranslations(hostname:string | undefined, locale:Locale) {
 }
 
 export async function getAccessPackagesHtml(resourceId:string, hostname:string | undefined, locale:Locale):Promise<string> {
+    const hideRoles = hideAltinnRoles();
+
     if (accessPackagesTranslations.size == 0) {
         await Promise.all([
-          loadTranslations(hostname, "nb"),
-          loadTranslations(hostname, "nn"),
-          loadTranslations(hostname, "en")
+          loadTranslations(hostname, "nb", !hideRoles),
+          loadTranslations(hostname, "nn", !hideRoles),
+          loadTranslations(hostname, "en", !hideRoles)
         ]);
     }
 
@@ -45,7 +55,13 @@ export async function getAccessPackagesHtml(resourceId:string, hostname:string |
         }
     }
 
-    if (accessPackages.length > 0) {
+    if (hideRoles) {
+        if (accessPackages.length > 0) {
+            return getHtmlForAccessPackagesOnly(accessPackages, locale);
+        } else if (roles.length > 0) {
+            return t("schema.withoutAccessPackages", locale);
+        }
+    } else if (accessPackages.length > 0) {
         return getHtmlForAccessPackagesAndRoles(accessPackages, roles, locale);
     } else if (roles.length > 0) {
         return getHtmlForRolesOnly(roles, locale);
@@ -77,6 +93,22 @@ function getHtmlForAccessPackagesAndRoles(accessPackages:string[], roles:string[
   html += "</ul>";
 
   return html;  
+}
+
+function getHtmlForAccessPackagesOnly(accessPackages:string[], locale:Locale) {
+  let html = t("schema.withAccessPackages.aboveLists", locale);
+
+  html += "<ul>";
+
+  for (const accessPackage of accessPackages) {
+    html += "<li>" + accessPackagesTranslations.get(cacheKey(locale, accessPackage));
+  }
+
+  html += "</ul>";
+
+  html += t("schema.withAccessPackages.belowList", locale);
+
+  return html;
 }
 
 function getHtmlForRolesOnly(roles:string[], locale:Locale) {

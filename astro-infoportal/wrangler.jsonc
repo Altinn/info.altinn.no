@@ -20,7 +20,8 @@
 		"ELASTICSEARCH_INDEX_PREFIX": "infoportal",
 		"USE_NEW_ACTOR_LIST": "false",
 		"ROUTE_CHANGE_REPORTEE_VIA_ALTINN2": "false",
-		"USE_FORM_OR_SERVICE": "true"
+		"USE_FORM_OR_SERVICE": "true",
+		"HIDE_ALTINN_ROLES": "true"
 	},
 	"env": {
 		"prod": {
@@ -31,7 +32,8 @@
 				"ELASTICSEARCH_INDEX_PREFIX": "infoportal",
 				"USE_NEW_ACTOR_LIST": "false",
 				"ROUTE_CHANGE_REPORTEE_VIA_ALTINN2": "false",
-				"USE_FORM_OR_SERVICE": "true"
+				"USE_FORM_OR_SERVICE": "true",
+				"HIDE_ALTINN_ROLES": "false"
 			}
 		},
 		"at22": {
@@ -42,7 +44,8 @@
 				"ELASTICSEARCH_INDEX_PREFIX": "infoportal",
 				"USE_NEW_ACTOR_LIST": "false",
 				"ROUTE_CHANGE_REPORTEE_VIA_ALTINN2": "false",
-				"USE_FORM_OR_SERVICE": "true"
+				"USE_FORM_OR_SERVICE": "true",
+				"HIDE_ALTINN_ROLES": "true"
 			}
 		},
 		"at23": {
@@ -53,7 +56,8 @@
 				"ELASTICSEARCH_INDEX_PREFIX": "infoportal",
 				"USE_NEW_ACTOR_LIST": "false",
 				"ROUTE_CHANGE_REPORTEE_VIA_ALTINN2": "false",
-				"USE_FORM_OR_SERVICE": "true"
+				"USE_FORM_OR_SERVICE": "true",
+				"HIDE_ALTINN_ROLES": "true"
 			}
 		},
 		"tt02": {
@@ -64,7 +68,8 @@
 				"ELASTICSEARCH_INDEX_PREFIX": "infoportal",
 				"USE_NEW_ACTOR_LIST": "false",
 				"ROUTE_CHANGE_REPORTEE_VIA_ALTINN2": "false",
-				"USE_FORM_OR_SERVICE": "true"
+				"USE_FORM_OR_SERVICE": "true",
+				"HIDE_ALTINN_ROLES": "true"
 			}
 		}
 	}
