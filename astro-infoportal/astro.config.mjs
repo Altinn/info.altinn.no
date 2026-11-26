@@ -2,6 +2,7 @@ import {defineConfig} from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 import react from '@astrojs/react';
 import {createRequire} from 'node:module';
+import {readFileSync} from 'node:fs';
 import path from 'node:path';
 
 // Workaround: Vite 7 does not serve /@vite/client in Astro 6 dev mode,
@@ -33,6 +34,37 @@ function viteClientFix() {
   };
 }
 
+// The dev server ignores public/_redirects, which serves the root icons in production.
+// Only exact-path 200 rules are applied here.
+function devRewrites() {
+  const rewrites = new Map();
+  for (const line of readFileSync(new URL('./public/_redirects', import.meta.url), 'utf8').split('\n')) {
+    const [from, to, status] = line.trim().split(/\s+/);
+    if (!from || from.startsWith('#') || status !== '200') {
+      continue;
+    }
+    if (/[*:]/.test(from)) {
+      console.warn(`[dev-rewrites] ${from} is not applied in dev: only exact paths are supported.`);
+      continue;
+    }
+    rewrites.set(from, to);
+  }
+  return {
+    name: 'dev-rewrites',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const queryStart = req.url.indexOf('?');
+        const pathname = queryStart === -1 ? req.url : req.url.slice(0, queryStart);
+        const to = rewrites.get(pathname);
+        if (to) {
+          req.url = to + (queryStart === -1 ? '' : req.url.slice(queryStart));
+        }
+        next();
+      });
+    },
+  };
+}
+
 export default defineConfig({
   output: 'server',
   adapter: cloudflare({
@@ -46,7 +78,6 @@ export default defineConfig({
           {pattern: '/@react-refresh'},
           {pattern: '/node_modules/*'},
           {pattern: '/src/*'},
-          {pattern: '/favicon.ico'},
           {pattern: '/_astro/*'},
         ],
       },
@@ -63,7 +94,7 @@ export default defineConfig({
 
   integrations: [react({experimentalReactChildren: true})],
   vite: {
-    plugins: [viteClientFix()],
+    plugins: [viteClientFix(), devRewrites()],
     build: {
       minify: 'esbuild',
       cssMinify: 'esbuild',
