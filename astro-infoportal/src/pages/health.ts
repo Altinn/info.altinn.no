@@ -1,4 +1,5 @@
 import { env } from "cloudflare:workers";
+import { elasticsearchConfig } from "@api/elasticsearch/client";
 import type { APIRoute } from "astro";
 
 interface HealthCheck {
@@ -18,10 +19,17 @@ type Status = "Healthy" | "Degraded" | "Unhealthy";
 
 const UMBRACO_HEALTH_URL:URL = new URL(env.UMBRACO_API_URL + "umbraco/api/health/ready");
 
-async function getHealthItem(name:string, url:URL, expectedContent:string):Promise<HealthItem> {
+// The cluster info endpoint proves the project answers and accepts the key without running a search,
+// which on Elastic Cloud Serverless is what scales and bills the search capacity.
+const ELASTICSEARCH_HEALTH_URL:URL = new URL("/", elasticsearchConfig.url);
+const ELASTICSEARCH_HEALTH_HEADERS:HeadersInit = elasticsearchConfig.apiKey
+    ? { Authorization: `ApiKey ${elasticsearchConfig.apiKey}` }
+    : {};
+
+async function getHealthItem(name:string, url:URL, expectedContent:string, headers?:HeadersInit):Promise<HealthItem> {
     const startTime = performance.now();
 
-    const request:Request = new Request(url);
+    const request:Request = new Request(url, { headers });
 
     let response: Response;
     try {
@@ -100,7 +108,7 @@ export const GET: APIRoute = async ({url}) => {
         getHealthItem("/skjemaoversikt", new URL(baseUrl + "/skjemaoversikt"), "<title>Altinn - Skjemaoversikt</title>"),
         getHealthItem("/hjelp", new URL(baseUrl + "/hjelp"), "<title>Altinn - Hjelp</title>"),
         getHealthItem("umbraco", UMBRACO_HEALTH_URL, "Healthy"),
-        getHealthItem("elasticsearch", new URL(baseUrl + "/sok?q=starte&cachebuster=" + Date.now()), "registrere en forening")],
+        getHealthItem("elasticsearch", ELASTICSEARCH_HEALTH_URL, "cluster_name", ELASTICSEARCH_HEALTH_HEADERS)],
     );
 
     const duration = performance.now() - startTime;
