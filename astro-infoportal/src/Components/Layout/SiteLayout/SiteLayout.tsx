@@ -15,6 +15,7 @@ import {
   CONSENT_REOPEN_HASH,
   deleteLegacyConsentCookie,
   loadSiteimprove,
+  trackFormLinkClicks,
 } from "@utils/consent";
 import useSidebarConfig from "../../Shared/PageSidebar/useSidebarConfig";
 import useFooterConfig from "../Footer/useFooterConfig";
@@ -124,7 +125,9 @@ const SiteLayout = ({
   }, []);
 
   useEffect(() => {
-    if (consent.statistics) loadSiteimprove();
+    if (!consent.statistics) return;
+    loadSiteimprove();
+    return trackFormLinkClicks();
   }, [consent.statistics]);
 
   // Reopen on direct hash visits. Footer clicks are wired through FooterLink's

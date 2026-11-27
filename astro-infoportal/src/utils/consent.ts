@@ -56,3 +56,50 @@ export function loadSiteimprove(): void {
   tag.dataset.siteimprove = "true";
   document.head.appendChild(tag);
 }
+
+type SiteimproveEvent = ["event", string, "Click", string];
+
+// Categories agreed with the analytics owner; Siteimprove reports group on them.
+const FORM_LINK_CATEGORIES: ReadonlyArray<
+  [selector: string, category: string]
+> = [
+  [".altinn-skjema-link", "start altinn form"],
+  [".external-skjema-link", "link external form"],
+];
+
+/**
+ * Pure: the Siteimprove event for a click on `target`, or null when it is not
+ * inside a form link. The label is the page's h1, so reports name the form.
+ */
+export function formLinkClickEvent(
+  target: EventTarget | null,
+  doc: Pick<Document, "querySelector">,
+): SiteimproveEvent | null {
+  const element = target as Partial<Element> | null;
+  if (typeof element?.closest !== "function") return null;
+  const match = FORM_LINK_CATEGORIES.find(([selector]) =>
+    element.closest?.(selector),
+  );
+  if (!match) return null;
+  const label = doc.querySelector("h1")?.textContent?.trim() || "(no h1)";
+  return ["event", match[1], "Click", label];
+}
+
+/**
+ * Browser: report clicks on form links to Siteimprove. Delegated from the
+ * document, so links rendered after this runs are covered too. Pushes only
+ * once the tag has created `_sz`, which loadSiteimprove() leaves undone
+ * without consent or on a URL with personal data. Returns the cleanup.
+ */
+export function trackFormLinkClicks(): () => void {
+  if (typeof document === "undefined") return () => {};
+  const onClick = (event: MouseEvent) => {
+    const sz = (window as { _sz?: unknown[] })._sz;
+    if (!Array.isArray(sz)) return;
+    const szEvent = formLinkClickEvent(event.target, document);
+    if (szEvent) sz.push(szEvent);
+  };
+  // Capture, so a handler that stops propagation cannot hide the click.
+  document.addEventListener("click", onClick, true);
+  return () => document.removeEventListener("click", onClick, true);
+}
