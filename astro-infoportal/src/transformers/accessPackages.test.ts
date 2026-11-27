@@ -15,6 +15,9 @@ const erRoleUrn = "urn:altinn:rolecode:dagl";
 const altinn3RoleUrn = "urn:altinn:rolecode:priv";
 const unknownRoleUrn = "urn:altinn:rolecode:ukjent";
 
+const erRolesHtml =
+  t("schema.withErRoles.aboveList", "nb") + "<ul><li>Daglig leder (nb)</ul>";
+
 function subjects(...entries: Array<[type: string, urn: string]>) {
   return { data: entries.map(([type, urn]) => ({ type, urn })) };
 }
@@ -102,7 +105,7 @@ describe("getAccessPackagesHtml with HIDE_ALTINN_ROLES off", () => {
     expect(html).toContain("<li>Algetestdata (nb)");
   });
 
-  it("lists only the Altinn 2 roles", async () => {
+  it("lists the Enhetsregisteret roles and the Altinn 2 roles, and no others", async () => {
     const html = await accessHtml(
       subjects(
         ["urn:altinn:accesspackage", packageUrn],
@@ -113,13 +116,16 @@ describe("getAccessPackagesHtml with HIDE_ALTINN_ROLES off", () => {
       ),
     );
 
-    expect(html).toContain("<ul><li>Algetestdata (nb)</ul>");
-    expect(html).not.toContain("Daglig leder");
-    expect(html).not.toContain("Privatperson");
-    expect(html).not.toContain("undefined");
+    expect(html).toBe(
+      erRolesHtml +
+        t("schema.withErRoles.accessPackages", "nb") +
+        "<ul><li>Regnskapsfører (nb)</ul>" +
+        t("schema.withAccessPackages.betweenLists", "nb") +
+        "<ul><li>Algetestdata (nb)</ul>",
+    );
   });
 
-  it("lists only the access packages when there are no Altinn 2 roles", async () => {
+  it("lists the Enhetsregisteret roles above the access packages", async () => {
     const html = await accessHtml(
       subjects(
         ["urn:altinn:accesspackage", packageUrn],
@@ -129,17 +135,47 @@ describe("getAccessPackagesHtml with HIDE_ALTINN_ROLES off", () => {
     );
 
     expect(html).toBe(
-      t("schema.withAccessPackages.aboveLists", "nb") +
+      erRolesHtml +
+        t("schema.withErRoles.accessPackages", "nb") +
         "<ul><li>Regnskapsfører (nb)</ul>" +
         t("schema.withAccessPackages.belowList", "nb"),
     );
   });
 
-  it("shows the fixed text when there are only roles other than Altinn 2", async () => {
+  it("lists the Enhetsregisteret roles and the Altinn 2 roles when there are no access packages", async () => {
+    const html = await accessHtml(
+      subjects(
+        ["urn:altinn:rolecode", erRoleUrn],
+        ["urn:altinn:rolecode", roleUrn],
+      ),
+    );
+
+    expect(html).toBe(
+      erRolesHtml +
+        t("schema.withErRoles.singleService", "nb") +
+        t("schema.withErRoles.altinn2Roles", "nb") +
+        "<ul><li>Algetestdata (nb)</ul>",
+    );
+  });
+
+  it("lists the Enhetsregisteret roles when they are the only roles", async () => {
     const html = await accessHtml(
       subjects(
         ["urn:altinn:rolecode", erRoleUrn],
         ["urn:altinn:rolecode", altinn3RoleUrn],
+      ),
+    );
+
+    expect(html).toBe(
+      erRolesHtml + t("schema.withErRoles.singleService", "nb"),
+    );
+  });
+
+  it("shows the fixed text when there are neither Enhetsregisteret nor Altinn 2 roles", async () => {
+    const html = await accessHtml(
+      subjects(
+        ["urn:altinn:rolecode", altinn3RoleUrn],
+        ["urn:altinn:rolecode", unknownRoleUrn],
       ),
     );
 
@@ -173,20 +209,48 @@ describe("getAccessPackagesHtml with HIDE_ALTINN_ROLES on", () => {
     expect(html).toBe(t("schema.withoutAccessPackages", "nb"));
   });
 
-  it("does not fetch the roles metadata", async () => {
-    await accessHtml(subjects(["urn:altinn:accesspackage", packageUrn]));
+  it("still lists the Enhetsregisteret roles", async () => {
+    const html = await accessHtml(
+      subjects(
+        ["urn:altinn:accesspackage", packageUrn],
+        ["urn:altinn:rolecode", erRoleUrn],
+        ["urn:altinn:rolecode", roleUrn],
+      ),
+    );
 
-    expect(client.getRoles).not.toHaveBeenCalled();
+    expect(html).toBe(
+      erRolesHtml +
+        t("schema.withErRoles.accessPackages", "nb") +
+        "<ul><li>Regnskapsfører (nb)</ul>" +
+        t("schema.withAccessPackages.belowList", "nb"),
+    );
+  });
+
+  it("lists only the Enhetsregisteret roles when there are no access packages", async () => {
+    const html = await accessHtml(
+      subjects(
+        ["urn:altinn:rolecode", erRoleUrn],
+        ["urn:altinn:rolecode", roleUrn],
+      ),
+    );
+
+    expect(html).toBe(
+      erRolesHtml + t("schema.withErRoles.singleService", "nb"),
+    );
   });
 
   it("says nothing about a transition period", async () => {
+    const keys = [
+      "schema.withAccessPackages.belowList",
+      "schema.withoutAccessPackages",
+      "schema.withErRoles.aboveList",
+      "schema.withErRoles.accessPackages",
+      "schema.withErRoles.singleService",
+    ] as const;
     for (const locale of ["nb", "nn", "en"] as const) {
-      expect(t("schema.withAccessPackages.belowList", locale)).not.toMatch(
-        /overgangsperiode|transition/i,
-      );
-      expect(t("schema.withoutAccessPackages", locale)).not.toMatch(
-        /overgangsperiode|transition/i,
-      );
+      for (const key of keys) {
+        expect(t(key, locale)).not.toMatch(/overgangsperiode|transition/i);
+      }
     }
   });
 });
