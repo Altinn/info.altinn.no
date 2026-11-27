@@ -1,5 +1,6 @@
 import { env } from "cloudflare:workers";
 import { elasticsearchConfig } from "@api/elasticsearch/client";
+import { buildAuthHeaders } from "@services/Elasticsearch";
 import type { APIRoute } from "astro";
 
 interface HealthCheck {
@@ -22,9 +23,7 @@ const UMBRACO_HEALTH_URL:URL = new URL(env.UMBRACO_API_URL + "umbraco/api/health
 // The cluster info endpoint proves the project answers and accepts the key without running a search,
 // which on Elastic Cloud Serverless is what scales and bills the search capacity.
 const ELASTICSEARCH_HEALTH_URL:URL = new URL("/", elasticsearchConfig.url);
-const ELASTICSEARCH_HEALTH_HEADERS:HeadersInit = elasticsearchConfig.apiKey
-    ? { Authorization: `ApiKey ${elasticsearchConfig.apiKey}` }
-    : {};
+const ELASTICSEARCH_HEALTH_HEADERS:HeadersInit = buildAuthHeaders(elasticsearchConfig);
 
 async function getHealthItem(name:string, url:URL, expectedContent:string, headers?:HeadersInit):Promise<HealthItem> {
     const startTime = performance.now();

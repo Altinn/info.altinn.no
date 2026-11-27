@@ -1,4 +1,8 @@
-export { getSuggestions, searchPages } from "./SearchService";
+export {
+  buildAuthHeaders,
+  getSuggestions,
+  searchPages,
+} from "./SearchService";
 export type {
   ElasticsearchConfig,
   FacetItem,
