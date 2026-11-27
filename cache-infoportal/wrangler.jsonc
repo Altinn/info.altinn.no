@@ -21,6 +21,19 @@
 				{
 					"binding": "ASTRO_INFOPORTAL",
 					"service": "astro-infoportal-at22"
+				},
+				{
+					// Fallback mode: serves the site from the R2 snapshot (see snapshot-infoportal/FALLBACK.md).
+					"binding": "SNAPSHOT_INFOPORTAL",
+					"service": "snapshot-infoportal-at22"
+				}
+			],
+			// fallback:mode is read from here.
+			"kv_namespaces": [
+				{
+					// infoportal-fallback-at22 (same namespace as in snapshot-infoportal)
+					"binding": "FALLBACK_KV",
+					"id": "0edfe96c8cad4d7f8b4408d7f4120667"
 				}
 			]
 		},

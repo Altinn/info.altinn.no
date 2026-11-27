@@ -72,6 +72,30 @@ describe("cache-infoportal worker", () => {
 		},
 	);
 
+	it.each(["/api/subsidies/nb", "/api/schema/municipalities"])(
+		"caches GET to static API data %s like pages",
+		async (path) => {
+			const origin = createOrigin();
+			const url = `${uniqueUrl(path)}?path=%2Fx%2F&locale=nb`;
+
+			await callWorker(new IncomingRequest(url), origin.env);
+			await callWorker(new IncomingRequest(url), origin.env);
+
+			expect(origin.fetch).toHaveBeenCalledTimes(1);
+		},
+	);
+
+	it("does not cache server errors", async () => {
+		const fetch = vi.fn(async () => new Response("error", { status: 502 }));
+		const env = { ASTRO_INFOPORTAL: { fetch } };
+		const url = uniqueUrl();
+
+		await callWorker(new IncomingRequest(url), env);
+		await callWorker(new IncomingRequest(url), env);
+
+		expect(fetch).toHaveBeenCalledTimes(2);
+	});
+
 	it("wraps origin failures in a descriptive error", async () => {
 		const env = {
 			ASTRO_INFOPORTAL: {
@@ -82,13 +106,13 @@ describe("cache-infoportal worker", () => {
 		};
 
 		await expect(
-			callWorker(new IncomingRequest(uniqueUrl()), env),
-		).rejects.toThrow("Failed to fetch GET-request from origin: Error: connection refused");
+			callWorker(new IncomingRequest("https://info.altinn.no/side"), env),
+		).rejects.toThrow("Failed to fetch GET /side from origin: Error: connection refused");
 		await expect(
-			callWorker(new IncomingRequest(uniqueUrl(), { method: "POST" }), env),
-		).rejects.toThrow("Failed to fetch NON-GET-request from origin");
+			callWorker(new IncomingRequest("https://info.altinn.no/skjema", { method: "POST" }), env),
+		).rejects.toThrow("Failed to fetch POST /skjema from origin");
 		await expect(
-			callWorker(new IncomingRequest(uniqueUrl("/api/x")), env),
-		).rejects.toThrow("Failed to fetch API request from origin");
+			callWorker(new IncomingRequest("https://info.altinn.no/api/x"), env),
+		).rejects.toThrow("Failed to fetch GET /api/x from origin");
 	});
 });
