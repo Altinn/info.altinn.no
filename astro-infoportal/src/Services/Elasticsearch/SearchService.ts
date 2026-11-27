@@ -59,14 +59,14 @@ function getIndexName(config: ElasticsearchConfig, culture: string): string {
   return `${config.indexPrefix}-${culture.toLowerCase()}`;
 }
 
+export function buildAuthHeaders(
+  config: ElasticsearchConfig,
+): Record<string, string> {
+  return config.apiKey ? { Authorization: `ApiKey ${config.apiKey}` } : {};
+}
+
 function buildHeaders(config: ElasticsearchConfig): Record<string, string> {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (config.apiKey) {
-    headers["Authorization"] = `ApiKey ${config.apiKey}`;
-  }
-  return headers;
+  return { "Content-Type": "application/json", ...buildAuthHeaders(config) };
 }
 
 function stripEmTags(text: string): string {
