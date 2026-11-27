@@ -4,7 +4,7 @@ import { type Locale, t } from "@i18n/index";
 
 // Altinn roles stop being used at the turn of 2026/2027. Switch the flag on per
 // environment, then purge the Cloudflare cache: schema pages are cached with the list in them.
-// TODO: Remove the role listing and this flag once it is on in every environment.
+// TODO: Remove the Altinn 2 role listing and this flag once it is on in every environment.
 function hideAltinnRoles(): boolean {
     return env.HIDE_ALTINN_ROLES === "true";
 }
@@ -12,14 +12,15 @@ function hideAltinnRoles(): boolean {
 // Translations are reused between threads, only loaded from Altinn after deploy
 const rolesTranslations = new Map<string, string>();
 const accessPackagesTranslations = new Map<string, string>();
-// Only the old Altinn 2 roles are listed. Enhetsregisteret roles are covered by
-// the text above the lists, which says a role there is enough.
+// Only Enhetsregisteret roles and the old Altinn 2 roles are listed; the
+// resource registry also references Altinn 3 roles and codes Altinn doesn't know.
+const enhetsregisteretRoles = new Set<string>();
 const altinn2Roles = new Set<string>();
 
-async function loadTranslations(hostname:string | undefined, locale:Locale, includeRoles:boolean) {
+async function loadTranslations(hostname:string | undefined, locale:Locale) {
     const [accessPackagesMetadata, rolesMetadata] = await Promise.all([
         getAccessPackages(hostname, locale.toString()),
-        includeRoles ? getRoles(hostname, locale.toString()) : []
+        getRoles(hostname, locale.toString())
     ]);
 
     for (const entry of accessPackagesMetadata) {
@@ -31,23 +32,24 @@ async function loadTranslations(hostname:string | undefined, locale:Locale, incl
     }
 
     for (const entry of rolesMetadata) {
-        if (entry.provider?.code !== "sys-altinn2") {
+        const urn = entry.legacyUrn || entry.urn;
+        if (entry.provider?.code === "sys-ccr") {
+            enhetsregisteretRoles.add(urn);
+        } else if (entry.provider?.code === "sys-altinn2") {
+            altinn2Roles.add(urn);
+        } else {
             continue;
         }
-        const urn = entry.legacyUrn || entry.urn;
-        altinn2Roles.add(urn);
         rolesTranslations.set(cacheKey(locale, urn), entry.name);
     }
 }
 
 export async function getAccessPackagesHtml(resourceId:string, hostname:string | undefined, locale:Locale):Promise<string> {
-    const hideRoles = hideAltinnRoles();
-
     if (accessPackagesTranslations.size == 0) {
         await Promise.all([
-          loadTranslations(hostname, "nb", !hideRoles),
-          loadTranslations(hostname, "nn", !hideRoles),
-          loadTranslations(hostname, "en", !hideRoles)
+          loadTranslations(hostname, "nb"),
+          loadTranslations(hostname, "nn"),
+          loadTranslations(hostname, "en")
         ]);
     }
 
@@ -63,84 +65,51 @@ export async function getAccessPackagesHtml(resourceId:string, hostname:string |
         }
     }
 
-    const listedRoles = hideRoles ? [] : roles.filter((role) => altinn2Roles.has(role));
+    const erRoles = roles.filter((role) => enhetsregisteretRoles.has(role));
+    const oldAltinnRoles = hideAltinnRoles() ? [] : roles.filter((role) => altinn2Roles.has(role));
+    const erRolesHtml = erRoles.length > 0
+        ? t("schema.withErRoles.aboveList", locale) + listHtml(erRoles, rolesTranslations, locale)
+        : null;
 
     if (accessPackages.length > 0) {
-        if (listedRoles.length === 0) {
-            return getHtmlForAccessPackagesOnly(accessPackages, locale);
+        let html = erRolesHtml
+            ? erRolesHtml + t("schema.withErRoles.accessPackages", locale)
+            : t("schema.withAccessPackages.aboveLists", locale);
+        html += listHtml(accessPackages, accessPackagesTranslations, locale);
+        if (oldAltinnRoles.length > 0) {
+            html += t("schema.withAccessPackages.betweenLists", locale) + listHtml(oldAltinnRoles, rolesTranslations, locale);
+        } else {
+            html += t("schema.withAccessPackages.belowList", locale);
         }
-        return getHtmlForAccessPackagesAndRoles(accessPackages, listedRoles, locale);
-    } else if (roles.length > 0) {
-        if (listedRoles.length === 0) {
-            return t("schema.withoutAccessPackages", locale);
+        return html;
+    }
+
+    if (roles.length > 0) {
+        if (erRolesHtml) {
+            let html = erRolesHtml + t("schema.withErRoles.singleService", locale);
+            if (oldAltinnRoles.length > 0) {
+                html += t("schema.withErRoles.altinn2Roles", locale) + listHtml(oldAltinnRoles, rolesTranslations, locale);
+            }
+            return html;
         }
-        return getHtmlForRolesOnly(listedRoles, locale);
+        if (oldAltinnRoles.length > 0) {
+            return t("schema.withRolesOnly.aboveList", locale) + listHtml(oldAltinnRoles, rolesTranslations, locale);
+        }
+        return t("schema.withoutAccessPackages", locale);
     }
 
     console.error(`No access packages or roles found for resourceId ${resourceId}`);
     return "";
 }
 
-function getHtmlForAccessPackagesAndRoles(accessPackages:string[], roles:string[], locale:Locale) {
-  let html = t("schema.withAccessPackages.aboveLists", locale);
-
-  html += "<ul>";
-
-  for (const accessPackage of accessPackages) {
-    html += "<li>" + accessPackagesTranslations.get(cacheKey(locale, accessPackage));
-  }
-
-  html += "</ul>";
-
-  html += t("schema.withAccessPackages.betweenLists", locale);
-
-  html += "<ul>";
-
-  for (const role of roles) {
-    html += "<li>" + rolesTranslations.get(cacheKey(locale, role));
-  }
-
-  html += "</ul>";
-
-  return html;  
-}
-
-function getHtmlForAccessPackagesOnly(accessPackages:string[], locale:Locale) {
-  let html = t("schema.withAccessPackages.aboveLists", locale);
-
-  html += "<ul>";
-
-  for (const accessPackage of accessPackages) {
-    html += "<li>" + accessPackagesTranslations.get(cacheKey(locale, accessPackage));
-  }
-
-  html += "</ul>";
-
-  html += t("schema.withAccessPackages.belowList", locale);
-
-  return html;
-}
-
-function getHtmlForRolesOnly(roles:string[], locale:Locale) {
-  let html = t("schema.withRolesOnly.aboveList", locale);
-
-  html += "<ul>";
-
-  for (const role of roles) {
-    html += "<li>" + rolesTranslations.get(cacheKey(locale, role));
-  }
-
-  html += "</ul>";
-
-  return html;  
+function listHtml(urns:string[], translations:Map<string, string>, locale:Locale) {
+    let html = "<ul>";
+    for (const urn of urns) {
+        html += "<li>" + translations.get(cacheKey(locale, urn));
+    }
+    return html + "</ul>";
 }
 
 function cacheKey(locale:Locale, urn:string) {
     return locale + ":" + urn;
 }
-
-
-
-
-
-
