@@ -55,16 +55,15 @@ export async function getAccessPackagesHtml(resourceId:string, hostname:string |
         }
     }
 
-    if (hideRoles) {
-        if (accessPackages.length > 0) {
+    if (accessPackages.length > 0) {
+        if (hideRoles || roles.length === 0) {
             return getHtmlForAccessPackagesOnly(accessPackages, locale);
-        } else if (roles.length > 0) {
-            return t("schema.withoutAccessPackages", locale);
         }
-    } else if (accessPackages.length > 0) {
         return getHtmlForAccessPackagesAndRoles(accessPackages, roles, locale);
     } else if (roles.length > 0) {
-        return getHtmlForRolesOnly(roles, locale);
+        return hideRoles
+            ? t("schema.withoutAccessPackages", locale)
+            : getHtmlForRolesOnly(roles, locale);
     }
 
     console.error(`No access packages or roles found for resourceId ${resourceId}`);

@@ -67,6 +67,18 @@ describe("getAccessPackagesHtml with HIDE_ALTINN_ROLES off", () => {
     expect(html).toContain("<li>Regnskapsmedarbeider (nb)");
   });
 
+  it("lists only the access packages when there are no roles", async () => {
+    const html = await accessHtml(
+      subjects(["urn:altinn:accesspackage", packageUrn]),
+    );
+
+    expect(html).toBe(
+      t("schema.withAccessPackages.aboveLists", "nb") +
+        "<ul><li>Regnskapsfører (nb)</ul>" +
+        t("schema.withAccessPackages.belowList", "nb"),
+    );
+  });
+
   it("lists the old Altinn roles when there are no access packages", async () => {
     const html = await accessHtml(subjects(["urn:altinn:rolecode", roleUrn]));
 
