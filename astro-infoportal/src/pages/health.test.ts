@@ -2,6 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const ELASTICSEARCH_URL = "https://search.example.test";
 
+function isElasticsearch(request: Request) {
+  return new URL(request.url).host === new URL(ELASTICSEARCH_URL).host;
+}
+
 const fetchMock = vi.fn<(request: Request) => Promise<Response>>();
 
 async function runHealthCheck() {
@@ -20,7 +24,7 @@ async function runHealthCheck() {
 function elasticsearchRequests() {
   return fetchMock.mock.calls
     .map(([request]) => request)
-    .filter((request) => request.url.startsWith(ELASTICSEARCH_URL));
+    .filter(isElasticsearch);
 }
 
 beforeEach(() => {
@@ -52,7 +56,7 @@ describe("health elasticsearch probe", () => {
 
   it("is healthy when Elasticsearch returns cluster info", async () => {
     fetchMock.mockImplementation(async (request) =>
-      request.url.startsWith(ELASTICSEARCH_URL)
+      isElasticsearch(request)
         ? new Response(
             JSON.stringify({ name: "serverless", cluster_name: "abc123" }),
             { status: 200 },
@@ -67,7 +71,7 @@ describe("health elasticsearch probe", () => {
 
   it("is unhealthy when Elasticsearch rejects the key", async () => {
     fetchMock.mockImplementation(async (request) =>
-      request.url.startsWith(ELASTICSEARCH_URL)
+      isElasticsearch(request)
         ? new Response(JSON.stringify({ error: "security_exception" }), {
             status: 403,
           })
