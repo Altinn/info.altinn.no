@@ -12,6 +12,9 @@ function hideAltinnRoles(): boolean {
 // Translations are reused between threads, only loaded from Altinn after deploy
 const rolesTranslations = new Map<string, string>();
 const accessPackagesTranslations = new Map<string, string>();
+// Enhetsregisteret roles are covered by the text above the lists, which says a
+// role there is enough, so only the old Altinn 2 roles are listed.
+const enhetsregisteretRoles = new Set<string>();
 
 async function loadTranslations(hostname:string | undefined, locale:Locale, includeRoles:boolean) {
     const [accessPackagesMetadata, rolesMetadata] = await Promise.all([
@@ -28,7 +31,12 @@ async function loadTranslations(hostname:string | undefined, locale:Locale, incl
     }
 
     for (const entry of rolesMetadata) {
-        rolesTranslations.set(locale + ":" + (entry.legacyUrn || entry.urn), entry.name);
+        const urn = entry.legacyUrn || entry.urn;
+        if (entry.provider?.code === "sys-ccr") {
+            enhetsregisteretRoles.add(urn);
+        } else {
+            rolesTranslations.set(cacheKey(locale, urn), entry.name);
+        }
     }
 }
 
@@ -55,15 +63,18 @@ export async function getAccessPackagesHtml(resourceId:string, hostname:string |
         }
     }
 
+    const listedRoles = hideRoles ? [] : roles.filter((role) => !enhetsregisteretRoles.has(role));
+
     if (accessPackages.length > 0) {
-        if (hideRoles || roles.length === 0) {
+        if (listedRoles.length === 0) {
             return getHtmlForAccessPackagesOnly(accessPackages, locale);
         }
-        return getHtmlForAccessPackagesAndRoles(accessPackages, roles, locale);
+        return getHtmlForAccessPackagesAndRoles(accessPackages, listedRoles, locale);
     } else if (roles.length > 0) {
-        return hideRoles
-            ? t("schema.withoutAccessPackages", locale)
-            : getHtmlForRolesOnly(roles, locale);
+        if (listedRoles.length === 0) {
+            return t("schema.withoutAccessPackages", locale);
+        }
+        return getHtmlForRolesOnly(listedRoles, locale);
     }
 
     console.error(`No access packages or roles found for resourceId ${resourceId}`);
