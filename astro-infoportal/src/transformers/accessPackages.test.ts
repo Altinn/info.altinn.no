@@ -12,6 +12,8 @@ vi.mock("../api/altinn/client", () => client);
 const packageUrn = "urn:altinn:accesspackage:regnskapsforer";
 const roleUrn = "urn:altinn:rolecode:a0293";
 const erRoleUrn = "urn:altinn:rolecode:dagl";
+const altinn3RoleUrn = "urn:altinn:rolecode:priv";
+const unknownRoleUrn = "urn:altinn:rolecode:ukjent";
 
 function subjects(...entries: Array<[type: string, urn: string]>) {
   return { data: entries.map(([type, urn]) => ({ type, urn })) };
@@ -52,6 +54,12 @@ beforeEach(() => {
       legacyUrn: erRoleUrn,
       name: `Daglig leder (${locale})`,
       provider: { code: "sys-ccr" },
+    },
+    {
+      urn: altinn3RoleUrn,
+      legacyUrn: null,
+      name: `Privatperson (${locale})`,
+      provider: { code: "sys-altinn3" },
     },
   ]);
 });
@@ -94,24 +102,29 @@ describe("getAccessPackagesHtml with HIDE_ALTINN_ROLES off", () => {
     expect(html).toContain("<li>Algetestdata (nb)");
   });
 
-  it("leaves out the Enhetsregisteret roles", async () => {
+  it("lists only the Altinn 2 roles", async () => {
     const html = await accessHtml(
       subjects(
         ["urn:altinn:accesspackage", packageUrn],
         ["urn:altinn:rolecode", roleUrn],
         ["urn:altinn:rolecode", erRoleUrn],
+        ["urn:altinn:rolecode", altinn3RoleUrn],
+        ["urn:altinn:rolecode", unknownRoleUrn],
       ),
     );
 
-    expect(html).toContain("<li>Algetestdata (nb)");
+    expect(html).toContain("<ul><li>Algetestdata (nb)</ul>");
     expect(html).not.toContain("Daglig leder");
+    expect(html).not.toContain("Privatperson");
+    expect(html).not.toContain("undefined");
   });
 
-  it("lists only the access packages when all roles are from Enhetsregisteret", async () => {
+  it("lists only the access packages when there are no Altinn 2 roles", async () => {
     const html = await accessHtml(
       subjects(
         ["urn:altinn:accesspackage", packageUrn],
         ["urn:altinn:rolecode", erRoleUrn],
+        ["urn:altinn:rolecode", altinn3RoleUrn],
       ),
     );
 
@@ -122,8 +135,13 @@ describe("getAccessPackagesHtml with HIDE_ALTINN_ROLES off", () => {
     );
   });
 
-  it("shows the fixed text when the only roles are from Enhetsregisteret", async () => {
-    const html = await accessHtml(subjects(["urn:altinn:rolecode", erRoleUrn]));
+  it("shows the fixed text when there are only roles other than Altinn 2", async () => {
+    const html = await accessHtml(
+      subjects(
+        ["urn:altinn:rolecode", erRoleUrn],
+        ["urn:altinn:rolecode", altinn3RoleUrn],
+      ),
+    );
 
     expect(html).toBe(t("schema.withoutAccessPackages", "nb"));
   });

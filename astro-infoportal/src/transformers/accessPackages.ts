@@ -12,9 +12,9 @@ function hideAltinnRoles(): boolean {
 // Translations are reused between threads, only loaded from Altinn after deploy
 const rolesTranslations = new Map<string, string>();
 const accessPackagesTranslations = new Map<string, string>();
-// Enhetsregisteret roles are covered by the text above the lists, which says a
-// role there is enough, so only the old Altinn 2 roles are listed.
-const enhetsregisteretRoles = new Set<string>();
+// Only the old Altinn 2 roles are listed. Enhetsregisteret roles are covered by
+// the text above the lists, which says a role there is enough.
+const altinn2Roles = new Set<string>();
 
 async function loadTranslations(hostname:string | undefined, locale:Locale, includeRoles:boolean) {
     const [accessPackagesMetadata, rolesMetadata] = await Promise.all([
@@ -31,12 +31,12 @@ async function loadTranslations(hostname:string | undefined, locale:Locale, incl
     }
 
     for (const entry of rolesMetadata) {
-        const urn = entry.legacyUrn || entry.urn;
-        if (entry.provider?.code === "sys-ccr") {
-            enhetsregisteretRoles.add(urn);
-        } else {
-            rolesTranslations.set(cacheKey(locale, urn), entry.name);
+        if (entry.provider?.code !== "sys-altinn2") {
+            continue;
         }
+        const urn = entry.legacyUrn || entry.urn;
+        altinn2Roles.add(urn);
+        rolesTranslations.set(cacheKey(locale, urn), entry.name);
     }
 }
 
@@ -63,7 +63,7 @@ export async function getAccessPackagesHtml(resourceId:string, hostname:string |
         }
     }
 
-    const listedRoles = hideRoles ? [] : roles.filter((role) => !enhetsregisteretRoles.has(role));
+    const listedRoles = hideRoles ? [] : roles.filter((role) => altinn2Roles.has(role));
 
     if (accessPackages.length > 0) {
         if (listedRoles.length === 0) {
